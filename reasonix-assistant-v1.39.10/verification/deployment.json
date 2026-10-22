@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.1",
+  "release": "/opt/mybot/releases/v1.39.10-assistant.1",
+  "sha256": "570011a65df0f4d9788980715665403c8ff0258d06b13382a5bcea9d9c48a787",
+  "weixin_poll_ready": true,
+  "credentials_unchanged": true,
+  "default_model": "ali-medium/qwen3.8-flash",
+  "backup": "/var/lib/mybot/backups/assistant-upgrade-20261022T133417Z",
+  "assistant_enabled": true
+}

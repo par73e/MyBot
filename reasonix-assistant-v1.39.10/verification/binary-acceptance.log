@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "model_requests": 5,
+  "agent_analysis_runs": 2,
+  "weixin_outbound_messages": 5,
+  "errors": []
+}

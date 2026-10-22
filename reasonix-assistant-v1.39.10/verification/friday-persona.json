@@ -1,0 +1,17 @@
+{
+  "version": "v1.39.10-assistant.2",
+  "resumed_system_prompt_refreshed_in_real_provider_request": true,
+  "greeting": "在的，Sir。有什么需要我帮忙的吗？",
+  "isolated_memory_tool_passed": true,
+  "isolated_todo_tool_passed": true,
+  "isolated_notification_jobs": 0,
+  "regression_packages_passed": ["internal/boot", "internal/control", "internal/assistant", "internal/heartbeat", "internal/cli"],
+  "golangci_lint_issues": 0,
+  "production_service_active": true,
+  "production_weixin_poll_ready": true,
+  "production_credentials_unchanged": true,
+  "production_memory_files_unchanged": true,
+  "production_prompt_path": "/var/lib/mybot/reasonix/prompts/friday.md",
+  "linux_binary_sha256": "a6e23428f8d2c375ea7975045f8eda8390197f724bee8759e1af2aa8edf4ea31",
+  "original_assistant_1_archive_unchanged": true
+}

@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "actual_weixin_api_acknowledged": true,
+  "scheduled_status": "delivered",
+  "test_title": "部署验收_20261022_213543",
+  "cleanup": {
+    "test_todos_removed": 1,
+    "test_jobs_removed": 1
+  },
+  "personal_memories_modified": false
+}

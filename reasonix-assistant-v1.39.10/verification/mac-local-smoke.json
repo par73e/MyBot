@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "archive_sha256": "95d057a444143ecbd1b9ec8d282dc54ba1ffd51a90c0d16cc040074b690a31ed",
+  "matched_server_files": 9041,
+  "mac_binary_executed": true,
+  "version": "reasonix v1.39.10-assistant.1",
+  "isolated_context_and_sqlite": true,
+  "real_local_reasonix_config_modified": false
+}

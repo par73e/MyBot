@@ -1,0 +1,12 @@
+{
+  "version": "v1.39.10-assistant.1",
+  "base_version": "v1.39.10",
+  "base_commit": "195fc08132d253270de7d88afc8d395e3f96083e",
+  "compiler": "go1.26.10",
+  "go_source_tree_sha256": "0f695f908196d9d231a885df8a8947230b61afafcbedebcdc8d112d71b74cc83",
+  "production_secrets_and_owner_ids_excluded": true,
+  "binaries": {
+    "reasonix-darwin-arm64": "75c89ca111cc52fbb777953cb479d85150978325b66e435c3b3df87efd2a073b",
+    "reasonix-linux-amd64": "570011a65df0f4d9788980715665403c8ff0258d06b13382a5bcea9d9c48a787"
+  }
+}

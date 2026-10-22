@@ -1,0 +1,68 @@
+# Template only; never overwrite an already paired host's configuration.
+default_model = "ali-medium/qwen3.8-flash"
+[agent]
+system_prompt_file = "prompts/friday.md"
+system_prompt = "你叫 Friday，是 Sir 的人工智能私人助手。自然简短地回应日常交流；根据当前有效记忆和待办协助用户，仅在实际提出编程需求时进入开发工作。"
+temperature = 0.0
+[permissions]
+mode = "ask"
+allow = ["assistant_tasks", "assistant_memory"]
+
+[[providers]]
+name = "ali"
+kind = "openai"
+base_url = "https://maas.qianwenaiapi.com/compatible-mode/v1"
+api_key_env = "QIANWEN_API_KEY"
+models = ["qwen3.8-flash"]
+default = "qwen3.8-flash"
+reasoning_protocol = "openai"
+supported_efforts = ["low", "medium", "xhigh"]
+default_effort = "low"
+effort = "low"
+
+[[providers]]
+name = "ali-medium"
+kind = "openai"
+base_url = "https://maas.qianwenaiapi.com/compatible-mode/v1"
+api_key_env = "QIANWEN_API_KEY"
+models = ["qwen3.8-flash"]
+default = "qwen3.8-flash"
+reasoning_protocol = "openai"
+supported_efforts = ["low", "medium", "xhigh"]
+default_effort = "medium"
+effort = "medium"
+
+[[providers]]
+name = "ali-xhigh"
+kind = "openai"
+base_url = "https://maas.qianwenaiapi.com/compatible-mode/v1"
+api_key_env = "QIANWEN_API_KEY"
+models = ["qwen3.8-flash"]
+default = "qwen3.8-flash"
+reasoning_protocol = "openai"
+supported_efforts = ["low", "medium", "xhigh"]
+default_effort = "xhigh"
+effort = "xhigh"
+
+[bot]
+enabled = true
+model = "ali-medium/qwen3.8-flash"
+tool_approval_mode = "read-only"
+[bot.pairing]
+enabled = false
+[bot.allowlist]
+enabled = true
+allow_all = false
+weixin_users = ["REPLACE_WITH_PAIRED_OWNER_ID"]
+weixin_admins = ["REPLACE_WITH_PAIRED_OWNER_ID"]
+weixin_approvers = ["REPLACE_WITH_PAIRED_OWNER_ID"]
+[bot.weixin]
+enabled = true
+account_id = "default"
+token_env = "WEIXIN_BOT_TOKEN"
+api_base = "https://ilinkai.weixin.qq.com"
+[bot.control]
+enabled = false
+[sandbox]
+bash = "enforce"
+network = true

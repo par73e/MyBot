@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "presets": [
+    {"preset": "ali", "wire_effort": "low", "upstream": "passed", "requests": 1, "seconds": 1.52},
+    {"preset": "ali-medium", "wire_effort": "medium", "upstream": "passed", "requests": 1, "seconds": 1.64},
+    {"preset": "ali-xhigh", "wire_effort": "xhigh", "upstream": "passed", "requests": 1, "seconds": 1.5}
+  ]
+}

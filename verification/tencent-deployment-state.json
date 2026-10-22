@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-10-22T17:49:30.251465+08:00",
+  "version": "reasonix v1.39.10-heartbeat.1",
+  "service": {
+    "MainPID": "70458",
+    "NRestarts": "1",
+    "MemoryCurrent": "9981952",
+    "CPUQuotaPerSecUSec": "1s",
+    "MemoryMax": "1073741824",
+    "User": "mybot",
+    "ActiveState": "active",
+    "SubState": "running",
+    "UnitFileState": "enabled"
+  },
+  "tasks": [],
+  "binary_sha256": "676904f2fd4a632756074d523de36c626d52c04ab54c00ca148f7fb1f13e3372",
+  "existing_services": {
+    "aurora-demo": "active",
+    "nginx": "active"
+  },
+  "weixin_login_performed": false
+}

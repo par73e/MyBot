@@ -1,0 +1,36 @@
+[Unit]
+Description=MyBot Reasonix CLI Heartbeat
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=mybot
+Group=mybot
+WorkingDirectory=/var/lib/mybot/workspace
+Environment=HOME=/var/lib/mybot
+Environment=REASONIX_HOME=/var/lib/mybot/reasonix
+Environment=TZ=Asia/Shanghai
+Environment=REASONIX_LANG=zh
+Environment=DO_NOT_TRACK=1
+Environment=REASONIX_TELEMETRY=0
+ExecStart=/opt/mybot/current/reasonix heartbeat start --poll 30s
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=25s
+KillMode=control-group
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/mybot
+MemoryHigh=768M
+MemoryMax=1G
+CPUQuota=100%
+TasksMax=128
+
+[Install]
+WantedBy=multi-user.target

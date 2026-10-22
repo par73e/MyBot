@@ -1,0 +1,13 @@
+{"wire_requests": 3, "snapshot_diagnostics": [{"request": 0, "role": "user", "short_active": false, "long_active": false, "short_expired_status": false}, {"request": 1, "role": "user", "short_active": false, "long_active": false, "short_expired_status": false}, {"request": 2, "role": "user", "short_active": false, "long_active": false, "short_expired_status": false}, {"request": 2, "role": "user", "short_active": false, "long_active": true, "short_expired_status": true}], "observed_state": {"long_active": true, "short_active": false, "todo_open": true}}
+{
+  "passed": true,
+  "default_preset": "Medium",
+  "expiry_mode": "natural",
+  "real_provider_tool_persistence": true,
+  "real_model_reused_conversation_expiry": true,
+  "todos": 1,
+  "memories": 2,
+  "notification_jobs": 0,
+  "elapsed_seconds": 31.96,
+  "production_personal_state_modified": false
+}

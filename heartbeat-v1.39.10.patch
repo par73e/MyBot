@@ -1,0 +1,2489 @@
+diff --git a/UPSTREAM_BASE.md b/UPSTREAM_BASE.md
+new file mode 100644
+--- /dev/null
++++ b/UPSTREAM_BASE.md
+@@ -0,0 +1,28 @@
++# 上游来源与本地改造
++
++- 上游仓库：https://github.com/esengine/DeepSeek-Reasonix
++- 选用版本：`v1.39.10`，Reasonix 1.x 稳定发布。
++- 对应提交：`195fc08132d253270de7d88afc8d395e3f96083e`。
++- 官方归档：https://codeload.github.com/esengine/DeepSeek-Reasonix/tar.gz/refs/tags/v1.39.10
++- 归档 SHA-256：`6993258fe438e64cc32932e00bea179c0949af3a04475d148642bdeabd37333a`。
++- 本地版本标识：`v1.39.10-heartbeat.1`。
++- 编译器：Go `1.26.10`，`CGO_ENABLED=0`。
++
++Git 克隆连接超时，因此下载并解压官方 tag 归档；此目录没有 `.git` 元数据。
++完整改动另存于工作区根目录的 `heartbeat-v1.39.10.patch`，可应用到该 tag。
++未修改 `go.mod`、`go.sum` 或桌面端源码。
++
++新增内容是独立的 `internal/heartbeat` 调度模块，以及命令行／Bot 接入。
++时间规则移植自本版本的 `desktop/heartbeat_schedule.go`。
++使用方法见 [命令行 Heartbeat](docs/HEADLESS_HEARTBEAT.zh-CN.md)。
++
++构建命令（两个目标分别执行）：
++
++```bash
++CGO_ENABLED=0 go build \
++  -ldflags '-X main.version=v1.39.10-heartbeat.1 -X main.gitCommit=195fc08132d2' \
++  -o bin/reasonix ./cmd/reasonix
++CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
++  -ldflags '-X main.version=v1.39.10-heartbeat.1 -X main.gitCommit=195fc08132d2' \
++  -o bin/reasonix-linux-amd64 ./cmd/reasonix
++```
+diff --git a/docs/HEADLESS_HEARTBEAT.zh-CN.md b/docs/HEADLESS_HEARTBEAT.zh-CN.md
+new file mode 100644
+--- /dev/null
++++ b/docs/HEADLESS_HEARTBEAT.zh-CN.md
+@@ -0,0 +1,143 @@
++# 命令行 Heartbeat（本地改造版）
++
++基于 Reasonix 1.x 稳定版 `v1.39.10`，上游提交
++`195fc08132d253270de7d88afc8d395e3f96083e`。桌面端无需启动。
++本地构建版本标记为 `v1.39.10-heartbeat.1`。
++
++## 已实现的范围
++
++- 移植桌面的间隔、Cron、每日／每周等时间规则，支持显式 IANA 时区。
++- 增加一次性时间、结束时间以及固定消息任务。
++- 提供 CLI 创建、查看、启停、删除、手动执行和常驻调度入口。
++- `bot start --heartbeat` 将调度器与现有 Bot 网关同时启动。
++- 间隔任务支持工作时间窗；所有后台 Agent 默认使用 `read-only`。
++- 默认每 30 秒检查，最小检查间隔 1 秒；空闲检查不调用模型。
++- 固定消息直接发送，不调用模型；分析任务通过同一二进制的 `run` 执行。
++- 默认每次使用新会话；`--reuse-session` 只恢复该任务自己的会话。
++- JSON 原子保存，跨进程文件锁，同一时刻串行执行任务。
++
++本次没有安装邮箱、天气、新闻等业务工具，也没有增加专用的自然语言
++任务管理工具。当前通过 CLI 或任务文件管理；这些是后续可接入的功能。
++原有记忆系统不在本次改造范围中。
++
++## 本地构建与隔离
++
++```bash
++go build -o bin/reasonix ./cmd/reasonix
++```
++
++测试版请始终指定独立的 `REASONIX_HOME`。这个变量使用 Reasonix 原有的
++隔离机制，覆盖配置、凭据、会话等数据目录；不要直接复用已安装版本的目录。
++所有示例中的路径和时间都需要替换为自己的值。
++
++```bash
++export REASONIX_HOME=/tmp/mybot-heartbeat-dev
++./bin/reasonix heartbeat help
++```
++
++Agent 任务使用这个独立目录里的模型配置。按照上游配置模型和凭据；
++模型密钥需使用 Reasonix 自己的凭据存储，单独导出同名进程环境变量并不
++等同于已配置模型凭据。
++
++## 创建与管理
++
++每个工作日 08:00 执行任务：
++
++```bash
++./bin/reasonix heartbeat add \
++  --title '每日早报' --prompt '读取已接入的信息源，整理今天的安排。' \
++  --interval '0 8 * * 1-5' --timezone Asia/Shanghai --dir /absolute/workspace
++```
++
++一次性提醒（将时间改为未来的时刻）：
++
++```bash
++./bin/reasonix heartbeat add \
++  --title '提交报告' --prompt 'Sir，记得提交报告。' --kind message \
++  --at '2026-10-23T17:00:00+08:00' --timezone Asia/Shanghai \
++  --dir /absolute/workspace
++```
++
++默认只将结果保存到任务历史，不会选择收件人。需要发送微信时，创建时追加
++`--connection weixin-weixin --chat YOUR_CHAT_ID`。连接 ID 和会话 ID 必须来自
++自己的 Bot 配置；不会向所有已绑定会话广播。
++
++```bash
++./bin/reasonix heartbeat list
++./bin/reasonix heartbeat disable --id TASK_ID
++./bin/reasonix heartbeat enable --id TASK_ID
++./bin/reasonix heartbeat remove --id TASK_ID
++./bin/reasonix heartbeat run --id TASK_ID
++```
++
++`run` 是真实执行，会忽略原定时间和启用状态，但仍遵守结束时间。
++如任务有待发送结果，`run` 优先重试该结果，不重新调用模型。
++已停用任务的待发送结果仍保持暂停，需先 `enable` 才会补发。
++任务定义可直接编辑 JSON；每次检查重新读取，编辑期间也需避免覆盖运行状态。
++
++`--interval '15m' --window-start 08:00 --window-end 23:00` 表示只在该时间窗内
++按间隔检查。结束时间不包含在窗口中。Cron 使用 5 字段，日期和星期同时
++受限时按标准 Cron 的 OR 语义处理。时间窗只适用于普通间隔规则。
++
++`--ends-at '2026-10-30T00:00:00+08:00'` 设置排他的失效边界；超过边界不再
++启动或补发通知。每天不同时间可建立多条按星期匹配的任务。
++
++## 常驻与 Bot 接入
++
++独立调度进程：
++
++```bash
++./bin/reasonix heartbeat start --poll 30s
++```
++
++随 Bot 网关启动（推荐用于服务器）：
++
++```bash
++./bin/reasonix bot start --channels weixin --dir /absolute/workspace --heartbeat
++```
++
++Bot 集成模式直接使用同一进程里的网关发送，无需打开 HTTP 控制接口。
++独立调度进程发送时，要求已有 Bot 网关开启 `[bot.control]`，并有可用的
++`token_env`。仅接受 loopback 地址，拒绝重定向。`heartbeat tick` 仅检查一次，
++可以交给系统计划任务；`start` 则自行常驻。不要同时配置多套自动启动方式。
++
++任务保存在 `REASONIX_HOME/heartbeat-cli.json`（默认目录使用 Reasonix 自身
++用户目录），与桌面端的 `heartbeat-tasks.json` 分开。`--file` 或 Bot 的
++`--heartbeat-file` 可以显式指定另一份文件，两个入口要使用同一个路径。
++
++## 运行状态与失败处理
++
++`list` 的 `history` 最多保留 20 次：
++
++- `running`：已持久化执行占用，再启动 Agent。
++- `completed`：执行成功，无需通知，或只在本地保存结果。
++- `failed`：执行失败；一次性任务停止，周期任务等待下一个周期。
++- `delivery_pending`：已有结果，等待发送或明确失败后的重试，不重新运行模型。
++- `delivered`：发送接口确认成功；一次性任务自动停用。
++- `interrupted`：上次进程在执行过程中退出；不会自动重放可能有副作用的任务。
++- `delivery_uncertain`：部分发送或 HTTP 结果不明确；停止自动重试以减少重复通知。
++- `delivery_expired`：待发送结果超过任务结束时间，不再发送。
++
++对中断的一次性任务，检查后可用 `run --id` 明确重试。周期任务不会补跑
++每一个错过的周期。Cron 在匹配分钟运行；桌面的每日／每周规则会补最近一轮，
++一次性任务在下次上线时执行。对不应迟到补发的任务，设置 `--ends-at`。
++
++模型最终答案恰好为 `HEARTBEAT_OK` 时静默完成；可在监控任务中约定这个输出。
++Agent 执行限制为 10 分钟，取消时清理子进程组；标准输出和错误各限制为
++1 MiB。网络和外部平台无法提供严格的“恰好一次”交付保证。
++
++30 秒是检查间隔，并非消息送达承诺。Agent 运行、串行排队、网络和微信平台
++都会增加延迟。需要提前准备的早报应在目标时间之前安排分析。
++
++## 验证
++
++```bash
++go test ./...
++go test -race ./internal/heartbeat ./internal/cli -run 'TestHeartbeat|TestBotHeartbeat|TestOneShot|TestDelivery|TestWorkerLease'
++make lint
++python3 scripts/test-headless-heartbeat.py --binary bin/reasonix
++```
++
++端到端脚本启动本地模拟模型和 Bot HTTP 服务，使用临时配置／工作区，验证真实
++二进制的定时启动、Agent JSON 结果、发送重试、重启去重和零模型固定提醒。
++不会访问真实模型额度、邮箱或微信账号。
+diff --git a/internal/cli/bot.go b/internal/cli/bot.go
+--- a/internal/cli/bot.go
++++ b/internal/cli/bot.go
+@@ -50,6 +50,7 @@
+ 	channels := fs.String("channels", "", "启用的平台，逗号分隔：qq,feishu,lark,weixin")
+ 	dir := fs.String("dir", "", "工作目录")
+ 	model := fs.String("model", "", "模型名（空则用 default_model）")
++	heartbeatOptions := bindBotHeartbeatFlags(fs)
+ 
+ 	if code, ok := parseCommandFlags(fs, args); !ok {
+ 		return code
+@@ -154,6 +155,12 @@
+ 		return 1
+ 	}
+ 	defer gw.Stop()
++	stopHeartbeat, err := startBotHeartbeat(ctx, gw, heartbeatOptions, modelName)
++	if err != nil {
++		fmt.Fprintln(os.Stderr, "error: heartbeat:", err)
++		return 1
++	}
++	defer stopHeartbeat()
+ 
+ 	// 等待信号或 context 取消
+ 	<-ctx.Done()
+diff --git a/internal/cli/cli.go b/internal/cli/cli.go
+--- a/internal/cli/cli.go
++++ b/internal/cli/cli.go
+@@ -181,9 +181,8 @@
+ 	case "review":
+ 		configureCLIThemeFromConfig()
+ 		return reviewCommand(rest)
+-	case "bot":
+-		configureCLIThemeFromConfig()
+-		return botCommand(rest, version)
++	case "bot", "heartbeat":
++		return runBotOrHeartbeat(cmd, rest, version)
+ 	case "upgrade", "update":
+ 		configureCLIThemeFromConfig()
+ 		return upgradeCommand(rest, version)
+diff --git a/internal/cli/heartbeat.go b/internal/cli/heartbeat.go
+new file mode 100644
+--- /dev/null
++++ b/internal/cli/heartbeat.go
+@@ -0,0 +1,209 @@
++package cli
++
++import (
++	"context"
++	"crypto/rand"
++	"encoding/hex"
++	"encoding/json"
++	"errors"
++	"flag"
++	"fmt"
++	"os"
++	"os/signal"
++	"path/filepath"
++	"slices"
++	"syscall"
++	"time"
++
++	"reasonix/internal/config"
++	"reasonix/internal/heartbeat"
++)
++
++const heartbeatHelp = `reasonix heartbeat — headless scheduled Agent tasks and reminders
++
++Usage:
++  reasonix heartbeat add --title TEXT --prompt TEXT (--interval RULE | --at RFC3339) [options]
++  reasonix heartbeat list [--file PATH]
++  reasonix heartbeat enable|disable|remove --id ID [--file PATH]
++  reasonix heartbeat start [--poll 30s] [--file PATH]
++  reasonix heartbeat tick [--file PATH]
++  reasonix heartbeat run --id ID [--file PATH]
++
++Options for add:
++  --kind agent|message       Agent analysis (default) or a zero-token fixed message
++  --timezone IANA_ZONE       Time zone for recurring calendar rules (default Local)
++  --ends-at RFC3339          Exclusive expiry boundary
++  --dir PATH                Existing workspace (default current directory)
++  --model NAME              Optional provider/model override
++  --permission-mode MODE    read-only (default) or workspace-write
++  --reuse-session           Continue this task's own previous Agent conversation
++  --window-start HH:MM      Interval execution window, inclusive
++  --window-end HH:MM        Interval execution window, exclusive
++  --connection ID --chat ID Explicit Bot notification target (otherwise store result only)
++  --domain NAME --chat-type dm|group  Optional Bot routing fields
++
++Rules: 15m; "0 8 * * 1-5"; "24h|daily@08:00"; "168h|weekly:mon,wed@08:00".
++Each command accepts --file. The default is REASONIX_HOME/heartbeat-cli.json.
++Use bot start --heartbeat to run the worker alongside the connected Bot.
++Standalone workers use the authenticated loopback Bot control API for delivery.
++`
++
++func runBotOrHeartbeat(command string, args []string, version string) int {
++	if command == "heartbeat" {
++		return heartbeatCommand(args, version)
++	}
++	configureCLIThemeFromConfig()
++	return botCommand(args, version)
++}
++
++func heartbeatCommand(args []string, version string) int {
++	if len(args) == 0 || args[0] == "help" || args[0] == "--help" || args[0] == "-h" {
++		fmt.Print(heartbeatHelp)
++		return 0
++	}
++	if err := runHeartbeatCommand(args, version); err != nil {
++		if errors.Is(err, flag.ErrHelp) {
++			return 0
++		}
++		fmt.Fprintln(os.Stderr, "heartbeat:", err)
++		return 1
++	}
++	return 0
++}
++
++func runHeartbeatCommand(args []string, version string) error {
++	if args[0] == "add" {
++		return heartbeatAdd(args[1:])
++	}
++	fs := flag.NewFlagSet("heartbeat "+args[0], flag.ContinueOnError)
++	path := fs.String("file", defaultHeartbeatPath(), "headless task file")
++	id := fs.String("id", "", "task ID")
++	poll := fs.Duration("poll", 30*time.Second, "schedule polling interval")
++	if err := fs.Parse(args[1:]); err != nil {
++		return err
++	}
++	if fs.NArg() != 0 {
++		return errors.New("unexpected positional arguments")
++	}
++	store := heartbeat.Store{Path: *path}
++	ctx := context.Background()
++	switch args[0] {
++	case "list":
++		tasks, err := store.List(ctx)
++		if err != nil {
++			return err
++		}
++		return json.NewEncoder(os.Stdout).Encode(tasks)
++	case "enable", "disable", "remove":
++		return heartbeatChange(store, args[0], *id)
++	case "start", "tick", "run":
++		return heartbeatWork(args[0], *id, *poll, store, version)
++	default:
++		return fmt.Errorf("unknown subcommand %q", args[0])
++	}
++}
++
++func defaultHeartbeatPath() string {
++	return filepath.Join(config.MemoryUserDir(), "heartbeat-cli.json")
++}
++
++func heartbeatChange(store heartbeat.Store, operation, id string) error {
++	if id == "" {
++		return errors.New("--id is required")
++	}
++	if operation != "remove" {
++		return store.Update(context.Background(), id, func(t *heartbeat.Task) error {
++			t.Enabled = operation == "enable"
++			return nil
++		})
++	}
++	return store.Edit(context.Background(), func(tasks *[]heartbeat.Task) error {
++		index := slices.IndexFunc(*tasks, func(t heartbeat.Task) bool { return t.ID == id })
++		if index < 0 {
++			return fmt.Errorf("task %q not found", id)
++		}
++		*tasks = slices.Delete(*tasks, index, index+1)
++		return nil
++	})
++}
++
++func heartbeatAdd(args []string) error {
++	fs := flag.NewFlagSet("heartbeat add", flag.ContinueOnError)
++	path := fs.String("file", defaultHeartbeatPath(), "headless task file")
++	t := heartbeat.Task{Enabled: true, NewConversationEachRun: true, CreatedAt: time.Now().UnixMilli()}
++	bindHeartbeatTaskFlags(fs, &t)
++	var target heartbeat.Target
++	fs.StringVar(&target.ConnectionID, "connection", "", "Bot connection ID")
++	fs.StringVar(&target.ChatID, "chat", "", "Bot chat ID")
++	fs.StringVar(&target.Domain, "domain", "", "Bot domain")
++	fs.StringVar(&target.ChatType, "chat-type", "dm", "Bot chat type")
++	reuse := fs.Bool("reuse-session", false, "reuse this task's own Agent session")
++	if err := fs.Parse(args); err != nil {
++		return err
++	}
++	if fs.NArg() != 0 {
++		return errors.New("unexpected positional arguments")
++	}
++	if target.ConnectionID != "" || target.ChatID != "" {
++		t.Target = &target
++	}
++	t.NewConversationEachRun = !*reuse
++	var err error
++	t.WorkspaceRoot, err = filepath.Abs(t.WorkspaceRoot)
++	if err != nil {
++		return err
++	}
++	b := make([]byte, 8)
++	if _, err := rand.Read(b); err != nil {
++		return err
++	}
++	t.ID = hex.EncodeToString(b)
++	if t.At != "" {
++		at, err := time.Parse(time.RFC3339, t.At)
++		if err != nil || !at.After(time.Now()) {
++			return errors.New("--at must be a future RFC3339 timestamp with offset")
++		}
++	}
++	if err := (heartbeat.Store{Path: *path}).Add(context.Background(), t); err != nil {
++		return err
++	}
++	return json.NewEncoder(os.Stdout).Encode(t)
++}
++
++func bindHeartbeatTaskFlags(fs *flag.FlagSet, t *heartbeat.Task) {
++	fs.StringVar(&t.Title, "title", "", "task title")
++	fs.StringVar(&t.Prompt, "prompt", "", "Agent prompt or fixed message")
++	fs.StringVar(&t.Interval, "interval", "", "interval or calendar rule")
++	fs.StringVar(&t.At, "at", "", "one-shot RFC3339 timestamp")
++	fs.StringVar(&t.Timezone, "timezone", "Local", "calendar time zone")
++	fs.StringVar(&t.EndsAt, "ends-at", "", "exclusive expiry timestamp")
++	fs.StringVar(&t.WorkspaceRoot, "dir", ".", "Agent workspace")
++	fs.StringVar(&t.Model, "model", "", "provider/model override")
++	fs.StringVar(&t.ApprovalMode, "permission-mode", "read-only", "unattended permission preset")
++	fs.StringVar(&t.Kind, "kind", "agent", "agent or message")
++	fs.StringVar(&t.TimeWindowStart, "window-start", "", "interval window start")
++	fs.StringVar(&t.TimeWindowEnd, "window-end", "", "interval window end")
++}
++
++func heartbeatWork(operation, id string, poll time.Duration, store heartbeat.Store, version string) error {
++	if operation == "run" && id == "" {
++		return errors.New("--id is required")
++	}
++	executable, err := os.Executable()
++	if err != nil {
++		return err
++	}
++	engine := heartbeat.Engine{Store: store, Runner: heartbeatProcessRunner{Executable: executable}, Clock: time.Now}
++	engine.Sender = heartbeatControlSender{}
++	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
++	defer cancel()
++	switch operation {
++	case "tick":
++		return engine.Tick(ctx, time.Now())
++	case "run":
++		return engine.Trigger(ctx, id, time.Now())
++	default:
++		fmt.Fprintf(os.Stderr, "heartbeat worker %s (%s, poll=%s)\n", version, store.Path, poll)
++		return engine.Start(ctx, poll, func(err error) { fmt.Fprintln(os.Stderr, "heartbeat:", err) })
++	}
++}
+diff --git a/internal/cli/heartbeat_bot.go b/internal/cli/heartbeat_bot.go
+new file mode 100644
+--- /dev/null
++++ b/internal/cli/heartbeat_bot.go
+@@ -0,0 +1,54 @@
++package cli
++
++import (
++	"context"
++	"errors"
++	"flag"
++	"fmt"
++	"os"
++	"time"
++
++	"reasonix/internal/heartbeat"
++)
++
++type botHeartbeatOptions struct {
++	enabled bool
++	file    string
++	poll    time.Duration
++}
++
++func bindBotHeartbeatFlags(fs *flag.FlagSet) *botHeartbeatOptions {
++	options := &botHeartbeatOptions{}
++	fs.BoolVar(&options.enabled, "heartbeat", false, "同时启用命令行 Heartbeat 定时任务")
++	fs.StringVar(&options.file, "heartbeat-file", defaultHeartbeatPath(), "Heartbeat 任务文件")
++	fs.DurationVar(&options.poll, "heartbeat-poll", 30*time.Second, "Heartbeat 检查间隔，至少 1s")
++	return options
++}
++
++func startBotHeartbeat(ctx context.Context, gateway heartbeatGateway, options *botHeartbeatOptions, model string) (func(), error) {
++	if !options.enabled {
++		return func() {}, nil
++	}
++	if options.poll < time.Second {
++		return nil, errors.New("heartbeat poll must be at least 1s")
++	}
++	store := heartbeat.Store{Path: options.file}
++	if _, err := store.List(ctx); err != nil {
++		return nil, err
++	}
++	executable, err := os.Executable()
++	if err != nil {
++		return nil, err
++	}
++	engine := heartbeat.Engine{
++		Store: store, Runner: heartbeatProcessRunner{Executable: executable, DefaultModel: model},
++		Sender: heartbeatGatewaySender{gateway: gateway},
++	}
++	workerCtx, cancel := context.WithCancel(ctx)
++	done := make(chan struct{})
++	go func() {
++		defer close(done)
++		_ = engine.Start(workerCtx, options.poll, func(err error) { fmt.Fprintln(os.Stderr, "heartbeat:", err) })
++	}()
++	return func() { cancel(); <-done }, nil
++}
+diff --git a/internal/cli/heartbeat_completion.go b/internal/cli/heartbeat_completion.go
+new file mode 100644
+--- /dev/null
++++ b/internal/cli/heartbeat_completion.go
+@@ -0,0 +1,39 @@
++package cli
++
++func botCompletionSpec(model, help cliCompletionFlag) cliCompletionSpec {
++	return completionSpec("bot", []cliCompletionFlag{help},
++		completionSpec("start", []cliCompletionFlag{
++			completionFlag("--channels --dir", cliCompletionStaticValue), model, help,
++			completionFlag("--heartbeat", cliCompletionNoValue),
++			completionFlag("--heartbeat-file", cliCompletionPathValue),
++			completionFlag("--heartbeat-poll", cliCompletionStaticValue),
++		}),
++		completionSpec("doctor", []cliCompletionFlag{completionFlag("--json --deep", cliCompletionNoValue), help}),
++		completionSpec("pairing", []cliCompletionFlag{help},
++			completionSpec("list", []cliCompletionFlag{help}),
++			completionSpec("approve", []cliCompletionFlag{help}),
++			completionSpecWithAliases("reject", []string{"deny"}, []cliCompletionFlag{help}),
++		),
++		completionSpec("weixin-login", []cliCompletionFlag{completionFlag("--timeout", cliCompletionStaticValue), help}),
++	)
++}
++
++func heartbeatCompletionSpec(help cliCompletionFlag) cliCompletionSpec {
++	file := completionFlag("--file", cliCompletionPathValue)
++	id := completionFlag("--id", cliCompletionStaticValue)
++	return completionSpec("heartbeat", []cliCompletionFlag{help},
++		completionSpec("add", []cliCompletionFlag{
++			file, help, completionFlag("--title --prompt --interval --at --timezone --ends-at --model --window-start --window-end --connection --chat --domain --chat-type", cliCompletionStaticValue),
++			completionFlag("--kind", cliCompletionStaticValue, "agent", "message"),
++			completionFlag("--permission-mode", cliCompletionStaticValue, "read-only", "workspace-write"),
++			completionFlag("--dir", cliCompletionPathValue), completionFlag("--reuse-session", cliCompletionNoValue),
++		}),
++		completionSpec("list", []cliCompletionFlag{file, help}),
++		completionSpec("enable", []cliCompletionFlag{file, id, help}),
++		completionSpec("disable", []cliCompletionFlag{file, id, help}),
++		completionSpec("remove", []cliCompletionFlag{file, id, help}),
++		completionSpec("start", []cliCompletionFlag{file, help, completionFlag("--poll", cliCompletionStaticValue)}),
++		completionSpec("tick", []cliCompletionFlag{file, help}),
++		completionSpec("run", []cliCompletionFlag{file, id, help}),
++	)
++}
+diff --git a/internal/cli/heartbeat_runner.go b/internal/cli/heartbeat_runner.go
+new file mode 100644
+--- /dev/null
++++ b/internal/cli/heartbeat_runner.go
+@@ -0,0 +1,87 @@
++package cli
++
++import (
++	"context"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"strings"
++	"time"
++
++	"reasonix/internal/heartbeat"
++	"reasonix/internal/proc"
++	"reasonix/internal/secrets"
++)
++
++type heartbeatProcessRunner struct {
++	Executable   string
++	DefaultModel string
++}
++
++func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (heartbeat.Execution, error) {
++	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
++	defer cancel()
++	args := heartbeatAgentArgs(t, r.DefaultModel)
++	cmd := proc.CommandContext(ctx, r.Executable, args...)
++	cmd.WaitDelay = 5 * time.Second
++	stdout, stderr := &heartbeatOutput{}, &heartbeatOutput{}
++	cmd.Stdout, cmd.Stderr = stdout, stderr
++	_, err := proc.RunCommand(ctx, cmd, proc.RunOptions{Source: "heartbeat"})
++	if err != nil {
++		return heartbeat.Execution{}, fmt.Errorf("Agent execution: %w: %s", err, secrets.Redact(string(stderr.data)))
++	}
++	if stdout.overflow {
++		return heartbeat.Execution{}, errors.New("Agent result exceeds 1 MiB")
++	}
++	var result struct {
++		Type          string `json:"type"`
++		IsError       bool   `json:"is_error"`
++		Result        string `json:"result"`
++		SessionID     string `json:"session_id"`
++		FromReasoning bool   `json:"result_from_reasoning"`
++	}
++	if err := json.Unmarshal(stdout.data, &result); err != nil {
++		return heartbeat.Execution{}, fmt.Errorf("invalid Agent JSON result: %w", err)
++	}
++	if result.Type != "result" || result.IsError || result.FromReasoning {
++		return heartbeat.Execution{}, errors.New("Agent did not produce a successful final answer")
++	}
++	text := strings.TrimSpace(result.Result)
++	if text == "HEARTBEAT_OK" {
++		text = ""
++	}
++	return heartbeat.Execution{Text: text, SessionID: result.SessionID}, nil
++}
++
++func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
++	args := []string{"run", "--output-format", "json", "--permission-mode", t.ApprovalMode, "--dir", t.WorkspaceRoot}
++	model := t.Model
++	if model == "" {
++		model = defaultModel
++	}
++	if model != "" {
++		args = append(args, "--model", model)
++	}
++	if !t.NewConversationEachRun && len(t.History) > 0 {
++		if session := t.History[len(t.History)-1].SessionID; session != "" {
++			args = append(args, "--resume", session)
++		}
++	}
++	return append(args, "--", t.Prompt)
++}
++
++type heartbeatOutput struct {
++	data     []byte
++	overflow bool
++}
++
++func (b *heartbeatOutput) Write(p []byte) (int, error) {
++	n := len(p)
++	remaining := (1 << 20) - len(b.data)
++	if len(p) > remaining {
++		p = p[:remaining]
++		b.overflow = true
++	}
++	b.data = append(b.data, p...)
++	return n, nil
++}
+diff --git a/internal/cli/heartbeat_sender.go b/internal/cli/heartbeat_sender.go
+new file mode 100644
+--- /dev/null
++++ b/internal/cli/heartbeat_sender.go
+@@ -0,0 +1,96 @@
++package cli
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"io"
++	"net"
++	"net/http"
++	"os"
++	"strings"
++	"time"
++
++	"reasonix/internal/bot"
++	"reasonix/internal/heartbeat"
++)
++
++type heartbeatGatewaySender struct{ gateway heartbeatGateway }
++
++type heartbeatGateway interface {
++	SendToAdapter(context.Context, string, string, bot.OutboundMessage) (bot.SendResult, error)
++}
++
++func (s heartbeatGatewaySender) Send(ctx context.Context, target heartbeat.Target, text string) error {
++	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
++	defer cancel()
++	result, err := s.gateway.SendToAdapter(ctx, target.ConnectionID, target.Domain, bot.OutboundMessage{
++		ConnectionID: target.ConnectionID, Domain: target.Domain, ChatID: target.ChatID,
++		ChatType: bot.ChatType(target.ChatType), Text: text,
++	})
++	if err != nil && len(result.DeliveredMessageIDs()) > 0 {
++		return fmt.Errorf("%w: partial Bot delivery", heartbeat.ErrDeliveryUncertain)
++	}
++	return err
++}
++
++type heartbeatControlSender struct{}
++
++func (heartbeatControlSender) Send(ctx context.Context, target heartbeat.Target, text string) error {
++	cfg, err := loadBotCommandConfig()
++	if err != nil {
++		return err
++	}
++	if !cfg.Bot.Control.Enabled {
++		return errors.New("enable [bot.control] for standalone heartbeat delivery, or use bot start --heartbeat")
++	}
++	token := strings.TrimSpace(os.Getenv(cfg.Bot.Control.TokenEnv))
++	if token == "" {
++		return errors.New("Bot control token is unavailable")
++	}
++	addr := cfg.Bot.Control.Addr
++	if addr == "" {
++		addr = "127.0.0.1:37913"
++	}
++	return heartbeatControlSend(ctx, addr, token, target, text)
++}
++
++func heartbeatControlSend(ctx context.Context, addr, token string, target heartbeat.Target, text string) error {
++	host, _, err := net.SplitHostPort(addr)
++	if err != nil {
++		return err
++	}
++	ip := net.ParseIP(host)
++	if !strings.EqualFold(host, "localhost") && (ip == nil || !ip.IsLoopback()) {
++		return errors.New("Bot control must use a loopback address")
++	}
++	body, err := json.Marshal(map[string]string{
++		"connection_id": target.ConnectionID, "domain": target.Domain,
++		"chat_id": target.ChatID, "chat_type": target.ChatType, "text": text,
++	})
++	if err != nil {
++		return err
++	}
++	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://"+addr+"/send", bytes.NewReader(body))
++	if err != nil {
++		return err
++	}
++	req.Header.Set("Authorization", "Bearer "+token)
++	req.Header.Set("Content-Type", "application/json")
++	client := &http.Client{Timeout: 30 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
++	resp, err := client.Do(req)
++	if err != nil {
++		return fmt.Errorf("%w: %w", heartbeat.ErrDeliveryUncertain, err)
++	}
++	defer resp.Body.Close()
++	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4096))
++	if resp.StatusCode == http.StatusMultiStatus {
++		return fmt.Errorf("%w: partial Bot delivery", heartbeat.ErrDeliveryUncertain)
++	}
++	if resp.StatusCode != http.StatusOK {
++		return fmt.Errorf("Bot delivery HTTP %d; result retained", resp.StatusCode)
++	}
++	return nil
++}
+diff --git a/internal/cli/heartbeat_test.go b/internal/cli/heartbeat_test.go
+new file mode 100644
+--- /dev/null
++++ b/internal/cli/heartbeat_test.go
+@@ -0,0 +1,155 @@
++package cli
++
++import (
++	"context"
++	"encoding/json"
++	"flag"
++	"net/http"
++	"net/http/httptest"
++	"net/url"
++	"path/filepath"
++	"slices"
++	"testing"
++	"time"
++
++	"reasonix/internal/bot"
++	"reasonix/internal/heartbeat"
++)
++
++func TestHeartbeatCLIAddPauseRemoveAndRejectAmbiguousTime(t *testing.T) {
++	isolateCLIConfigHome(t)
++	path := filepath.Join(t.TempDir(), "tasks.json")
++	args := []string{"--file", path, "--title", "report", "--prompt", "submit report", "--kind", "message", "--at", time.Now().Add(time.Hour).UTC().Format(time.RFC3339), "--timezone", "Asia/Shanghai", "--dir", t.TempDir()}
++	var task heartbeat.Task
++	output := captureStdout(t, func() {
++		if err := heartbeatAdd(args); err != nil {
++			t.Fatal(err)
++		}
++	})
++	if err := json.Unmarshal([]byte(output), &task); err != nil {
++		t.Fatal(err)
++	}
++	store := heartbeat.Store{Path: path}
++	if task.ID == "" || task.Kind != "message" || !task.Enabled {
++		t.Fatalf("task=%+v", task)
++	}
++	if err := heartbeatChange(store, "disable", task.ID); err != nil {
++		t.Fatal(err)
++	}
++	tasks, err := store.List(t.Context())
++	if err != nil || tasks[0].Enabled {
++		t.Fatalf("tasks=%v err=%v", tasks, err)
++	}
++	if err := heartbeatChange(store, "remove", task.ID); err != nil {
++		t.Fatal(err)
++	}
++	tasks, err = store.List(t.Context())
++	if err != nil || len(tasks) != 0 {
++		t.Fatalf("tasks=%v err=%v", tasks, err)
++	}
++	if err := heartbeatAdd(append(args, "--interval", "15m")); err == nil {
++		t.Fatal("accepted both at and interval")
++	}
++	if err := heartbeatAdd([]string{"--title", "bad", "--prompt", "bad", "--at", "tomorrow"}); err == nil {
++		t.Fatal("accepted an unparsed date")
++	}
++}
++func TestHeartbeatAgentArgumentsKeepPromptSeparateAndReuseOwnSession(t *testing.T) {
++	task := heartbeat.Task{WorkspaceRoot: "/tmp/a b", ApprovalMode: "read-only", Prompt: "--permission-mode danger-full-access", History: []heartbeat.Run{{SessionID: "own-session"}}}
++	args := heartbeatAgentArgs(task, "test/model")
++	if !slices.Equal(args, []string{"run", "--output-format", "json", "--permission-mode", "read-only", "--dir", "/tmp/a b", "--model", "test/model", "--resume", "own-session", "--", task.Prompt}) {
++		t.Fatalf("argv=%q", args)
++	}
++	task.NewConversationEachRun = true
++	if slices.Contains(heartbeatAgentArgs(task, ""), "--resume") {
++		t.Fatal("fresh run reuses history")
++	}
++}
++func TestHeartbeatControlSenderRoutesAndAuthenticates(t *testing.T) {
++	target := heartbeat.Target{ConnectionID: "weixin-weixin", ChatID: "owner", Domain: "weixin", ChatType: "dm"}
++	calls := 0
++	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		calls++
++		if r.URL.Path != "/send" || r.Method != http.MethodPost || r.Header.Get("Authorization") != "Bearer fixture-token" {
++			t.Errorf("invalid request: %v", r)
++		}
++		var body map[string]string
++		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
++			t.Error(err)
++		}
++		if body["chat_id"] != target.ChatID || body["connection_id"] != target.ConnectionID || body["text"] != "ready" {
++			t.Errorf("body=%v", body)
++		}
++		w.WriteHeader(http.StatusOK)
++	}))
++	defer server.Close()
++	addr, _ := url.Parse(server.URL)
++	if err := heartbeatControlSend(t.Context(), addr.Host, "fixture-token", target, "ready"); err != nil {
++		t.Fatal(err)
++	}
++	if calls != 1 {
++		t.Fatalf("calls=%d", calls)
++	}
++	if err := heartbeatControlSend(t.Context(), "example.com:443", "fixture-token", target, "ready"); err == nil {
++		t.Fatal("accepted non-loopback control endpoint")
++	}
++}
++func TestHeartbeatControlSenderRejectsPartialDeliveryAndRedirect(t *testing.T) {
++	for _, status := range []int{http.StatusMultiStatus, http.StatusTemporaryRedirect} {
++		t.Run(http.StatusText(status), func(t *testing.T) {
++			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
++				w.Header().Set("Location", "https://example.invalid")
++				w.WriteHeader(status)
++			}))
++			defer server.Close()
++			addr, _ := url.Parse(server.URL)
++			if err := heartbeatControlSend(t.Context(), addr.Host, "token", heartbeat.Target{ConnectionID: "wx", ChatID: "owner"}, "ready"); err == nil {
++				t.Fatal("delivery incorrectly marked successful")
++			}
++		})
++	}
++}
++
++type heartbeatFakeGateway struct{ sent chan bot.OutboundMessage }
++
++func (g heartbeatFakeGateway) SendToAdapter(_ context.Context, _ string, _ string, msg bot.OutboundMessage) (bot.SendResult, error) {
++	g.sent <- msg
++	return bot.SendResult{}, nil
++}
++func TestBotHeartbeatWorkerLifecycleAndDirectDelivery(t *testing.T) {
++	isolateCLIConfigHome(t)
++	store := heartbeat.Store{Path: filepath.Join(t.TempDir(), "tasks.json")}
++	task := heartbeat.Task{ID: "reminder", Title: "reminder", Prompt: "time to submit", At: time.Now().Add(-time.Second).Format(time.RFC3339), Timezone: "Asia/Shanghai", Kind: "message", ApprovalMode: "read-only", Enabled: true, WorkspaceRoot: t.TempDir(), CreatedAt: time.Now().Add(-time.Hour).UnixMilli(), Target: &heartbeat.Target{ConnectionID: "wx", ChatID: "owner", ChatType: "dm"}}
++	if err := store.Add(t.Context(), task); err != nil {
++		t.Fatal(err)
++	}
++	gateway := heartbeatFakeGateway{sent: make(chan bot.OutboundMessage, 1)}
++	stop, err := startBotHeartbeat(t.Context(), gateway, &botHeartbeatOptions{enabled: true, file: store.Path, poll: time.Second}, "")
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer stop()
++	select {
++	case got := <-gateway.sent:
++		if got.ChatID != "owner" || got.Text != "time to submit" {
++			t.Fatalf("message=%+v", got)
++		}
++	case <-time.After(10 * time.Second):
++		t.Fatal("worker did not deliver reminder")
++	}
++}
++func TestBotHeartbeatDisabledDoesNotTouchStore(t *testing.T) {
++	options := bindBotHeartbeatFlags(flag.NewFlagSet("fixture", flag.ContinueOnError))
++	options.file = filepath.Join(t.TempDir(), "missing", "tasks.json")
++	stop, err := startBotHeartbeat(t.Context(), heartbeatFakeGateway{}, options, "")
++	if err != nil {
++		t.Fatal(err)
++	}
++	stop()
++}
++func TestHeartbeatOutputIsBounded(t *testing.T) {
++	output := &heartbeatOutput{}
++	if n, err := output.Write(make([]byte, (1<<20)+1)); err != nil || n != (1<<20)+1 || !output.overflow || len(output.data) != (1<<20) {
++		t.Fatalf("n=%d err=%v size=%d", n, err, len(output.data))
++	}
++}
+diff --git a/internal/cli/shell_completion.go b/internal/cli/shell_completion.go
+--- a/internal/cli/shell_completion.go
++++ b/internal/cli/shell_completion.go
+@@ -262,16 +262,8 @@
+ 		completionSpec("review", []cliCompletionFlag{
+ 			completionFlag("--base --commit --instructions", cliCompletionStaticValue), model, help,
+ 		}),
+-		completionSpec("bot", []cliCompletionFlag{help},
+-			completionSpec("start", []cliCompletionFlag{completionFlag("--channels --dir", cliCompletionStaticValue), model, help}),
+-			completionSpec("doctor", []cliCompletionFlag{completionFlag("--json --deep", cliCompletionNoValue), help}),
+-			completionSpec("pairing", []cliCompletionFlag{help},
+-				completionSpec("list", []cliCompletionFlag{help}),
+-				completionSpec("approve", []cliCompletionFlag{help}),
+-				completionSpecWithAliases("reject", []string{"deny"}, []cliCompletionFlag{help}),
+-			),
+-			completionSpec("weixin-login", []cliCompletionFlag{completionFlag("--timeout", cliCompletionStaticValue), help}),
+-		),
++		botCompletionSpec(model, help),
++		heartbeatCompletionSpec(help),
+ 		completionSpecWithAliases("upgrade", []string{"update"}, []cliCompletionFlag{
+ 			completionFlag("--check --force", cliCompletionNoValue), completionFlag("--channel", cliCompletionStaticValue), help,
+ 		}),
+diff --git a/internal/heartbeat/doc.go b/internal/heartbeat/doc.go
+new file mode 100644
+--- /dev/null
++++ b/internal/heartbeat/doc.go
+@@ -0,0 +1,4 @@
++// Package heartbeat persists and dispatches scheduled work without a desktop.
++// The calendar matcher is ported from desktop/heartbeat_schedule.go; execution
++// and delivery are injected by the CLI so this package has no frontend imports.
++package heartbeat
+diff --git a/internal/heartbeat/engine.go b/internal/heartbeat/engine.go
+new file mode 100644
+--- /dev/null
++++ b/internal/heartbeat/engine.go
+@@ -0,0 +1,250 @@
++package heartbeat
++
++import (
++	"context"
++	"errors"
++	"fmt"
++	"os"
++	"path/filepath"
++	"time"
++
++	"reasonix/internal/identitylock"
++)
++
++// Execution is the final answer and optional resumable Agent session.
++type Execution struct {
++	Text      string
++	SessionID string
++}
++
++// Runner executes an Agent task; message reminders bypass it entirely.
++type Runner interface {
++	Run(context.Context, Task) (Execution, error)
++}
++
++// Sender delivers to one task's target without choosing recipients implicitly.
++type Sender interface {
++	Send(context.Context, Target, string) error
++}
++
++// ErrDeliveryUncertain prevents automatic replay after a partial or ambiguous send.
++var ErrDeliveryUncertain = errors.New("notification may already have been delivered")
++
++// Engine dispatches serially, retaining its cross-process lease through delivery.
++type Engine struct {
++	Store  Store
++	Runner Runner
++	Sender Sender
++	Clock  func() time.Time
++}
++
++// Start checks immediately and then polls until cancellation. Store errors are
++// reported without overwriting the file, so a corrected file can be reloaded.
++func (e Engine) Start(ctx context.Context, interval time.Duration, report func(error)) error {
++	if interval < time.Second {
++		return errors.New("poll interval must be at least 1s")
++	}
++	if e.Clock == nil {
++		e.Clock = time.Now
++	}
++	ticker := time.NewTicker(interval)
++	defer ticker.Stop()
++	for {
++		if err := e.Tick(ctx, time.Now()); err != nil && report != nil {
++			report(err)
++		}
++		select {
++		case <-ctx.Done():
++			return nil
++		case <-ticker.C:
++		}
++	}
++}
++
++// Tick dispatches due work once. Competing workers leave execution to the owner.
++func (e Engine) Tick(ctx context.Context, now time.Time) error {
++	return e.withLease(func() error { return e.dispatch(ctx, now, "") })
++}
++
++// Trigger executes a task manually, including a previously attempted one-shot.
++func (e Engine) Trigger(ctx context.Context, id string, now time.Time) error {
++	return e.withLease(func() error { return e.dispatch(ctx, now, id) })
++}
++
++func (e Engine) withLease(action func() error) error {
++	if err := os.MkdirAll(filepath.Dir(e.Store.Path), 0o700); err != nil {
++		return err
++	}
++	release, err := identitylock.TryAcquire(e.Store.Path + ".runner.lock")
++	if errors.Is(err, identitylock.ErrHeld) {
++		return errors.New("heartbeat worker already executing")
++	}
++	if err != nil {
++		return err
++	}
++	defer release()
++	return action()
++}
++
++func (e Engine) dispatch(ctx context.Context, now time.Time, manualID string) error {
++	tasks, err := e.Store.List(ctx)
++	if err != nil {
++		return err
++	}
++	var failures []error
++	found := manualID == ""
++	for _, task := range tasks {
++		if manualID != "" && task.ID != manualID {
++			continue
++		}
++		found = true
++		if ctx.Err() != nil {
++			return ctx.Err()
++		}
++		currentTime := now
++		if e.Clock != nil {
++			currentTime = e.Clock()
++		}
++		if err := e.dispatchTask(ctx, task, currentTime, manualID != ""); err != nil {
++			failures = append(failures, fmt.Errorf("task %s: %w", task.ID, err))
++		}
++	}
++	if !found {
++		return fmt.Errorf("heartbeat task %q not found", manualID)
++	}
++	return errors.Join(failures...)
++}
++
++func (e Engine) dispatchTask(ctx context.Context, task Task, now time.Time, manual bool) error {
++	last := lastRun(&task)
++	if last != nil && last.Status == "running" {
++		return e.updateRun(task.ID, func(t *Task, r *Run) {
++			r.Status, r.Error, r.EndedAt = "interrupted", "previous worker exited during execution; inspect before retrying", now.UnixMilli()
++			if t.At != "" {
++				t.Enabled = false
++			}
++		})
++	}
++	if last != nil && last.Status == "delivery_pending" {
++		return e.deliver(ctx, task.ID)
++	}
++	if !manual && !task.Due(now) {
++		return nil
++	}
++	if task.Expired(now) {
++		return errors.New("task has expired")
++	}
++	if err := e.claim(ctx, &task, now, manual); err != nil {
++		return err
++	}
++	out := Execution{Text: task.Prompt}
++	var err error
++	if task.Kind == "agent" {
++		// A removed workspace must not block management or unrelated jobs.
++		err = task.validateWorkspace()
++		if err == nil {
++			if e.Runner == nil {
++				err = errors.New("Agent runner is unavailable")
++			} else {
++				out, err = e.Runner.Run(ctx, task)
++			}
++		}
++	}
++	if saveErr := e.finish(task.ID, out, err); saveErr != nil {
++		return saveErr
++	}
++	if err != nil {
++		return err
++	}
++	return e.deliver(ctx, task.ID)
++}
++
++func (e Engine) claim(ctx context.Context, task *Task, now time.Time, manual bool) error {
++	return e.Store.Update(ctx, task.ID, func(current *Task) error {
++		if (!manual && !current.Due(now)) || current.Expired(now) {
++			return errors.New("schedule changed before execution")
++		}
++		*task = *current
++		current.LastRunAt = now.UnixMilli()
++		current.History = append(current.History, Run{StartedAt: now.UnixMilli(), Status: "running"})
++		if len(current.History) > 20 {
++			current.History = current.History[len(current.History)-20:]
++		}
++		return nil
++	})
++}
++
++func (e Engine) finish(id string, out Execution, runErr error) error {
++	return e.updateRun(id, func(t *Task, r *Run) {
++		r.Result, r.SessionID, r.EndedAt = out.Text, out.SessionID, time.Now().UnixMilli()
++		r.Status = "completed"
++		if runErr != nil {
++			r.Status, r.Error = "failed", runErr.Error()
++		}
++		if runErr == nil && out.Text != "" && t.Target != nil {
++			r.Status = "delivery_pending"
++		}
++		if t.At != "" && r.Status != "delivery_pending" {
++			t.Enabled = false
++		}
++	})
++}
++
++func (e Engine) deliver(ctx context.Context, id string) error {
++	tasks, err := e.Store.List(ctx)
++	if err != nil {
++		return err
++	}
++	for _, task := range tasks {
++		if task.ID != id {
++			continue
++		}
++		r := lastRun(&task)
++		if r == nil || r.Status != "delivery_pending" || !task.Enabled {
++			return nil
++		}
++		if task.Target == nil {
++			return errors.New("pending notification has no target")
++		}
++		if task.Expired(time.Now()) {
++			return e.updateRun(id, func(t *Task, r *Run) { r.Status = "delivery_expired"; t.Enabled = false })
++		}
++		if e.Sender == nil {
++			return errors.New("notification sender unavailable; result retained for delivery")
++		}
++		if err := e.Sender.Send(ctx, *task.Target, r.Result); err != nil {
++			_ = e.updateRun(id, func(_ *Task, r *Run) {
++				r.Error = err.Error()
++				if errors.Is(err, ErrDeliveryUncertain) {
++					r.Status = "delivery_uncertain"
++				}
++			})
++			return err
++		}
++		return e.updateRun(id, func(t *Task, r *Run) {
++			r.Status, r.Error = "delivered", ""
++			if t.At != "" {
++				t.Enabled = false
++			}
++		})
++	}
++	return nil
++}
++
++func (e Engine) updateRun(id string, edit func(*Task, *Run)) error {
++	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
++	defer cancel()
++	return e.Store.Update(ctx, id, func(t *Task) error {
++		if r := lastRun(t); r != nil {
++			edit(t, r)
++		}
++		return nil
++	})
++}
++
++func lastRun(t *Task) *Run {
++	if len(t.History) == 0 {
++		return nil
++	}
++	return &t.History[len(t.History)-1]
++}
+diff --git a/internal/heartbeat/engine_test.go b/internal/heartbeat/engine_test.go
+new file mode 100644
+--- /dev/null
++++ b/internal/heartbeat/engine_test.go
+@@ -0,0 +1,306 @@
++package heartbeat
++
++import (
++	"context"
++	"errors"
++	"os"
++	"path/filepath"
++	"sync"
++	"testing"
++	"time"
++)
++
++func TestMissingWorkspaceDoesNotBlockOtherTasksOrManagement(t *testing.T) {
++	store, task, now := fixture(t)
++	if err := os.Remove(task.WorkspaceRoot); err != nil {
++		t.Fatal(err)
++	}
++	other := task
++	other.ID, other.WorkspaceRoot, other.Kind = "working", t.TempDir(), "message"
++	if err := store.Add(t.Context(), other); err != nil {
++		t.Fatal(err)
++	}
++	runner := &testRunner{}
++	if err := (Engine{Store: store, Runner: runner}).Tick(t.Context(), now); err == nil {
++		t.Fatal("missing workspace was not reported")
++	}
++	tasks, err := store.List(t.Context())
++	if err != nil || len(tasks) != 2 {
++		t.Fatalf("tasks=%v error=%v", tasks, err)
++	}
++	if runner.calls != 0 || lastRun(&tasks[0]).Status != "failed" || lastRun(&tasks[1]).Status != "completed" {
++		t.Fatalf("calls=%d tasks=%+v", runner.calls, tasks)
++	}
++	if err := store.Update(t.Context(), task.ID, func(t *Task) error { t.Enabled = false; return nil }); err != nil {
++		t.Fatal(err)
++	}
++}
++
++type testRunner struct {
++	calls   int
++	result  Execution
++	err     error
++	entered chan struct{}
++	resume  chan struct{}
++}
++
++func (r *testRunner) Run(ctx context.Context, _ Task) (Execution, error) {
++	r.calls++
++	if r.entered != nil {
++		close(r.entered)
++		select {
++		case <-r.resume:
++		case <-ctx.Done():
++			return Execution{}, ctx.Err()
++		}
++	}
++	return r.result, r.err
++}
++
++type testSender struct {
++	calls  int
++	target Target
++	texts  []string
++	err    error
++}
++
++func (s *testSender) Send(_ context.Context, target Target, text string) error {
++	s.calls++
++	s.target = target
++	s.texts = append(s.texts, text)
++	return s.err
++}
++func fixture(t *testing.T) (Store, Task, time.Time) {
++	t.Helper()
++	now := time.Date(2026, 10, 22, 17, 0, 0, 0, time.FixedZone("CST", 8*3600))
++	store := Store{Path: filepath.Join(t.TempDir(), "heartbeat.json")}
++	task := Task{ID: "task-1", Title: "report", Prompt: "prepare report", At: now.Format(time.RFC3339), Timezone: "Asia/Shanghai", Enabled: true, Kind: "agent", ApprovalMode: "read-only", WorkspaceRoot: t.TempDir(), CreatedAt: now.Add(-time.Hour).UnixMilli(), NewConversationEachRun: true}
++	if err := store.Add(t.Context(), task); err != nil {
++		t.Fatal(err)
++	}
++	return store, task, now
++}
++func onlyTask(t *testing.T, s Store) Task {
++	t.Helper()
++	tasks, err := s.List(t.Context())
++	if err != nil || len(tasks) != 1 {
++		t.Fatalf("tasks=%v err=%v", tasks, err)
++	}
++	return tasks[0]
++}
++func TestOneShotSurvivesRestartAndRunsOnlyOnce(t *testing.T) {
++	store, _, now := fixture(t)
++	runner := &testRunner{result: Execution{Text: "done", SessionID: "session-1"}}
++	engine := Engine{Store: store, Runner: runner}
++	if err := engine.Tick(t.Context(), now.Add(-time.Second)); err != nil {
++		t.Fatal(err)
++	}
++	if runner.calls != 0 {
++		t.Fatal("ran before due time")
++	}
++	if err := engine.Tick(t.Context(), now); err != nil {
++		t.Fatal(err)
++	}
++	restarted := Engine{Store: Store{Path: store.Path}, Runner: runner}
++	if err := restarted.Tick(t.Context(), now.Add(time.Hour)); err != nil {
++		t.Fatal(err)
++	}
++	got := onlyTask(t, store)
++	if runner.calls != 1 || got.Enabled || got.History[0].Status != "completed" || got.History[0].SessionID != "session-1" {
++		t.Fatalf("calls=%d task=%+v", runner.calls, got)
++	}
++}
++func TestDeliveryRetryDoesNotRerunAgent(t *testing.T) {
++	store, _, now := fixture(t)
++	target := Target{ConnectionID: "weixin-weixin", ChatID: "owner", ChatType: "dm"}
++	if err := store.Update(t.Context(), "task-1", func(t *Task) error { t.Target = &target; return nil }); err != nil {
++		t.Fatal(err)
++	}
++	runner := &testRunner{result: Execution{Text: "report"}}
++	sender := &testSender{err: errors.New("network unavailable")}
++	engine := Engine{Store: store, Runner: runner, Sender: sender}
++	if err := engine.Tick(t.Context(), now); err == nil {
++		t.Fatal("missing send failure")
++	}
++	if got := onlyTask(t, store); got.History[0].Status != "delivery_pending" {
++		t.Fatalf("task=%+v", got)
++	}
++	sender.err = nil
++	if err := engine.Tick(t.Context(), now.Add(time.Minute)); err != nil {
++		t.Fatal(err)
++	}
++	if runner.calls != 1 || sender.calls != 2 || sender.target != target || sender.texts[1] != "report" {
++		t.Fatalf("runner=%+v sender=%+v", runner, sender)
++	}
++	if got := onlyTask(t, store); got.Enabled || got.History[0].Status != "delivered" {
++		t.Fatalf("task=%+v", got)
++	}
++}
++func TestMessageReminderUsesNoAgent(t *testing.T) {
++	store, _, now := fixture(t)
++	if err := store.Update(t.Context(), "task-1", func(t *Task) error {
++		t.Kind = "message"
++		t.Target = &Target{ConnectionID: "wx", ChatID: "owner"}
++		return nil
++	}); err != nil {
++		t.Fatal(err)
++	}
++	runner := &testRunner{}
++	sender := &testSender{}
++	if err := (Engine{Store: store, Runner: runner, Sender: sender}).Tick(t.Context(), now); err != nil {
++		t.Fatal(err)
++	}
++	if runner.calls != 0 || sender.calls != 1 || sender.texts[0] != "prepare report" {
++		t.Fatalf("runner=%+v sender=%+v", runner, sender)
++	}
++}
++func TestWorkerLeasePreventsOverlapAndPreservesConcurrentEdit(t *testing.T) {
++	store, _, now := fixture(t)
++	runner := &testRunner{entered: make(chan struct{}), resume: make(chan struct{}), result: Execution{Text: "answer"}}
++	engine := Engine{Store: store, Runner: runner}
++	done := make(chan error, 1)
++	go func() { done <- engine.Tick(t.Context(), now) }()
++	<-runner.entered
++	if err := (Engine{Store: store, Runner: &testRunner{}}).Tick(t.Context(), now); err == nil {
++		t.Fatal("second worker acquired active lease")
++	}
++	if err := store.Update(t.Context(), "task-1", func(t *Task) error { t.Title = "edited while running"; t.Enabled = false; return nil }); err != nil {
++		t.Fatal(err)
++	}
++	close(runner.resume)
++	if err := <-done; err != nil {
++		t.Fatal(err)
++	}
++	if got := onlyTask(t, store); got.Title != "edited while running" || got.Enabled || got.History[0].Result != "answer" {
++		t.Fatalf("lost concurrent edit: %+v", got)
++	}
++}
++func TestRemovedTaskIsNotResurrectedByCompletion(t *testing.T) {
++	store, _, now := fixture(t)
++	runner := &testRunner{entered: make(chan struct{}), resume: make(chan struct{})}
++	done := make(chan error, 1)
++	go func() { done <- (Engine{Store: store, Runner: runner}).Tick(t.Context(), now) }()
++	<-runner.entered
++	if err := store.Edit(t.Context(), func(tasks *[]Task) error { *tasks = nil; return nil }); err != nil {
++		t.Fatal(err)
++	}
++	close(runner.resume)
++	<-done
++	tasks, err := store.List(t.Context())
++	if err != nil || len(tasks) != 0 {
++		t.Fatalf("tasks=%v err=%v", tasks, err)
++	}
++}
++func TestInterruptedRunNeedsExplicitRetry(t *testing.T) {
++	store, _, now := fixture(t)
++	if err := store.Update(t.Context(), "task-1", func(t *Task) error {
++		t.LastRunAt = now.UnixMilli()
++		t.History = []Run{{StartedAt: now.UnixMilli(), Status: "running"}}
++		return nil
++	}); err != nil {
++		t.Fatal(err)
++	}
++	runner := &testRunner{result: Execution{Text: "recovered"}}
++	engine := Engine{Store: store, Runner: runner}
++	if err := engine.Tick(t.Context(), now); err != nil {
++		t.Fatal(err)
++	}
++	if got := onlyTask(t, store); runner.calls != 0 || got.Enabled || got.History[0].Status != "interrupted" {
++		t.Fatalf("task=%+v", got)
++	}
++	if err := engine.Trigger(t.Context(), "task-1", now.Add(time.Minute)); err != nil {
++		t.Fatal(err)
++	}
++	if runner.calls != 1 {
++		t.Fatalf("calls=%d", runner.calls)
++	}
++}
++func TestStoreConcurrentAddsDoNotLoseTasks(t *testing.T) {
++	store, base, _ := fixture(t)
++	var wg sync.WaitGroup
++	for i := range 8 {
++		wg.Go(func() {
++			task := base
++			task.ID = string(rune('a' + i))
++			if err := store.Add(t.Context(), task); err != nil {
++				t.Error(err)
++			}
++		})
++	}
++	wg.Wait()
++	tasks, err := store.List(t.Context())
++	if err != nil || len(tasks) != 9 {
++		t.Fatalf("tasks=%d err=%v", len(tasks), err)
++	}
++}
++
++func TestAmbiguousDeliveryStopsAutomaticReplay(t *testing.T) {
++	store, _, now := fixture(t)
++	if err := store.Update(t.Context(), "task-1", func(t *Task) error { t.Target = &Target{ConnectionID: "wx", ChatID: "owner"}; return nil }); err != nil {
++		t.Fatal(err)
++	}
++	runner := &testRunner{result: Execution{Text: "answer"}}
++	sender := &testSender{err: ErrDeliveryUncertain}
++	engine := Engine{Store: store, Runner: runner, Sender: sender}
++	if err := engine.Tick(t.Context(), now); !errors.Is(err, ErrDeliveryUncertain) {
++		t.Fatalf("err=%v", err)
++	}
++	if err := engine.Tick(t.Context(), now.Add(time.Minute)); err != nil {
++		t.Fatal(err)
++	}
++	if runner.calls != 1 || sender.calls != 1 || onlyTask(t, store).History[0].Status != "delivery_uncertain" {
++		t.Fatal("ambiguous notification replayed")
++	}
++}
++func TestFailedAgentIsNotSentOrRepeatedAsSuccessfulOneShot(t *testing.T) {
++	store, _, now := fixture(t)
++	if err := store.Update(t.Context(), "task-1", func(t *Task) error { t.Target = &Target{ConnectionID: "wx", ChatID: "owner"}; return nil }); err != nil {
++		t.Fatal(err)
++	}
++	runner := &testRunner{err: errors.New("model unavailable")}
++	sender := &testSender{}
++	engine := Engine{Store: store, Runner: runner, Sender: sender}
++	if err := engine.Tick(t.Context(), now); err == nil {
++		t.Fatal("execution failure hidden")
++	}
++	if err := engine.Tick(t.Context(), now.Add(time.Minute)); err != nil {
++		t.Fatal(err)
++	}
++	got := onlyTask(t, store)
++	if runner.calls != 1 || sender.calls != 0 || got.Enabled || got.History[0].Status != "failed" {
++		t.Fatalf("task=%+v", got)
++	}
++}
++
++type advancingRunner struct {
++	calls int
++	now   *time.Time
++}
++
++func (r *advancingRunner) Run(context.Context, Task) (Execution, error) {
++	r.calls++
++	*r.now = r.now.Add(2 * time.Hour)
++	return Execution{Text: "done"}, nil
++}
++func TestQueuedTaskRechecksExpiryAfterEarlierTaskCompletes(t *testing.T) {
++	store, base, now := fixture(t)
++	next := base
++	next.ID = "expires-in-queue"
++	next.EndsAt = now.Add(time.Hour).Format(time.RFC3339)
++	if err := store.Add(t.Context(), next); err != nil {
++		t.Fatal(err)
++	}
++	clock := now
++	runner := &advancingRunner{now: &clock}
++	engine := Engine{Store: store, Runner: runner, Clock: func() time.Time { return clock }}
++	if err := engine.Tick(t.Context(), now); err != nil {
++		t.Fatal(err)
++	}
++	tasks, err := store.List(t.Context())
++	if err != nil {
++		t.Fatal(err)
++	}
++	if runner.calls != 1 || len(tasks[1].History) != 0 {
++		t.Fatalf("expired queued job executed: calls=%d task=%+v", runner.calls, tasks[1])
++	}
++}
+diff --git a/internal/heartbeat/schedule.go b/internal/heartbeat/schedule.go
+new file mode 100644
+--- /dev/null
++++ b/internal/heartbeat/schedule.go
+@@ -0,0 +1,492 @@
++package heartbeat
++
++import (
++	"strconv"
++	"strings"
++	"time"
++)
++
++// parseInterval converts a string like "5m", "1h", "30s" to time.Duration.
++// Suffix after '|' is stripped (e.g. "24h|daily@09:00" -> "24h").
++// Empty or invalid strings return 0, nil (task will be skipped).
++func parseInterval(s string) (time.Duration, error) {
++	if idx := strings.Index(s, "|"); idx >= 0 {
++		s = s[:idx]
++	}
++	if len(s) == 0 {
++		return 0, nil
++	}
++	// Support common suffixed intervals
++	switch s[len(s)-1] {
++	case 's', 'm', 'h':
++		return time.ParseDuration(s)
++	default:
++		// Try "Xm" as default assumption
++		return time.ParseDuration(s + "m")
++	}
++}
++
++// isCronExpr returns true when s looks like a valid 5-field cron expression
++// (e.g. "0 * * * *", "*/15 * * * *", "0 9 * * 1-5"). Rejects expressions with
++// out-of-range values (e.g. "99 * * * *") that would never match.
++func isCronExpr(s string) bool {
++	fields := strings.Fields(s)
++	if len(fields) != 5 {
++		return false
++	}
++	// min, hour, dom, month, dow — dom/month are 1-based (0 can never match
++	// time.Day()/time.Month()), dow is 0-7 (7 = Sunday alias, matched in cronDue).
++	limits := []int{59, 23, 31, 12, 7}
++	mins := []int{0, 0, 1, 1, 0}
++	for i, f := range fields {
++		if f == "" {
++			return false
++		}
++		for _, c := range f {
++			if !strings.ContainsRune("0123456789*/-,", c) {
++				return false
++			}
++		}
++		// Reject out-of-range values in each field, plus zero/empty step
++		// values ("*/0" never fires) and descending ranges ("5-1" never matches).
++		for part := range strings.SplitSeq(f, ",") {
++			part = strings.TrimSpace(part)
++			base := part
++			if stepBase, stepText, ok := strings.Cut(part, "/"); ok {
++				step, err := strconv.Atoi(stepText)
++				if err != nil || step < 1 {
++					return false
++				}
++				base = stepBase
++			}
++			if base == "*" {
++				continue
++			}
++			if loText, hiText, ok := strings.Cut(base, "-"); ok {
++				lo, err1 := strconv.Atoi(loText)
++				hi, err2 := strconv.Atoi(hiText)
++				if err1 != nil || err2 != nil || lo < mins[i] || hi > limits[i] || lo > hi {
++					return false
++				}
++			} else {
++				v, err := strconv.Atoi(base)
++				if err != nil || v < mins[i] || v > limits[i] {
++					return false
++				}
++			}
++		}
++	}
++	return true
++}
++
++// cronMatchField checks whether a single value matches a cron field pattern.
++func cronMatchField(pattern string, value, minValue, maxValue int) bool {
++	// Handle comma-separated lists
++	for part := range strings.SplitSeq(pattern, ",") {
++		part = strings.TrimSpace(part)
++		if cronMatchSingle(part, value, minValue, maxValue) {
++			return true
++		}
++	}
++	return false
++}
++
++func cronMatchSingle(pattern string, value, minValue, maxValue int) bool {
++	// Handle step values: */15, 1-10/2, 1/2. Wildcard steps are
++	// anchored at the field minimum, which matters for 1-based fields.
++	if rangePart, stepStr, ok := strings.Cut(pattern, "/"); ok {
++		step, err := strconv.Atoi(stepStr)
++		if err != nil || step <= 0 {
++			return false
++		}
++		if rangePart == "*" {
++			return value >= minValue && value <= maxValue && (value-minValue)%step == 0
++		}
++		// Range with step: 1-10/2
++		if lowText, highText, ok := strings.Cut(rangePart, "-"); ok {
++			low, _ := strconv.Atoi(lowText)
++			high, _ := strconv.Atoi(highText)
++			if value < low || value > high {
++				return false
++			}
++			return (value-low)%step == 0
++		}
++		low, err := strconv.Atoi(rangePart)
++		if err != nil || value < low || value > maxValue {
++			return false
++		}
++		return (value-low)%step == 0
++	}
++	// Handle ranges: 1-5
++	if lowText, highText, ok := strings.Cut(pattern, "-"); ok {
++		low, err1 := strconv.Atoi(lowText)
++		high, err2 := strconv.Atoi(highText)
++		if err1 != nil || err2 != nil {
++			return false
++		}
++		return value >= low && value <= high
++	}
++	// Handle wildcard
++	if pattern == "*" {
++		return true
++	}
++	// Handle literal value
++	v, err := strconv.Atoi(pattern)
++	if err != nil {
++		return false
++	}
++	return v == value
++}
++
++// cronDue checks whether a 5-field cron expression should fire at the given time.
++func cronDue(expr string, t time.Time) bool {
++	if !isCronExpr(expr) {
++		return false
++	}
++	fields := strings.Fields(expr)
++	if len(fields) != 5 {
++		return false
++	}
++	// Minute/hour/month must all match. When both day fields are restricted,
++	// standard cron ORs them: "0 9 1 * 1" fires on the 1st or on Mondays,
++	// rather than only when the 1st happens to be a Monday.
++	domRestricted := fields[2] != "*"
++	dowRestricted := fields[4] != "*"
++	domMatch := cronMatchField(fields[2], t.Day(), 1, 31)
++	// Standard cron allows 7 as a Sunday alias in the dow field (weekday is
++	// 0-6 in Go); a pattern like "0 9 * * 7" must still fire on Sundays.
++	weekday := int(t.Weekday())
++	dowMatch := cronMatchField(fields[4], weekday, 0, 7) || (weekday == 0 && cronMatchField(fields[4], 7, 0, 7))
++	dayMatch := !domRestricted || !dowRestricted
++	if domRestricted && dowRestricted {
++		dayMatch = domMatch || dowMatch
++	} else if domRestricted {
++		dayMatch = domMatch
++	} else if dowRestricted {
++		dayMatch = dowMatch
++	}
++	return cronMatchField(fields[0], t.Minute(), 0, 59) &&
++		cronMatchField(fields[1], t.Hour(), 0, 23) &&
++		dayMatch &&
++		cronMatchField(fields[3], int(t.Month()), 1, 12)
++}
++
++func scheduleDue(t Task, now time.Time) bool {
++	// Try cron expression first
++	if isCronExpr(t.Interval) {
++		if cronDue(t.Interval, now) {
++			if t.LastRunAt == 0 || time.UnixMilli(t.LastRunAt).Before(now.Truncate(time.Minute)) {
++				return true
++			}
++		}
++		return false
++	}
++
++	if scheduled, ok := previousHeartbeatScheduleAt(t, now); ok {
++		if t.CreatedAt != 0 && scheduled.Before(time.UnixMilli(t.CreatedAt)) {
++			return false
++		}
++		if t.LastRunAt != 0 && !time.UnixMilli(t.LastRunAt).Before(scheduled) {
++			return false
++		}
++		return !scheduled.After(now)
++	}
++
++	d, err := parseInterval(t.Interval)
++	if err != nil || d <= 0 {
++		return false
++	}
++	baseMillis := t.LastRunAt
++	if baseMillis == 0 {
++		baseMillis = t.CreatedAt
++	}
++	hasTimeWindow := t.TimeWindowStart != "" || t.TimeWindowEnd != ""
++	if baseMillis == 0 {
++		if hasTimeWindow {
++			return heartbeatWithinTimeWindow(t, now)
++		}
++		return true
++	}
++	if now.Sub(time.UnixMilli(baseMillis)) < d {
++		return false
++	}
++
++	// For interval-based tasks with a time window, check if current time
++	// falls within the configured window. If outside, defer until the next
++	// tick that falls within the window.
++	if hasTimeWindow {
++		return heartbeatWithinTimeWindow(t, now)
++	}
++
++	return true
++}
++
++// heartbeatWithinTimeWindow returns true when now falls within the task's
++// configured time window. If the window is empty it returns true.
++// Format: "HH:MM" in 24-hour clock; start inclusive, end exclusive.
++func heartbeatWithinTimeWindow(t Task, now time.Time) bool {
++	startH, startM, startOK := parseHeartbeatClock(t.TimeWindowStart)
++	endH, endM, endOK := parseHeartbeatClock(t.TimeWindowEnd)
++
++	if !startOK && !endOK {
++		return true // no window configured
++	}
++
++	minutes := now.Hour()*60 + now.Minute()
++
++	// If only start is set: allow from start to end of day
++	if startOK && !endOK {
++		return minutes >= startH*60+startM
++	}
++
++	// If only end is set: allow from midnight to end
++	if !startOK && endOK {
++		return minutes < endH*60+endM
++	}
++
++	startMin := startH*60 + startM
++	endMin := endH*60 + endM
++
++	if startMin < endMin {
++		// Normal window: 09:00-17:00
++		return minutes >= startMin && minutes < endMin
++	}
++	// Cross-midnight window: 22:00-06:00
++	return minutes >= startMin || minutes < endMin
++}
++
++type heartbeatSchedule struct {
++	kind     string
++	days     []time.Weekday
++	month    int
++	day      int
++	hour     int
++	minute   int
++	hasRules bool
++}
++
++func parseHeartbeatSchedule(interval string) (heartbeatSchedule, bool) {
++	_, after, ok0 := strings.Cut(interval, "|")
++	if !ok0 {
++		return heartbeatSchedule{}, false
++	}
++	raw := strings.TrimSpace(after)
++	if raw == "" {
++		return heartbeatSchedule{}, false
++	}
++	at := "09:00"
++	if parts := strings.SplitN(raw, "@", 2); len(parts) == 2 {
++		raw = parts[0]
++		at = parts[1]
++	}
++	hour, minute, ok := parseHeartbeatClock(at)
++	if !ok {
++		return heartbeatSchedule{}, false
++	}
++	kind := raw
++	rule := ""
++	if parts := strings.SplitN(raw, ":", 2); len(parts) == 2 {
++		kind = parts[0]
++		rule = parts[1]
++	}
++	s := heartbeatSchedule{kind: kind, hour: hour, minute: minute, hasRules: true}
++	switch kind {
++	case "daily":
++		return s, true
++	case "weekly", "biweekly":
++		for part := range strings.SplitSeq(rule, ",") {
++			if wd, ok := parseHeartbeatWeekday(part); ok {
++				s.days = append(s.days, wd)
++			}
++		}
++		return s, len(s.days) > 0
++	case "monthly":
++		s.day = parsePositiveInt(rule, 1)
++		return s, true
++	case "yearly":
++		parts := strings.SplitN(rule, "-", 2)
++		s.month = parsePositiveInt(firstString(parts), 1)
++		s.day = 1
++		if len(parts) == 2 {
++			s.day = parsePositiveInt(parts[1], 1)
++		}
++		if s.month < 1 {
++			s.month = 1
++		}
++		if s.month > 12 {
++			s.month = 12
++		}
++		return s, true
++	default:
++		return heartbeatSchedule{}, false
++	}
++}
++
++func previousHeartbeatScheduleAt(t Task, now time.Time) (time.Time, bool) {
++	s, ok := parseHeartbeatSchedule(t.Interval)
++	if !ok || !s.hasRules {
++		return time.Time{}, false
++	}
++	switch s.kind {
++	case "daily":
++		candidate := dateAt(now.Year(), now.Month(), now.Day(), s.hour, s.minute, now.Location())
++		if candidate.After(now) {
++			candidate = candidate.AddDate(0, 0, -1)
++		}
++		return candidate, true
++	case "weekly":
++		return previousHeartbeatWeeklyAt(s, now, 7, time.Time{})
++	case "biweekly":
++		anchor := heartbeatScheduleAnchor(t, now)
++		return previousHeartbeatWeeklyAt(s, now, 14, anchor)
++	case "monthly":
++		return previousHeartbeatMonthlyAt(s, now), true
++	case "yearly":
++		return previousHeartbeatYearlyAt(s, now), true
++	default:
++		return time.Time{}, false
++	}
++}
++
++func previousHeartbeatWeeklyAt(s heartbeatSchedule, now time.Time, windowDays int, anchor time.Time) (time.Time, bool) {
++	var best time.Time
++	for offset := range windowDays {
++		day := now.AddDate(0, 0, -offset)
++		for _, wd := range s.days {
++			if day.Weekday() != wd {
++				continue
++			}
++			candidate := dateAt(day.Year(), day.Month(), day.Day(), s.hour, s.minute, now.Location())
++			if candidate.After(now) {
++				continue
++			}
++			if !anchor.IsZero() && weeksBetween(weekStart(anchor), weekStart(candidate))%2 != 0 {
++				continue
++			}
++			if best.IsZero() || candidate.After(best) {
++				best = candidate
++			}
++		}
++	}
++	return best, !best.IsZero()
++}
++
++func previousHeartbeatMonthlyAt(s heartbeatSchedule, now time.Time) time.Time {
++	candidate := monthlyCandidate(now.Year(), now.Month(), s.day, s.hour, s.minute, now.Location())
++	if candidate.After(now) {
++		prev := now.AddDate(0, -1, 0)
++		candidate = monthlyCandidate(prev.Year(), prev.Month(), s.day, s.hour, s.minute, now.Location())
++	}
++	return candidate
++}
++
++func previousHeartbeatYearlyAt(s heartbeatSchedule, now time.Time) time.Time {
++	month := time.Month(s.month)
++	candidate := monthlyCandidate(now.Year(), month, s.day, s.hour, s.minute, now.Location())
++	if candidate.After(now) {
++		candidate = monthlyCandidate(now.Year()-1, month, s.day, s.hour, s.minute, now.Location())
++	}
++	return candidate
++}
++
++func heartbeatScheduleAnchor(t Task, now time.Time) time.Time {
++	if t.CreatedAt != 0 {
++		return time.UnixMilli(t.CreatedAt)
++	}
++	if t.LastRunAt != 0 {
++		return time.UnixMilli(t.LastRunAt)
++	}
++	return now
++}
++
++func parseHeartbeatClock(s string) (int, int, bool) {
++	parts := strings.SplitN(strings.TrimSpace(s), ":", 2)
++	if len(parts) != 2 {
++		return 0, 0, false
++	}
++	hour := parsePositiveInt(parts[0], -1)
++	minute := parsePositiveInt(parts[1], -1)
++	if hour < 0 || hour > 23 || minute < 0 || minute > 59 {
++		return 0, 0, false
++	}
++	return hour, minute, true
++}
++
++func parseHeartbeatWeekday(s string) (time.Weekday, bool) {
++	switch strings.ToLower(strings.TrimSpace(s)) {
++	case "sun":
++		return time.Sunday, true
++	case "mon":
++		return time.Monday, true
++	case "tue":
++		return time.Tuesday, true
++	case "wed":
++		return time.Wednesday, true
++	case "thu":
++		return time.Thursday, true
++	case "fri":
++		return time.Friday, true
++	case "sat":
++		return time.Saturday, true
++	default:
++		return time.Sunday, false
++	}
++}
++
++func parsePositiveInt(s string, fallback int) int {
++	s = strings.TrimSpace(s)
++	if s == "" {
++		return fallback
++	}
++	n := 0
++	for _, r := range s {
++		if r < '0' || r > '9' {
++			return fallback
++		}
++		n = n*10 + int(r-'0')
++	}
++	return n
++}
++
++func firstString(values []string) string {
++	if len(values) == 0 {
++		return ""
++	}
++	return values[0]
++}
++
++func dateAt(year int, month time.Month, day, hour, minute int, loc *time.Location) time.Time {
++	return time.Date(year, month, day, hour, minute, 0, 0, loc)
++}
++
++func monthlyCandidate(year int, month time.Month, day, hour, minute int, loc *time.Location) time.Time {
++	if day < 1 {
++		day = 1
++	}
++	if max := daysInMonth(year, month, loc); day > max {
++		day = max
++	}
++	return dateAt(year, month, day, hour, minute, loc)
++}
++
++func daysInMonth(year int, month time.Month, loc *time.Location) int {
++	return time.Date(year, month+1, 0, 0, 0, 0, 0, loc).Day()
++}
++
++func weekStart(t time.Time) time.Time {
++	dayOffset := (int(t.Weekday()) + 6) % 7
++	base := dateAt(t.Year(), t.Month(), t.Day(), 0, 0, t.Location())
++	return base.AddDate(0, 0, -dayOffset)
++}
++
++func weeksBetween(a, b time.Time) int {
++	// Compare civil dates in UTC rather than elapsed local hours. Local Monday
++	// midnights spanning DST can be 167 or 169 hours apart despite being exactly
++	// one calendar week apart.
++	aDay := time.Date(a.Year(), a.Month(), a.Day(), 0, 0, 0, 0, time.UTC)
++	bDay := time.Date(b.Year(), b.Month(), b.Day(), 0, 0, 0, 0, time.UTC)
++	if bDay.Before(aDay) {
++		aDay, bDay = bDay, aDay
++	}
++	return int(bDay.Sub(aDay) / (7 * 24 * time.Hour))
++}
+diff --git a/internal/heartbeat/schedule_test.go b/internal/heartbeat/schedule_test.go
+new file mode 100644
+--- /dev/null
++++ b/internal/heartbeat/schedule_test.go
+@@ -0,0 +1,62 @@
++package heartbeat
++
++import (
++	"testing"
++	"time"
++)
++
++func TestCalendarRulesTimezoneAndExpiry(t *testing.T) {
++	loc, err := time.LoadLocation("Asia/Shanghai")
++	if err != nil {
++		t.Fatal(err)
++	}
++	monday := time.Date(2026, 10, 19, 8, 0, 0, 0, loc)
++	for _, rule := range []string{"0 8 * * 1-5", "24h|daily@08:00", "168h|weekly:mon,wed@08:00"} {
++		t.Run(rule, func(t *testing.T) {
++			task := Task{Enabled: true, Interval: rule, Timezone: "Asia/Shanghai", CreatedAt: monday.Add(-time.Minute).UnixMilli()}
++			if task.Due(monday.Add(-time.Second)) {
++				t.Fatal("early dispatch")
++			}
++			if !task.Due(monday.UTC()) {
++				t.Fatal("did not use task timezone")
++			}
++			task.LastRunAt = monday.UnixMilli()
++			if task.Due(monday.Add(15 * time.Second)) {
++				t.Fatal("duplicate occurrence")
++			}
++			task.LastRunAt = 0
++			task.EndsAt = monday.Format(time.RFC3339)
++			if task.Due(monday) {
++				t.Fatal("expiry boundary is not exclusive")
++			}
++		})
++	}
++}
++func TestIntervalOnlyRunsWithinWindow(t *testing.T) {
++	loc, _ := time.LoadLocation("Asia/Shanghai")
++	task := Task{Enabled: true, Interval: "15m", Timezone: "Asia/Shanghai", TimeWindowStart: "08:00", TimeWindowEnd: "22:00", CreatedAt: time.Date(2026, 10, 22, 7, 0, 0, 0, loc).UnixMilli()}
++	if task.Due(time.Date(2026, 10, 22, 7, 59, 0, 0, loc)) {
++		t.Fatal("ran outside window")
++	}
++	if !task.Due(time.Date(2026, 10, 22, 8, 0, 0, 0, loc)) {
++		t.Fatal("missed window start")
++	}
++	if task.Due(time.Date(2026, 10, 22, 22, 0, 0, 0, loc)) {
++		t.Fatal("ran at excluded window end")
++	}
++}
++func TestRejectInvalidTask(t *testing.T) {
++	_, base, _ := fixture(t)
++	for _, change := range []func(*Task){
++		func(t *Task) { t.Interval = "5m" }, func(t *Task) { t.At = ""; t.Interval = "99 * * * *" },
++		func(t *Task) { t.Timezone = "Mars/Unknown" }, func(t *Task) { t.At = "tomorrow" },
++		func(t *Task) { t.Kind = "shell" }, func(t *Task) { t.ApprovalMode = "danger-full-access" },
++		func(t *Task) { t.Target = &Target{ChatID: "missing-connection"} },
++	} {
++		task := base
++		change(&task)
++		if task.Validate() == nil {
++			t.Fatalf("accepted invalid task: %+v", task)
++		}
++	}
++}
+diff --git a/internal/heartbeat/store.go b/internal/heartbeat/store.go
+new file mode 100644
+--- /dev/null
++++ b/internal/heartbeat/store.go
+@@ -0,0 +1,134 @@
++package heartbeat
++
++import (
++	"context"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"os"
++	"path/filepath"
++	"time"
++
++	"reasonix/internal/fileutil"
++	"reasonix/internal/identitylock"
++)
++
++type document struct {
++	Version int    `json:"schemaVersion"`
++	Tasks   []Task `json:"tasks"`
++}
++
++// Store owns the headless task file, separate from desktop heartbeat state.
++type Store struct{ Path string }
++
++// List returns a consistent snapshot without changing task state.
++func (s Store) List(ctx context.Context) ([]Task, error) {
++	var tasks []Task
++	err := s.locked(ctx, false, func(d *document) error {
++		tasks = d.Tasks
++		return nil
++	})
++	return tasks, err
++}
++
++// Edit serializes read-modify-write across processes and publishes atomically.
++func (s Store) Edit(ctx context.Context, edit func(*[]Task) error) error {
++	return s.locked(ctx, true, func(d *document) error { return edit(&d.Tasks) })
++}
++
++func (s Store) locked(ctx context.Context, write bool, action func(*document) error) error {
++	if s.Path == "" {
++		return errors.New("heartbeat store path is empty")
++	}
++	if err := os.MkdirAll(filepath.Dir(s.Path), 0o700); err != nil {
++		return err
++	}
++	lockCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
++	defer cancel()
++	release, err := identitylock.Acquire(lockCtx, s.Path+".lock")
++	if err != nil {
++		return err
++	}
++	defer release()
++	d, err := s.read()
++	if err != nil {
++		return err
++	}
++	if err := action(&d); err != nil || !write {
++		return err
++	}
++	b, err := json.MarshalIndent(d, "", "  ")
++	if err != nil {
++		return err
++	}
++	if len(b) > 8<<20 {
++		return errors.New("heartbeat store exceeds 8 MiB; remove old task history before retrying")
++	}
++	return fileutil.AtomicWriteFileStrict(s.Path, b, 0o600)
++}
++
++func (s Store) read() (document, error) {
++	d := document{Version: 1, Tasks: []Task{}}
++	info, err := os.Stat(s.Path)
++	if errors.Is(err, os.ErrNotExist) {
++		return d, nil
++	}
++	if err != nil {
++		return d, err
++	}
++	if info.Size() > 8<<20 {
++		return d, errors.New("heartbeat store exceeds 8 MiB")
++	}
++	b, err := os.ReadFile(s.Path)
++	if err != nil {
++		return d, err
++	}
++	if err := json.Unmarshal(b, &d); err != nil {
++		return d, fmt.Errorf("read heartbeat store: %w", err)
++	}
++	if d.Version != 1 {
++		return d, fmt.Errorf("unsupported heartbeat schema %d", d.Version)
++	}
++	seen := map[string]bool{}
++	for _, task := range d.Tasks {
++		if err := task.Validate(); err != nil {
++			return d, fmt.Errorf("task %q: %w", task.ID, err)
++		}
++		if seen[task.ID] {
++			return d, fmt.Errorf("duplicate heartbeat task %q", task.ID)
++		}
++		seen[task.ID] = true
++	}
++	return d, nil
++}
++
++// Add persists a validated new task without replacing an existing identity.
++func (s Store) Add(ctx context.Context, task Task) error {
++	if err := task.Validate(); err != nil {
++		return err
++	}
++	if err := task.validateWorkspace(); err != nil {
++		return err
++	}
++	return s.Edit(ctx, func(tasks *[]Task) error {
++		for _, existing := range *tasks {
++			if existing.ID == task.ID {
++				return fmt.Errorf("task %q already exists", task.ID)
++			}
++		}
++		*tasks = append(*tasks, task)
++		return nil
++	})
++}
++
++// Update changes one current task; deletion while work runs is never resurrected.
++func (s Store) Update(ctx context.Context, id string, edit func(*Task) error) error {
++	return s.Edit(ctx, func(tasks *[]Task) error {
++		for i := range *tasks {
++			if (*tasks)[i].ID == id {
++				return edit(&(*tasks)[i])
++			}
++		}
++		return fmt.Errorf("heartbeat task %q not found", id)
++	})
++}
+diff --git a/internal/heartbeat/task.go b/internal/heartbeat/task.go
+new file mode 100644
+--- /dev/null
++++ b/internal/heartbeat/task.go
+@@ -0,0 +1,131 @@
++package heartbeat
++
++import (
++	"errors"
++	"fmt"
++	"os"
++	"path/filepath"
++	"strings"
++	"time"
++
++	_ "time/tzdata" // Servers need IANA zones even without a system zone database.
++)
++
++// Target identifies exactly one explicitly selected notification destination.
++type Target struct {
++	ConnectionID string `json:"connection_id"`
++	Domain       string `json:"domain,omitempty"`
++	ChatID       string `json:"chat_id"`
++	ChatType     string `json:"chat_type,omitempty"`
++}
++
++// Run records execution separately from delivery; pending delivery never reruns AI.
++type Run struct {
++	StartedAt int64  `json:"startedAt"`
++	EndedAt   int64  `json:"endedAt,omitempty"`
++	Status    string `json:"status"`
++	Result    string `json:"result,omitempty"`
++	SessionID string `json:"sessionId,omitempty"`
++	Error     string `json:"error,omitempty"`
++}
++
++// Task is a persisted headless job. Calendar rules use the desktop interval syntax.
++type Task struct {
++	ID                     string  `json:"id"`
++	Title                  string  `json:"title"`
++	Prompt                 string  `json:"prompt"`
++	Interval               string  `json:"interval,omitempty"`
++	At                     string  `json:"at,omitempty"`
++	Timezone               string  `json:"timezone"`
++	EndsAt                 string  `json:"endsAt,omitempty"`
++	Enabled                bool    `json:"enabled"`
++	WorkspaceRoot          string  `json:"workspaceRoot"`
++	Model                  string  `json:"model,omitempty"`
++	ApprovalMode           string  `json:"approvalMode"`
++	Kind                   string  `json:"kind"`
++	NewConversationEachRun bool    `json:"newConversationEachRun"`
++	TimeWindowStart        string  `json:"timeWindowStart,omitempty"`
++	TimeWindowEnd          string  `json:"timeWindowEnd,omitempty"`
++	CreatedAt              int64   `json:"createdAt"`
++	LastRunAt              int64   `json:"lastRunAt,omitempty"`
++	Target                 *Target `json:"target,omitempty"`
++	History                []Run   `json:"history,omitempty"`
++}
++
++// Validate rejects ambiguous schedules and unsupported unattended permissions.
++func (t Task) Validate() error {
++	if t.ID == "" || strings.TrimSpace(t.Title) == "" || strings.TrimSpace(t.Prompt) == "" {
++		return errors.New("id, title and prompt are required")
++	}
++	if (t.At == "") == (t.Interval == "") {
++		return errors.New("set exactly one of at or interval")
++	}
++	if _, err := time.LoadLocation(t.Timezone); err != nil {
++		return fmt.Errorf("timezone: %w", err)
++	}
++	if t.Kind != "agent" && t.Kind != "message" {
++		return errors.New("kind must be agent or message")
++	}
++	if t.ApprovalMode != "read-only" && t.ApprovalMode != "workspace-write" {
++		return errors.New("approvalMode must be read-only or workspace-write")
++	}
++	if !filepath.IsAbs(t.WorkspaceRoot) {
++		return errors.New("workspaceRoot must be an absolute path")
++	}
++	return t.validateSchedule()
++}
++
++func (t Task) validateWorkspace() error {
++	if info, err := os.Stat(t.WorkspaceRoot); err != nil || !info.IsDir() {
++		return errors.New("workspaceRoot must be an existing directory")
++	}
++	return nil
++}
++
++func (t Task) validateSchedule() error {
++	for _, value := range []string{t.At, t.EndsAt} {
++		if value != "" {
++			if _, err := time.Parse(time.RFC3339, value); err != nil {
++				return fmt.Errorf("time must be RFC3339 with offset: %w", err)
++			}
++		}
++	}
++	if t.Interval != "" && !isCronExpr(t.Interval) {
++		if _, ok := parseHeartbeatSchedule(t.Interval); !ok {
++			d, err := parseInterval(t.Interval)
++			if err != nil || d <= 0 || strings.Contains(t.Interval, "|") {
++				return errors.New("invalid interval/calendar rule")
++			}
++		}
++	}
++	for _, value := range []string{t.TimeWindowStart, t.TimeWindowEnd} {
++		if value != "" {
++			if _, _, ok := parseHeartbeatClock(value); !ok {
++				return errors.New("time window must use HH:MM")
++			}
++		}
++	}
++	if t.Target != nil && (t.Target.ConnectionID == "" || t.Target.ChatID == "") {
++		return errors.New("notification target requires connection_id and chat_id")
++	}
++	return nil
++}
++
++// Due checks expiry on every dispatch; expired jobs do not need a cleanup tick.
++func (t Task) Due(now time.Time) bool {
++	if !t.Enabled || t.Expired(now) {
++		return false
++	}
++	if t.At != "" {
++		at, err := time.Parse(time.RFC3339, t.At)
++		return err == nil && !now.Before(at) && t.LastRunAt == 0
++	}
++	loc, err := time.LoadLocation(t.Timezone)
++	return err == nil && scheduleDue(t, now.In(loc))
++}
++
++// Expired reports whether the exclusive end boundary has been reached.
++func (t Task) Expired(now time.Time) bool {
++	end, err := time.Parse(time.RFC3339, t.EndsAt)
++	return err == nil && !now.Before(end)
++}
+diff --git a/internal/i18n/messages_en.go b/internal/i18n/messages_en.go
+--- a/internal/i18n/messages_en.go
++++ b/internal/i18n/messages_en.go
+@@ -664,6 +664,7 @@
+   reasonix task list|show|status|events|stop|cancel|monitor|tmux --json [--dir PATH]
+                                                          inspect or control redacted tasks
+   reasonix bot start|doctor|weixin-login                multi-channel IM bot gateway
++  reasonix heartbeat add|list|start|tick|run            headless scheduled Agent tasks
+   reasonix upgrade [--check] [--force]                   update to the latest official release (also: reasonix update)
+   reasonix completion bash|zsh|fish                     print a shell completion script to stdout
+   reasonix version [--verbose|--json]                   print version (single line) or build metadata
+diff --git a/internal/i18n/messages_zh.go b/internal/i18n/messages_zh.go
+--- a/internal/i18n/messages_zh.go
++++ b/internal/i18n/messages_zh.go
+@@ -665,6 +665,7 @@
+   reasonix task list|show|status|events|stop|cancel|monitor|tmux --json [--dir PATH]
+                                                          查看或控制脱敏 Task
+   reasonix bot start|doctor|weixin-login                多渠道 IM bot 网关
++  reasonix heartbeat add|list|start|tick|run            无界面定时 Agent 任务
+   reasonix upgrade [--check] [--force]                   更新到最新正式版（别名：reasonix update）
+   reasonix completion bash|zsh|fish                     打印 shell 补全脚本到 stdout
+   reasonix version [--verbose|--json]                   打印版本（单行）或构建元信息
+diff --git a/internal/i18n/messages_zh_tw.go b/internal/i18n/messages_zh_tw.go
+--- a/internal/i18n/messages_zh_tw.go
++++ b/internal/i18n/messages_zh_tw.go
+@@ -605,6 +605,7 @@
+   reasonix task list|show|status|events|stop|cancel|monitor|tmux --json [--dir PATH]
+                                                          檢視或控制脫敏 Task
+   reasonix bot start|doctor|weixin-login                多管道 IM bot 閘道
++  reasonix heartbeat add|list|start|tick|run            無介面定時 Agent 任務
+   reasonix upgrade [--check] [--force]                   更新到最新正式版（別名：reasonix update）
+   reasonix completion bash|zsh|fish                     列印 shell 補全腳本到 stdout
+   reasonix version [--verbose|--json]                   列印版本（單行）或建置元資訊
+diff --git a/scripts/test-headless-heartbeat.py b/scripts/test-headless-heartbeat.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/test-headless-heartbeat.py
+@@ -0,0 +1,125 @@
++#!/usr/bin/env python3
++"""Exercise the built CLI with local model and Bot fixtures, without real accounts."""
++import argparse
++import datetime as dt
++import json
++import os
++from pathlib import Path
++import subprocess
++import tempfile
++import threading
++from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument('--binary', default='bin/reasonix')
++    binary = str(Path(parser.parse_args().binary).resolve())
++    model_calls, deliveries = [], []
++    delivered = threading.Event()
++    guard = threading.Lock()
++
++    class Handler(BaseHTTPRequestHandler):
++        def log_message(self, *_):
++            pass
++
++        def do_POST(self):
++            body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
++            if self.path == '/v1/chat/completions':
++                with guard:
++                    model_calls.append(body)
++                assert body['model'] == 'fixture-model', body
++                assert self.headers['Authorization'] == 'Bearer local-fixture-key'
++                self.send_response(200)
++                self.send_header('Content-Type', 'text/event-stream')
++                self.end_headers()
++                chunk = {'choices': [{'delta': {'content': 'Fixture morning report'}, 'finish_reason': None}]}
++                self.wfile.write(('data: ' + json.dumps(chunk) + '\n\ndata: [DONE]\n\n').encode())
++            elif self.path == '/send':
++                assert self.headers['Authorization'] == 'Bearer local-bot-token'
++                assert body['connection_id'] == 'fixture-weixin' and body['chat_id'] == 'fixture-owner'
++                with guard:
++                    deliveries.append(body)
++                    count = len(deliveries)
++                self.send_response(503 if count == 1 else 200)
++                self.end_headers()
++                if count >= 2:
++                    delivered.set()
++            else:
++                self.send_error(404)
++
++    server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
++    thread = threading.Thread(target=server.serve_forever, daemon=True)
++    thread.start()
++    try:
++        with tempfile.TemporaryDirectory(prefix='reasonix-heartbeat-smoke-') as temporary:
++            root = Path(temporary)
++            home, workspace = root / 'state', root / 'workspace'
++            home.mkdir()
++            workspace.mkdir()
++            env = dict(os.environ)
++            env.update(REASONIX_HOME=str(home), REASONIX_TELEMETRY='0', DO_NOT_TRACK='1',
++                       REASONIX_LANG='en', HEARTBEAT_FIXTURE_KEY='local-fixture-key',
++                       HEARTBEAT_FIXTURE_BOT_TOKEN='local-bot-token')
++            (home / '.env').write_text('HEARTBEAT_FIXTURE_KEY=local-fixture-key\n')
++            (home / '.env').chmod(0o600)
++            port = server.server_address[1]
++            (home / 'config.toml').write_text(f'''default_model = "fixture/fixture-model"
++[[providers]]
++name = "fixture"
++kind = "openai"
++base_url = "http://127.0.0.1:{port}/v1"
++models = ["fixture-model"]
++default = "fixture-model"
++api_key_env = "HEARTBEAT_FIXTURE_KEY"
++[bot.control]
++enabled = true
++addr = "127.0.0.1:{port}"
++token_env = "HEARTBEAT_FIXTURE_BOT_TOKEN"
++''')
++            def cli(*args):
++                run = subprocess.run([binary, 'heartbeat', *args], env=env, cwd=workspace,
++                                     capture_output=True, text=True, timeout=60)
++                if run.returncode:
++                    raise AssertionError(f'{args}: {run.stderr}\n{run.stdout}')
++                return json.loads(run.stdout) if run.stdout.strip() else None
++
++            at = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=2)).isoformat(timespec='seconds')
++            task = cli('add', '--title', 'morning report', '--prompt', 'Summarize the fixture morning report.',
++                       '--at', at, '--timezone', 'Asia/Shanghai', '--dir', str(workspace),
++                       '--connection', 'fixture-weixin', '--chat', 'fixture-owner')
++            worker = subprocess.Popen([binary, 'heartbeat', 'start', '--poll', '1s'],
++                                      env=env, cwd=workspace, stdout=subprocess.PIPE,
++                                      stderr=subprocess.PIPE, text=True)
++            try:
++                if not delivered.wait(45):
++                    raise AssertionError('Timed worker did not deliver the generated report')
++            finally:
++                worker.terminate()
++                stdout, stderr = worker.communicate(timeout=20)
++            if worker.returncode != 0:
++                raise AssertionError(f'Worker shutdown failed: {stdout}\n{stderr}')
++            tasks = cli('list')
++            assert tasks[0]['id'] == task['id'] and not tasks[0]['enabled'], tasks
++            assert tasks[0]['history'][-1]['status'] == 'delivered', tasks
++            assert len(model_calls) == 1, f'Agent reran after send failure: {len(model_calls)}'
++            assert len(deliveries) == 2 and all(x['text'] == 'Fixture morning report' for x in deliveries)
++            cli('tick')
++            assert len(model_calls) == 1 and len(deliveries) == 2, 'Restart repeated completed work'
++            # A fixed reminder exercises the zero-model route in the real binary.
++            fixed = cli('add', '--title', 'fixed', '--prompt', 'Submit report', '--kind', 'message',
++                        '--at', (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=1)).isoformat(timespec='seconds'),
++                        '--dir', str(workspace))
++            cli('run', '--id', fixed['id'])
++            assert len(model_calls) == 1, 'Fixed reminder called the model'
++            print(json.dumps({'status': 'passed', 'model_requests': len(model_calls),
++                              'delivery_attempts': len(deliveries), 'one_shot_after_restart': 'not repeated',
++                              'fixed_reminder_model_requests': 0}, ensure_ascii=False))
++    finally:
++        server.shutdown()
++        server.server_close()
++        thread.join(timeout=5)
++
++
++if __name__ == '__main__':
++    main()

@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "real_background_agent_completed_silently": true,
+  "scheduled_status": "completed",
+  "test_title": "后台静默验收_20261022_214001",
+  "cleanup": {
+    "test_todos_removed": 1,
+    "test_jobs_removed": 1
+  },
+  "personal_memories_modified": false
+}

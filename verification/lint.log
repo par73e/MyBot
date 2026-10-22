@@ -1,0 +1,4 @@
+golangci-lint run --timeout=5m ./...
+0 issues.
+go run ./tools/repolint
+repolint: clean (1152 baselined findings)

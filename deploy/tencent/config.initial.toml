@@ -1,0 +1,14 @@
+# 初次部署仅启用独立 Heartbeat。真实模型和微信在后续配置。
+language = "zh"
+
+[telemetry]
+cli_metrics = "off"
+
+[bot]
+enabled = false
+
+[bot.control]
+enabled = false
+
+[bot.weixin]
+enabled = false

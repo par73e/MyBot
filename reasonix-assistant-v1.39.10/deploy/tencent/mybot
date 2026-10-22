@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+exec sudo -n -u mybot -H sh -c '
+cd /var/lib/mybot/workspace
+exec env \
+  REASONIX_ASSISTANT=1 REASONIX_HOME=/var/lib/mybot/reasonix \
+  TZ=Asia/Shanghai REASONIX_LANG=zh DO_NOT_TRACK=1 REASONIX_TELEMETRY=0 \
+  /opt/mybot/current/reasonix "$@"
+' mybot "$@"
