@@ -176,8 +176,8 @@ func TestMemoryTimingValidation(t *testing.T) {
 		t.Fatal(err)
 	}
 	active, err := m.Apply(t.Context(), MemoryRequest{Action: "list"})
-	if err != nil || len(active) != 0 {
-		t.Fatal("future memory active early", err)
+	if err != nil || len(active) != 1 || active[0].Active(now) {
+		t.Fatal("future memory must be visible without being currently applicable", err)
 	}
 }
 

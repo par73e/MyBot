@@ -1,0 +1,26 @@
+{
+  "version": "v1.39.10-assistant.7-weather",
+  "binary_sha256": "3f0b48088f18b3a8a5b452d52e3d50eafb7c60476bd2febf2ee0c219dd276a9a",
+  "source_archive_sha256": "668d997bcab1deac8a92bcb8180176206141768f57cea3551b5ef443a8433832",
+  "source_manifest_sha256": "6e00383b64309dca00193e6ae3712063dda6b1caef9a8721bf240fc9d10811b6",
+  "source_file_count": 9088,
+  "project_readme_sha256": "736f3beefde3bf3c0764bcfa591cb20a2bea11d4524c130ff53b558cf321d340",
+  "passed": true,
+  "service_active": true,
+  "weixin_poll_ready": true,
+  "source_directory": "/home/ubuntu/Project/MyBot/reasonix-assistant-v1.39.10",
+  "local_server_source_identical": true,
+  "host_secrets_and_mail_policy_unchanged": true,
+  "weather_wake_times": {
+    "monday": "10:00",
+    "tuesday": "08:00",
+    "wednesday": "10:00",
+    "thursday": "10:00",
+    "friday": "08:00",
+    "saturday": "11:00",
+    "sunday": "11:00"
+  },
+  "timezone": "Asia/Shanghai",
+  "backup": "/var/lib/mybot/backups/weather-20261023T184036Z",
+  "test_weixin_messages": 0
+}

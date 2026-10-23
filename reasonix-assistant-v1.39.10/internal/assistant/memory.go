@@ -52,7 +52,13 @@ func (m Memories) now() time.Time {
 }
 func (m Memories) dir() string { return filepath.Join(m.Home, "assistant", "memory") }
 func (m Memory) Active(now time.Time) bool {
-	return !m.Archived && !now.Before(m.StartsAt) && (m.ExpiresAt == nil || now.Before(*m.ExpiresAt))
+	return m.Visible(now) && !now.Before(m.StartsAt)
+}
+
+// Visible includes known future facts from the moment they are saved.
+// StartsAt controls temporal applicability, not when the Agent can learn a plan.
+func (m Memory) Visible(now time.Time) bool {
+	return !m.Archived && (m.ExpiresAt == nil || now.Before(*m.ExpiresAt))
 }
 
 func (m Memories) Apply(ctx context.Context, r MemoryRequest) ([]Memory, error) {
@@ -73,7 +79,7 @@ func (m Memories) Apply(ctx context.Context, r MemoryRequest) ([]Memory, error) 
 	if r.Action == "list" {
 		out := []Memory{}
 		for _, v := range all {
-			if r.IncludeInactive || v.Active(m.now()) {
+			if r.IncludeInactive || v.Visible(m.now()) {
 				out = append(out, v)
 			}
 		}
@@ -192,12 +198,12 @@ func (m Memories) read() ([]Memory, error) {
 func (m Memories) write(v Memory, all []Memory) error {
 	total := len(v.Body)
 	for _, old := range all {
-		if old.ID != v.ID && old.Active(m.now()) {
+		if old.ID != v.ID && old.Visible(m.now()) {
 			total += len(old.Body)
 		}
 	}
 	if total > 96000 {
-		return errors.New("active memory exceeds 96 KB; consolidate memories first")
+		return errors.New("visible memory exceeds 96 KB; consolidate memories first")
 	}
 	meta := v
 	meta.Body = ""

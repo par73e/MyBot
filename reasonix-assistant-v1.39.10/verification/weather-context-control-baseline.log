@@ -1,0 +1,5 @@
+--- FAIL: TestServeForkStartsNoBroaderThanInheritedReadOnly (0.14s)
+    session_permission_preset_test.go:315: permission preset "read-only" is unavailable: shell sandbox requested but unavailable on this host; refusing to run unconfined. Ensure `sandbox-exec` is installed and usable (the host must allow `sandbox_apply`), or explicitly select Full access for an unconfined session.
+FAIL
+FAIL	reasonix/internal/control	0.753s
+FAIL

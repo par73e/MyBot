@@ -2,6 +2,18 @@ package bot
 
 import "reasonix/internal/event"
 
+func (s *renderSink) emitAsk(ask event.Ask) {
+	if s.onAsk != nil {
+		s.onAsk(ask)
+	}
+	text := renderAskText(ask)
+	msg := s.textMessage(text)
+	if s.adapter.Platform() == PlatformFeishu {
+		msg.Card = askCard(ask, text, s.chatType, s.userID)
+	}
+	_ = s.send(msg)
+}
+
 func (s *renderSink) emitApproval(approval event.Approval) {
 	if s.onApproval != nil {
 		s.onApproval(approval)

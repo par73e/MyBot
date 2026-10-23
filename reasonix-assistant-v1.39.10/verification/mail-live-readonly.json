@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "candidate_version": "v1.39.10-assistant.5-mail",
+  "real_connections": [
+    {
+      "account": "qq",
+      "error": "",
+      "ok": true,
+      "warnings": []
+    },
+    {
+      "account": "gmail1",
+      "error": "",
+      "ok": true,
+      "warnings": [
+        "Recent scan is partial due to source time budget"
+      ]
+    },
+    {
+      "account": "gmail2",
+      "error": "",
+      "ok": true,
+      "warnings": [
+        "Recent scan is partial due to source time budget"
+      ]
+    }
+  ],
+  "elapsed_seconds": 39.34,
+  "returned_headers": 50,
+  "visible_source_ids": [
+    "gmail1",
+    "gmail2",
+    "outlook",
+    "qq"
+  ],
+  "known_outlook_test_body_verified": true,
+  "polling_enabled": false,
+  "real_model_calls": 0,
+  "real_weixin_test_messages": 0,
+  "production_state_database_modified": false,
+  "production_service_pid_and_restart_count_unchanged": true,
+  "temporary_isolated_directory_and_uploaded_binary_removed": true
+}

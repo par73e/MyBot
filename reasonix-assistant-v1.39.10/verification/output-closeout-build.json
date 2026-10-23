@@ -1,0 +1,8 @@
+{
+  "version": "v1.39.10-assistant.10-output-closeout",
+  "source_files": 9102,
+  "source_manifest_sha256": "de5897d483b52ceaaf64ab84f5ba5ecd9dc292b9789217656407ce0e69f024a4",
+  "source_archive_sha256": "45f6ce54d8d72eb0a53edacfbabeb7c22a3891607e916b19aac260e00fbf4f0f",
+  "binary_sha256": "3b9c1a1bcb64870cd0fa543a2f68aaf72f380c2db7babe18e6445b81dff6e2bc",
+  "project_readme_sha256": "540b5c239ec843b8d5e9bb19a237703920366630538942ea5b6e1a4033ede6df"
+}

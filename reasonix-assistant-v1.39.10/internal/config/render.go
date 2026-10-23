@@ -628,6 +628,7 @@ func RenderTOMLForScope(c *Config, scope RenderScope) string {
 		}
 		b.WriteString("\n[bot.weixin]\n")
 		fmt.Fprintf(&b, "enabled = %v\n", c.Bot.Weixin.Enabled)
+		fmt.Fprintf(&b, "final_only = %v\n", c.Bot.Weixin.FinalOnly)
 		fmt.Fprintf(&b, "account_id = %q\n", c.Bot.Weixin.AccountID)
 		fmt.Fprintf(&b, "token_env = %q\n", c.Bot.Weixin.TokenEnv)
 		fmt.Fprintf(&b, "api_base = %q\n", c.Bot.Weixin.APIBase)

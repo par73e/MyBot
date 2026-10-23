@@ -11,8 +11,8 @@ import (
 // own cross-process lease, including manual triggers, preventing double claims.
 func (e Engine) StartLanes(ctx context.Context, interval time.Duration, report func(error)) error {
 	var wg sync.WaitGroup
-	errs := make(chan error, 2)
-	for _, kind := range []string{"message", "agent"} {
+	errs := make(chan error, 4)
+	for _, kind := range []string{"message", "agent", "mail_check", "weather_check"} {
 		lane := e
 		lane.kindFilter = kind
 		wg.Go(func() { errs <- lane.Start(ctx, interval, report) })

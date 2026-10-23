@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"reasonix/internal/assistant"
+	"reasonix/internal/config"
 	"reasonix/internal/heartbeat"
 	"reasonix/internal/proc"
 	"reasonix/internal/secrets"
@@ -27,6 +29,12 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 	cmd.WaitDelay = 5 * time.Second
 	if t.DecideNotification {
 		cmd.Env = append(os.Environ(), "REASONIX_ASSISTANT_BACKGROUND=1", "REASONIX_ASSISTANT_JOB_ID="+t.ID)
+	}
+	if t.Capability == "mail" {
+		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_MAIL_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_MAIL_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.Capability == "weather" {
+		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_WEATHER_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_WEATHER_ATTEMPT=%d", t.RunStartedAt))
 	}
 	stdout, stderr := &heartbeatOutput{}, &heartbeatOutput{}
 	cmd.Stdout, cmd.Stderr = stdout, stderr
@@ -49,6 +57,23 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 	}
 	if result.Type != "result" || result.IsError || result.FromReasoning {
 		return heartbeat.Execution{}, errors.New("Agent did not produce a successful final answer")
+	}
+	if t.Capability == "mail" {
+		if err := assistant.NewMailService(config.MemoryUserDir()).VerifyMailReads(ctx, t.ID, t.RunStartedAt, t.MailIDs); err != nil {
+			return heartbeat.Execution{}, err
+		}
+	}
+	if t.Capability == "weather" {
+		if err := assistant.NewWeatherService(config.MemoryUserDir()).VerifyWeatherRead(ctx, t.ID, t.RunStartedAt); err != nil {
+			return heartbeat.Execution{}, err
+		}
+		var decision struct {
+			Notify  bool   `json:"notify"`
+			Message string `json:"message"`
+		}
+		if json.Unmarshal([]byte(result.Result), &decision) != nil || !decision.Notify || strings.TrimSpace(decision.Message) == "" {
+			return heartbeat.Execution{}, errors.New("morning task requires a nonempty daily notification")
+		}
 	}
 	text := strings.TrimSpace(result.Result)
 	if text == "HEARTBEAT_OK" {
@@ -83,6 +108,9 @@ func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
 		if session := t.History[len(t.History)-1].SessionID; session != "" {
 			args = append(args, "--resume", session)
 		}
+	}
+	if t.Capability == "mail" || t.Capability == "weather" {
+		args = append(args, "--max-steps", "24")
 	}
 	prompt := t.Prompt
 	if t.DecideNotification {

@@ -1,0 +1,86 @@
+{
+  "version": "v1.39.10-assistant.6-mail-weekly",
+  "binary_sha256": "ecbc4602d568a147408f7e3fb2019886ef33aedadc2ebf93b9423393169b5d2d",
+  "built_at": "2026-10-24T01:13:16.674967+08:00",
+  "target": "linux/amd64",
+  "toolchain": "go1.26.10",
+  "deployed": true,
+  "weeklySchedule": {
+    "friday": {
+      "enabled": true,
+      "end": "24:00",
+      "start": "08:00"
+    },
+    "monday": {
+      "enabled": true,
+      "end": "24:00",
+      "start": "10:00"
+    },
+    "saturday": {
+      "enabled": true,
+      "end": "24:00",
+      "start": "11:00"
+    },
+    "sunday": {
+      "enabled": true,
+      "end": "24:00",
+      "start": "11:00"
+    },
+    "thursday": {
+      "enabled": true,
+      "end": "24:00",
+      "start": "10:00"
+    },
+    "tuesday": {
+      "enabled": true,
+      "end": "24:00",
+      "start": "08:00"
+    },
+    "wednesday": {
+      "enabled": true,
+      "end": "24:00",
+      "start": "10:00"
+    }
+  },
+  "source_sha256": {
+    "reasonix-assistant-v1.39.10/internal/assistant/mail.go": "8fa2dde0fb0f3693de8a4713e159490f6c7a4755d38907a71a9e7ce35ed39683",
+    "reasonix-assistant-v1.39.10/internal/assistant/mail_query.go": "cd05bcf2ecdeab29a65ad90b7c13b6a1ffc1d7660f8f2bdfb264f52e5112fa87",
+    "reasonix-assistant-v1.39.10/internal/assistant/mail_receipts.go": "9dae27c6646c2a9e47c789980013a61f6e274f2c70dd3fab910cf97211eeb69a",
+    "reasonix-assistant-v1.39.10/internal/assistant/mail_schedule.go": "db179fbe8c1534e6fdd0f2af50a0b0e13ef2c5e15e71e96e27748d8dc6bf568d",
+    "reasonix-assistant-v1.39.10/internal/assistant/mail_schedule_test.go": "8c43a1281563219e834a7f4b59405c2530d8a8dcd29614e2274876cf80514fd2",
+    "reasonix-assistant-v1.39.10/internal/assistant/mail_sync.go": "6ae1acf95afa592edbe690d948849fa7a114c00a27bc6badb8709b454dddb56b",
+    "reasonix-assistant-v1.39.10/internal/assistant/mail_test.go": "fbe922d18d13d47194fdb168fa71a24ba40cef0efb69d467db16398062230453",
+    "reasonix-assistant-v1.39.10/internal/assistant/mail_transport.py": "f2c4e503b0891d86104ab75f7cb535cc3de02a4645787af51221178baf69052b",
+    "reasonix-assistant-v1.39.10/internal/assistant/mail_weekly_test.go": "970e0a2ea43b00faa2ca4364a25b39386c7a2a6fd5970736caa516552c13ee08",
+    "reasonix-assistant-v1.39.10/internal/assistant/types.go": "f1300905627feb0b665ae620ef0ee6b9754ce463ef1a6a5bb4ca933cef9bad5d",
+    "reasonix-assistant-v1.39.10/internal/boot/assistant.go": "520258bde975d64ddab5fc0a2a91adc6954b7c73b4ec3c30d3702033afda87a3",
+    "reasonix-assistant-v1.39.10/internal/boot/mail_test.go": "43c82734027487d5861ec1959963aa0abb214ed10c15a8d86cced39ddf090393",
+    "reasonix-assistant-v1.39.10/internal/boot/prompt_policy.go": "0a91ac1b944cc843af7329be18f90ae2fe7faaf2069ec088e2a205f7062729be",
+    "reasonix-assistant-v1.39.10/internal/bot/assistant_proactive.go": "09556699c6dd7904cede09972e7bcbeee21e97112603bb82480d2eca8ef8a597",
+    "reasonix-assistant-v1.39.10/internal/bot/assistant_proactive_test.go": "15d2c14f67ad72e9e05a89e46168e1ad7f5c5aa0cbeed88e5d9c5e1a93297588",
+    "reasonix-assistant-v1.39.10/internal/cli/assistant.go": "f80346d9e261dfc332336ba342963c2255e920f2128f6dbad0be9e8311461cd1",
+    "reasonix-assistant-v1.39.10/internal/cli/bot.go": "08660965f979c4eca17a2f0981799d3ac53be42bd027ec7e98599f636388aa23",
+    "reasonix-assistant-v1.39.10/internal/cli/heartbeat_bot.go": "6f24c472d6a3fde1c565382ef0b18e0ca1c34ed960d828dc3ff627b74dd4748b",
+    "reasonix-assistant-v1.39.10/internal/cli/heartbeat_conversation.go": "206d25618caa18325d1fa170965ffef5f4eba11a6f1c4b6840d720cdd69c0caf",
+    "reasonix-assistant-v1.39.10/internal/cli/heartbeat_runner.go": "5fdcf413f9a546068a59f6a61dc1b24f77e3cb9e873fe49b61148bbd84be5c9f",
+    "reasonix-assistant-v1.39.10/internal/cli/heartbeat_sender.go": "4e7619f10392b364eaec570ddeba6032fd52fac9ee270ac5fbd4528be2bb8436",
+    "reasonix-assistant-v1.39.10/internal/cli/mail_poll.go": "61ea043f05fab6c471c012a2eeffc6a4067fa2f3f87e89be77e3ccda9416f6f5",
+    "reasonix-assistant-v1.39.10/internal/cli/mail_test.go": "86ccebced64127d9d495306d68de580300647beb3308d112940ae2e5a520a790",
+    "reasonix-assistant-v1.39.10/internal/heartbeat/admission.go": "caba2d962884c41086db63ed981393a060948123fb4be6778ef4f6ecae8cd50a",
+    "reasonix-assistant-v1.39.10/internal/heartbeat/admission_test.go": "665905615ae489d571e4d6cb5c06786922bf806df268c5051990ebf1106a1775",
+    "reasonix-assistant-v1.39.10/internal/heartbeat/engine.go": "5611608400fa20eb904ec579c68d94cdf6ba7461821c3ff4a9c268a0fd641f21",
+    "reasonix-assistant-v1.39.10/internal/heartbeat/lanes.go": "fed249ac7b2fbd385ba130ea7b6fa6b754ef9d9699918a4badf2469e01c5c0d5",
+    "reasonix-assistant-v1.39.10/internal/heartbeat/task.go": "d6f0b0d260464b151c9b9dba2d4520a44dd6d2238c81529d1bed3dcddfad9a20",
+    "reasonix-assistant-v1.39.10/internal/heartbeat/weekly_window.go": "a6146cb27dcf1a54fe29ca49d8b27acfaa8cde1b6caf41b840805188c3da640c",
+    "reasonix-assistant-v1.39.10/internal/heartbeat/weekly_window_test.go": "af316a465d6d91b996b4721038f493f848147c236ea0d00789683ce70e4a587d"
+  },
+  "verification": [
+    "mail-weekly-tests.log",
+    "mail-weekly-race.log",
+    "mail-weekly-lint.log",
+    "mail-weekly-acceptance.log",
+    "mail-weekly-deployment.json",
+    "mail-weekly-live-check.log"
+  ],
+  "real_weixin_test_messages": 0
+}

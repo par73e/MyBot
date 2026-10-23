@@ -1,0 +1,127 @@
+{
+  "checked_at": "2026-10-23T18:39:31.650973+00:00",
+  "native_binary_sha256": "3f0b48088f18b3a8a5b452d52e3d50eafb7c60476bd2febf2ee0c219dd276a9a",
+  "components": {
+    "briefing": {
+      "air_current": {
+        "status": "cached",
+        "error": "",
+        "data_keys": [
+          "indexes",
+          "metadata",
+          "pollutants"
+        ]
+      },
+      "air_hourly": {
+        "status": "cached",
+        "error": "",
+        "data_keys": [
+          "hours",
+          "metadata",
+          "selected_hour_count"
+        ]
+      },
+      "alerts": {
+        "status": "fresh",
+        "error": "",
+        "data_keys": [
+          "alerts",
+          "metadata"
+        ]
+      },
+      "current": {
+        "status": "cached",
+        "error": "",
+        "data_keys": [
+          "cloudCover",
+          "condition",
+          "dewPoint",
+          "feelsLike",
+          "humidity",
+          "metadata",
+          "precipitation",
+          "pressure",
+          "temperature",
+          "uvIndex",
+          "visibility",
+          "wind",
+          "windGust"
+        ]
+      },
+      "daily": {
+        "status": "cached",
+        "error": "",
+        "data_keys": [
+          "context_note",
+          "days",
+          "metadata"
+        ]
+      },
+      "history": {
+        "status": "cached",
+        "error": "Nearby city historical REANALYSIS for yesterday, not the exact forecast grid or station observation; do not calculate precise same-point deltas from this.",
+        "data_keys": [
+          "code",
+          "fxLink",
+          "refer",
+          "weatherDaily"
+        ]
+      },
+      "hourly": {
+        "status": "cached",
+        "error": "",
+        "data_keys": [
+          "hours",
+          "metadata",
+          "selected_hour_count"
+        ]
+      },
+      "indices": {
+        "status": "cached",
+        "error": "",
+        "data_keys": [
+          "code",
+          "daily",
+          "fxLink",
+          "refer",
+          "updateTime"
+        ]
+      },
+      "minutely": {
+        "status": "fresh",
+        "error": "",
+        "data_keys": [
+          "code",
+          "fxLink",
+          "minutely",
+          "refer",
+          "summary",
+          "updateTime"
+        ]
+      }
+    },
+    "extra": {
+      "air_daily": {
+        "status": "cached",
+        "error": "",
+        "data_keys": [
+          "context_note",
+          "days",
+          "metadata"
+        ]
+      },
+      "astronomy": {
+        "status": "cached",
+        "error": "",
+        "data_keys": [
+          "code",
+          "fxLink",
+          "refer",
+          "sunrise",
+          "sunset",
+          "updateTime"
+        ]
+      }
+    }
+  }
+}

@@ -35,34 +35,46 @@ type Run struct {
 
 // Task is a persisted headless job. Calendar rules use the desktop interval syntax.
 type Task struct {
+	// Capability and MailIDs are host-created execution scope, never mail/model arguments.
+	Capability string   `json:"capability,omitempty"`
+	PolicyID   string   `json:"policy_id,omitempty"`
+	Revision   int      `json:"revision,omitempty"`
+	MailIDs    []string `json:"mail_ids,omitempty"`
 	// RunStartedAt is host-only admission time, not persisted task configuration.
-	RunStartedAt           int64   `json:"-"`
-	ID                     string  `json:"id"`
-	Title                  string  `json:"title"`
-	Prompt                 string  `json:"prompt"`
-	Interval               string  `json:"interval,omitempty"`
-	DecideNotification     bool    `json:"decide_notification,omitempty"`
-	SkipUntil              string  `json:"skip_until,omitempty"`
-	SnoozedUntil           string  `json:"snoozed_until,omitempty"`
-	At                     string  `json:"at,omitempty"`
-	Timezone               string  `json:"timezone"`
-	EndsAt                 string  `json:"endsAt,omitempty"`
-	Enabled                bool    `json:"enabled"`
-	WorkspaceRoot          string  `json:"workspaceRoot"`
-	Model                  string  `json:"model,omitempty"`
-	ApprovalMode           string  `json:"approvalMode"`
-	Kind                   string  `json:"kind"`
-	NewConversationEachRun bool    `json:"newConversationEachRun"`
-	TimeWindowStart        string  `json:"timeWindowStart,omitempty"`
-	TimeWindowEnd          string  `json:"timeWindowEnd,omitempty"`
-	CreatedAt              int64   `json:"createdAt"`
-	LastRunAt              int64   `json:"lastRunAt,omitempty"`
-	Target                 *Target `json:"target,omitempty"`
-	History                []Run   `json:"history,omitempty"`
+	RunStartedAt           int64          `json:"-"`
+	ID                     string         `json:"id"`
+	Title                  string         `json:"title"`
+	Prompt                 string         `json:"prompt"`
+	Interval               string         `json:"interval,omitempty"`
+	DecideNotification     bool           `json:"decide_notification,omitempty"`
+	SkipUntil              string         `json:"skip_until,omitempty"`
+	SnoozedUntil           string         `json:"snoozed_until,omitempty"`
+	At                     string         `json:"at,omitempty"`
+	Timezone               string         `json:"timezone"`
+	EndsAt                 string         `json:"endsAt,omitempty"`
+	Enabled                bool           `json:"enabled"`
+	WorkspaceRoot          string         `json:"workspaceRoot"`
+	Model                  string         `json:"model,omitempty"`
+	ApprovalMode           string         `json:"approvalMode"`
+	Kind                   string         `json:"kind"`
+	NewConversationEachRun bool           `json:"newConversationEachRun"`
+	TimeWindowStart        string         `json:"timeWindowStart,omitempty"`
+	TimeWindowEnd          string         `json:"timeWindowEnd,omitempty"`
+	WeeklySchedule         WeeklySchedule `json:"weeklySchedule,omitempty"`
+	CreatedAt              int64          `json:"createdAt"`
+	LastRunAt              int64          `json:"lastRunAt,omitempty"`
+	Target                 *Target        `json:"target,omitempty"`
+	History                []Run          `json:"history,omitempty"`
 }
 
 // Validate rejects ambiguous schedules and unsupported unattended permissions.
 func (t Task) Validate() error {
+	if t.Capability != "" && t.Capability != "mail" && t.Capability != "weather" {
+		return errors.New("unknown host capability")
+	}
+	if (t.Capability == "mail" || t.Capability == "weather") && (t.Kind != "agent" || !t.DecideNotification || t.ApprovalMode != "read-only") {
+		return errors.New("scoped analysis requires a read-only notification agent")
+	}
 	if t.ID == "" || strings.TrimSpace(t.Title) == "" || strings.TrimSpace(t.Prompt) == "" {
 		return errors.New("id, title and prompt are required")
 	}
@@ -72,8 +84,8 @@ func (t Task) Validate() error {
 	if _, err := time.LoadLocation(t.Timezone); err != nil {
 		return fmt.Errorf("timezone: %w", err)
 	}
-	if t.Kind != "agent" && t.Kind != "message" {
-		return errors.New("kind must be agent or message")
+	if t.Kind != "agent" && t.Kind != "message" && t.Kind != "mail_check" && t.Kind != "weather_check" {
+		return errors.New("kind must be agent, message or mail_check")
 	}
 	if t.ApprovalMode != "read-only" && t.ApprovalMode != "workspace-write" {
 		return errors.New("approvalMode must be read-only or workspace-write")
@@ -92,6 +104,14 @@ func (t Task) validateWorkspace() error {
 }
 
 func (t Task) validateSchedule() error {
+	if t.WeeklySchedule != nil {
+		if t.TimeWindowStart != "" || t.TimeWindowEnd != "" {
+			return errors.New("weeklySchedule and daily window cannot be combined")
+		}
+		if err := t.WeeklySchedule.Validate(); err != nil {
+			return err
+		}
+	}
 	for _, value := range []string{t.At, t.EndsAt, t.SkipUntil, t.SnoozedUntil} {
 		if value != "" {
 			if _, err := time.Parse(time.RFC3339, value); err != nil {
@@ -128,6 +148,12 @@ func (t Task) Due(now time.Time) bool {
 	if skip, err := time.Parse(time.RFC3339, t.SkipUntil); err == nil && now.Before(skip) {
 		return false
 	}
+	if (t.Kind == "mail_check" || t.Kind == "weather_check" || t.WeeklySchedule != nil) && !t.WithinTimeWindow(now) {
+		return false
+	}
+	if (t.Kind == "mail_check" || t.Kind == "weather_check") && t.LastRunAt == 0 {
+		return true
+	}
 	if snooze, err := time.Parse(time.RFC3339, t.SnoozedUntil); err == nil {
 		return !now.Before(snooze)
 	}
@@ -143,4 +169,16 @@ func (t Task) Due(now time.Time) bool {
 func (t Task) Expired(now time.Time) bool {
 	end, err := time.Parse(time.RFC3339, t.EndsAt)
 	return err == nil && !now.Before(end)
+}
+
+// WithinTimeWindow evaluates local wall-clock boundaries independently of due time.
+func (t Task) WithinTimeWindow(now time.Time) bool {
+	loc, err := time.LoadLocation(t.Timezone)
+	if err != nil {
+		return false
+	}
+	if t.WeeklySchedule != nil {
+		return t.WeeklySchedule.Allows(now.In(loc))
+	}
+	return heartbeatWithinTimeWindow(t, now.In(loc))
 }

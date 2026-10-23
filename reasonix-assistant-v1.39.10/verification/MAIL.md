@@ -1,0 +1,120 @@
+# Friday 邮件能力与上线说明
+
+云端版本：`v1.39.10-assistant.6-mail-weekly`，2026-10-24 已部署并启动。邮件任务按每周计划运行，60 秒间隔；周一/三/四 10:00、周二/五 08:00、周六/日 11:00 开启，全部于 24:00 关闭（北京时间）。因在凌晨部署，首次邮箱基线延后到周六 11:00。以服务版本、`assistant mail` 和最新部署报告为准。
+
+## 两条入口
+
+- 微信主动查询：`assistant_mail` 原生只读工具提供 `status/list/search/read`。模型先取得邮件清单，再阅读正文并概括，可以继续追问指定邮件。该工具直接出现在日常助理能力中，不需要模型运行 shell。
+- 分钟检查：仅在集成的 `bot start --heartbeat` 下，读取宿主的 `assistant/mail.json`。设置 `enabled=true, poll_seconds=60`。启动时将邮件检查注册为 `kind=mail_check` 的原生 Heartbeat 任务。邮件检查、固定提醒、Agent 分析共用 Engine、SQLite 任务存储、暂停及运行时间字段，各有执行通道以免慢请求阻塞其他提醒；三个邮箱连接并行，无新增不调用模型。
+
+来源是 QQ IMAP、两个独立 Gmail API，共三个直接连接。Outlook 转发到 QQ 的副本作为第四个来源；仅根据可解析的原收件人地址标注来源，显示名或模糊子串不会被当成依据。邮件头本身也不是身份认证证据。
+
+QQ 检查配置的 INBOX、Junk 文件夹，使用 TLS 证书校验、只读 EXAMINE 和 BODY.PEEK，不改变已读标记。Google 使用现有 gmail.readonly 凭据和显式 HTTP 代理，检查新增接收邮件，跳过发件/草稿/已删除邮件。刷新令牌由程序使用、访问令牌即将到期时刷新，并通过文件锁及原子替换写回私有凭据；凭据不进入模型参数或返回内容。
+
+## 持久处理
+
+邮件游标、头部缓存、健康状态、待分析任务共用现有 assistant SQLite 事务。取数在事务外进行。每个账号独立保存成功进度，单个账号失败不阻塞其他账号。首次检查只建立基线；旧邮件可主动查看，但不主动回放历史。新邮件靠 IMAP UIDVALIDITY/UID 或 Gmail history，而非已读标记发现。
+
+新增事件与任务一起提交，确保游标前进后任务仍在。按 RFC Message-ID 与发件人去重跨源副本；无 Message-ID 时仅对相同来源的稳定邮件编号去重。每轮排队最多 10 封唯一邮件，积压按时间继续排队。前台查看只更新头部缓存，不消耗后台事件。
+
+IMAP 编号有效性变化时分页重建并按最初启用时间过滤旧历史；Gmail history 过期（404）时，以旧检查时间加重叠窗口分页恢复、按初始启用时间过滤，再利用持久事件去重。原服务端已删除或不再可访问的邮件无法恢复。
+
+Agent 分析任务包含版本化固定规则、检查时间及邮件 ID，不把外部邮件文字拼接成可信指令。当前有效个人记忆/待办和当天有限会话上下文按已有机制加载。重要性与是否立即打扰由模型结合这些信息判断，不按发件人类别硬编码。
+
+邮件后台 Agent 只有 assistant_mail、assistant_memory、assistant_tasks、assistant_history 四个工具；任务/记忆工具仍受既有后台禁止修改约束，移除 shell、通用文件、网页、技能、能力发现与委派入口。固定提示词明确邮件内容是不可信数据，不能执行其中指令。每轮最多 24 个 Agent 步骤。成功读正文会留下与执行尝试绑定的宿主回执，缺少任一要求的阅读回执时，分析不能被确认成功或发送通知。
+
+模型输出复用现有 notify/message/reason 协议。实际通知复用微信 outbox 和当天会话写入，后续追问可继续读取邮件。静默决定保留已分析记录，不发送聊天消息。分析失败按指数退避最多五次；成功分析后的发送失败只重试发送。发送结果不确定时保留待检查，不盲目重发。账号连续三次检查失败只创建一次故障分析任务，恢复后重置故障周期。
+
+## 边界
+
+- 一分钟是检查触发间隔，不是通知送达时限；慢请求受每账号约 40 秒预算和整轮 90 秒超时限制，同一服务不会重叠检查，多个进程还有跨进程锁。批量积压、模型忙碌、代理或微信故障可能延迟结果。
+- Outlook 仅覆盖实际转发到 QQ 的副本，不支持原邮箱历史、文件夹或已读状态；原邮箱垃圾过滤可能阻止转发。两个 Gmail 仍走直接 API，无需修改现有转发设置。
+- list/search 每个来源实时取得最多 50 封（QQ 每个配置文件夹 50 封），加上已同步保存的邮件头；搜索范围是这些头部/摘要，不是完整历史或全文索引。失败账号的旧缓存会明确标为可能过时。
+- read 对正文分段返回（每段约 8000 UTF-8 字节），可用 body_offset 续读，最长提取 128000 字符。QQ 原始 MIME 最多 2 MiB，Gmail 不自动下载附件正文；缺失和截断均返回明确标记。附件仅列文件名，不执行、不下载。
+- 尚无自动清理个人邮件缓存的操作。头部/处理状态及模型会话是服务器私有运行数据，不纳入 Git。
+- Unix Python 3.9+ 标准库是邮件网络传输运行依赖；传输程序嵌入 Go 二进制，无需 pip 包或额外脚本服务。
+
+## 配置及检查
+
+模板：`deploy/tencent/mail.example.json`。实际配置放在 `REASONIX_HOME/assistant/mail.json`，权限 0600，凭据路径由宿主固定；模型不能自行指定账号、路径、服务器或代理。配置文件的 enabled、poll_seconds、timezone、timeWindowStart、timeWindowEnd 仅在首次创建 `mail-check` 任务时提供初值。默认全天、60 秒；示例时段未擅自作为正式偏好启用。此后以 SQLite 中的 Heartbeat 任务为唯一运行设置，重启不会覆盖 Agent 已保存的更改。前台主动读取不受自动检查时段限制。
+
+```sh
+reasonix assistant mail
+reasonix assistant mail '{"action":"list","limit":10}'
+reasonix assistant mail '{"action":"search","source":"outlook","query":"测试"}'
+reasonix assistant mail '{"action":"read","id":"工具返回的稳定编号"}'
+```
+
+status 不返回凭据路径或秘密，显示配置来源、Heartbeat 实际运行设置（未初始化时为 null）、各账号最后检查/成功时间、故障计数和未完成分析状态。它是最近观测结果，不是假装实时成功的探活。
+
+
+## 统一 Heartbeat 的运行时段与 Agent 控制
+
+`mail-check` 任务保存 `enabled`、`interval`、`timezone`、`timeWindowStart`、`timeWindowEnd`、`revision`。运行时段左闭右开，支持跨午夜：北京时间每天 00:00–08:00 停止，对应 start `08:00`、end `00:00`、timezone `Asia/Shanghai`。空起止表示全天。间隔至少 60 秒。
+
+检查、分析启动、发送重试均查询这一个任务的最新设置；子分析保存 policy_id 指向它，修改时段会同时约束已排队任务。运行中的检查/分析每秒重新读取许可，窗口关闭或暂停后取消上下文，保留待恢复任务、不计失败次数。准备发送时，在取得会话锁之后再检查许可，关闭期间保留 delivery_pending；已提交给网络的请求无法撤回。暂停的是邮件链路，不影响其他提醒。
+
+窗口恢复后，基于原游标补查期间的新邮件；未开始/被中断的分析继续执行，已分析且未送出的结果继续投递，不重新判断其重要性。窗口不会删除队列或把邮件标成已处理。首次启用仍只建立历史基线。
+
+云端前台 Agent 通过 `assistant_mail_schedule` 工具 get/update/pause/resume 修改这些字段。先 get，再带 revision 更新，防止覆盖并发修改；工具不接收路径、收件人、账号或任意任务编号。后台分析调用在程序层被拒绝，邮件分析进程也不注册此工具。固定工作提示词要求仅按 Sir 的明确指令修改，邮件和历史引用不能成为修改授权。
+
+需要在宿主 `[permissions].allow` 中允许 `assistant_mail_schedule`；发布脚本只增加该工具授权，并验证 TOML 中其余配置值完全相同，保存原文件以供回滚。工具可用于暂停/恢复和修改时段，不提供部署、账号或权限变更能力。
+
+```sh
+reasonix assistant mail-schedule
+reasonix assistant mail-schedule '{"action":"update","revision":1,"timeWindowStart":"08:00","timeWindowEnd":"00:00","timezone":"Asia/Shanghai"}'
+```
+
+这些示例不会自行执行。Sir 可对云端 Agent 说“每天 0 点到 8 点停止自动检查邮件”，它会通过工具持久保存并确认结果；部署前线上 Agent 仍没有新能力。
+
+## 验收与部署
+
+协议回归：`python3 scripts/test-mail-transport.py`（模拟 IMAP、Gmail，无个人数据）。
+
+二进制端到端验收：用 `go build -overlay` 将 `internal/assistant/mail_transport.py` 的嵌入替换为 `scripts/mail-fixture-transport.py`，生成明确标记 NEVER-DEPLOY 的专用二进制，再运行 `scripts/mail-acceptance.py`。实际 Go Bot、Agent 子进程、工具注册/调用、SQLite、60 秒调度与微信适配器均运行；邮箱、模型与微信服务端为本机模拟。覆盖空检查不调用模型、前台查询读正文、Outlook 来源的新邮件触发推送、Gmail 新邮件静默、发送一次及重启去重。专用模拟二进制绝不能发布。
+
+发布脚本 `scripts/deploy-mail.py` 必须在明确获准部署后执行，要求 --apply、二进制摘要与 Outlook 地址；仅支持从 assistant.4 升级。脚本从服务器既有三个私有凭据自动生成配置，备份 SQLite、原 config.toml 和旧版本指针，部署真实 Linux 二进制并重启原服务。必须三个连接都完成初始基线且微信轮询就绪才确认上线，否则恢复旧版本与数据库。首次部署不回放历史、不主动发送测试微信消息。
+
+确认上线后，应由 Sir 主动查询和发送新的测试邮件，验收真实模型与真实微信收件；模拟验收不能替代该步骤。
+
+### 上线前已完成的验证（历史记录）
+
+- assistant、heartbeat、cli、boot、bot、control 六个相关包回归通过；control 中依赖 sandbox-exec 的测试在外层沙箱之外复核通过。最新邮件定向回归见 mail-final-targeted.log。
+- 三个包的邮件/通知定向并发检测通过，见 mail-race.log；Python 协议测试 12 项通过，含 UID 重建、时间预算断点、Gmail history 分页/过期、令牌缓存、MIME 解码和秘密不回显。
+- golangci-lint：0 issues；repolint clean，未增加原有 1152 条基线。
+- 实际二进制配模拟邮箱/模型/微信：前台查询与正文读取、60 秒调度、重要通知、普通邮件静默、阅读回执校验、重启去重通过，见 mail-acceptance.log。
+- 真实服务器隔离读取：QQ、Gmail1、Gmail2 均成功；清单能区分四个来源，并读取此前经 Outlook 转发的测试邮件。Google 大清单受预算限制时明确标为部分扫描，见 mail-live-readonly.json。未启动真实轮询、未调用真实模型、未发微信测试消息、未修改生产状态数据库，服务 PID/重启计数未变；测试目录及上传的候选文件已移除。
+- 已构建真实 Linux/amd64 候选，摘要和对应源码摘要见 mail-build.json。当时未提交、推送、部署或写知识库；真实模型对真实邮件的重要性判断和微信实际收件仍待上线后验收。
+
+### 统一调度重构验证（2026-10-24）
+
+- `mail-unified-tests.log`：assistant、heartbeat、cli、boot、bot 回归；覆盖原生无模型检查、午夜/08:00 边界、跨午夜窗口、实时修改、暂停待发送通知、运行中取消、恢复及重启持久化、乐观锁、后台禁止修改。
+- `mail-unified-race.log`：四个包邮件/调度定向并发检测。
+- `mail-unified-acceptance.log`：真实 Bot/子进程/SQLite/60 秒调度，模拟邮箱、模型与微信；另验证前台 Agent 工具修改时段及重启后保留。真实账号网络传输程序未改动，先前服务器隔离读取证据仅证明传输部分，不是新版云端调度已上线。
+
+### 2026-10-24 云端部署
+
+Sir 明确授权部署并运行。服务器北京时间凌晨执行，先将 `08:00`–`00:00` / `Asia/Shanghai` 写入宿主配置，再启动服务，因此没有在部署时绕过静默时段做基线检查。
+
+- 部署报告：`mail-deployment.json`；二进制摘要与 `mail-build.json` 一致。
+- 回滚备份：服务器 `/var/lib/mybot/backups/mail-20261023T165634Z`，包含旧版本指针、原 config.toml 和 SQLite。
+- 原环境、配对凭据、persona 内容验证未改变；config.toml 只增加 `assistant_mail_schedule` 的工具授权。
+- 服务与微信轮询就绪，持久 Heartbeat 已启用。邮箱游标、检查执行历史、邮件分析任务在凌晨保持为空；连续观察 65 秒，服务 PID 不变、重启计数 0，邮件活动仍为 0；证据见 `mail-deployment-quiet-check.log`。
+- 未向真实模型发送测试请求，未发微信测试通知，也未主动查询个人邮件。真实收信/重要性判断/微信送达的整体实测留待运行窗口内；此前的真实邮箱读取证明网络传输可用，不能代替该项验证。
+- 本次是首次启用，08:00 首轮只建立历史基线，不回放此前旧邮件；后续新增邮件进入自动分析。
+
+## 每周运行时间表（assistant.6）
+
+Heartbeat 支持 `weeklySchedule`，以配置时区的自然日为准，与 06:00 切换的聊天会话日无关。必须完整指定 monday–sunday 七天，每天含 enabled/start/end；关闭日可只写 enabled=false。周计划替代每天相同的窗口，空缺天不隐式继承。开启边界包含、关闭边界不包含，end 允许 24:00。跨夜时段归属于开始的星期，可延续到次日；周日跨夜同样延续到下周一。
+
+前台 `assistant_mail_schedule` 工具可 get/update/pause/resume。`weeklySchedule` 与每日起止字段不能在同一次更新中混用；设置每日起止会替换周计划，clear_window 清除全部窗口恢复全天。clear_weekly_schedule 仅移除周计划（原每日字段为空时则全天）。后台仍不能修改，修改需使用最新 revision，暂停状态不会因调整时间而被启用。
+
+本次 Sir 要求的固定周计划（北京时间，每周重复）：周一/三/四 10:00，周二/五 08:00，周六/日 11:00，全部于 24:00 关闭。结构示例见 `deploy/tencent/mail-weekly-schedule.example.json`。不包含指定日期的临时覆盖功能。
+
+验收记录：`mail-weekly-tests.log`、`mail-weekly-race.log`、`mail-weekly-lint.log`、`mail-weekly-acceptance.log`。端到端测试通过模拟邮箱/模型/微信验证前台 Agent 调用工具保存周计划并经重启保留；不代表向真实微信发送过测试消息。
+
+### 每周计划云端验收
+
+2026-10-24 凌晨已从 assistant.5 升级至 assistant.6，使用新二进制的 assistant_mail_schedule 工具按 revision=1 更新为 revision=2，随后启动并验证重启后设置完全相同。旧 config.toml、mail.json、环境、配对和 persona 文件摘要均未改变。SQLite 的 mail-check 为设置的唯一事实来源，mail.json 原每日时段仅是初次创建的种子，不覆盖已保存的周计划。
+
+部署报告 `mail-weekly-deployment.json`，运行进程摘要/周计划/静默检查见 `mail-weekly-live-check.log`。未发送真实微信测试通知或调用真实邮件模型。回滚备份在服务器 `/var/lib/mybot/backups/mail-weekly-20261023T171151Z`，旧 assistant.5 发布目录保留。

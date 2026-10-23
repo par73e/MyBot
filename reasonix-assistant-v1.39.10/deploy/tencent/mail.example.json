@@ -1,0 +1,31 @@
+{
+  "enabled": true,
+  "poll_seconds": 60,
+  "timezone": "Asia/Shanghai",
+  "timeWindowStart": "",
+  "timeWindowEnd": "",
+  "accounts": [
+    {
+      "id": "qq",
+      "address": "YOUR_QQ@qq.com",
+      "provider": "qq",
+      "credential_file": "/var/lib/mybot/mail/qq/qq-ACCOUNT_HASH.json",
+      "folders": ["INBOX", "Junk"],
+      "forwarded_accounts": [{"id": "outlook", "address": "YOUR_OUTLOOK@outlook.com"}]
+    },
+    {
+      "id": "gmail1",
+      "address": "FIRST@gmail.com",
+      "provider": "gmail",
+      "credential_file": "/var/lib/mybot/mail/gmail/gmail-FIRST_HASH.json",
+      "proxy": "http://127.0.0.1:17890"
+    },
+    {
+      "id": "gmail2",
+      "address": "SECOND@gmail.com",
+      "provider": "gmail",
+      "credential_file": "/var/lib/mybot/mail/gmail/gmail-SECOND_HASH.json",
+      "proxy": "http://127.0.0.1:17890"
+    }
+  ]
+}

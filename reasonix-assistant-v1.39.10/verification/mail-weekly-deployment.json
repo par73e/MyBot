@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.6-mail-weekly",
+  "binary_sha256": "ecbc4602d568a147408f7e3fb2019886ef33aedadc2ebf93b9423393169b5d2d",
+  "schedule": {
+    "enabled": true,
+    "id": "mail-check",
+    "interval": "60s",
+    "revision": 2,
+    "timeWindowEnd": "",
+    "timeWindowStart": "",
+    "timezone": "Asia/Shanghai",
+    "weeklySchedule": {
+      "friday": {
+        "enabled": true,
+        "end": "24:00",
+        "start": "08:00"
+      },
+      "monday": {
+        "enabled": true,
+        "end": "24:00",
+        "start": "10:00"
+      },
+      "saturday": {
+        "enabled": true,
+        "end": "24:00",
+        "start": "11:00"
+      },
+      "sunday": {
+        "enabled": true,
+        "end": "24:00",
+        "start": "11:00"
+      },
+      "thursday": {
+        "enabled": true,
+        "end": "24:00",
+        "start": "10:00"
+      },
+      "tuesday": {
+        "enabled": true,
+        "end": "24:00",
+        "start": "08:00"
+      },
+      "wednesday": {
+        "enabled": true,
+        "end": "24:00",
+        "start": "10:00"
+      }
+    }
+  },
+  "weixin_poll_ready": true,
+  "host_files_unchanged": true,
+  "backup": "/var/lib/mybot/backups/mail-weekly-20261023T171151Z",
+  "test_weixin_messages": 0,
+  "live_verified_at": "2026-10-24T01:13:26.354130+08:00",
+  "pid": 722553,
+  "restart_count": 0,
+  "mail_activity": 0,
+  "next_open": "2026-10-24T11:00:00+08:00"
+}

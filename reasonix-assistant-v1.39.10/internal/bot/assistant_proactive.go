@@ -100,6 +100,11 @@ func (gw *BotGateway) PrepareAssistantTask(ctx context.Context, target heartbeat
 // DeliverAssistantNotification is synchronous: success means both platform
 // delivery and durable conversation import completed. Retries use the outbox.
 func (gw *BotGateway) DeliverAssistantNotification(ctx context.Context, target heartbeat.Target, runID, text, conversationID string, at time.Time) error {
+	return gw.DeliverAssistantNotificationWhen(ctx, target, runID, text, conversationID, at, nil)
+}
+
+// DeliverAssistantNotificationWhen rechecks host policy after acquiring the conversation lock.
+func (gw *BotGateway) DeliverAssistantNotificationWhen(ctx context.Context, target heartbeat.Target, runID, text, conversationID string, at time.Time, admit func(context.Context) error) error {
 	return gw.withAssistantConversation(ctx, target, at, func(state *sessionState, msg InboundMessage) error {
 		c := conversationForMessage(msg, state.workspaceRoot)
 		if conversationID != "" && c.SessionID != conversationID {
@@ -117,6 +122,11 @@ func (gw *BotGateway) DeliverAssistantNotification(ctx context.Context, target h
 		case "sending", "uncertain":
 			return heartbeat.ErrDeliveryUncertain
 		case "prepared":
+			if admit != nil {
+				if err := admit(ctx); err != nil {
+					return err
+				}
+			}
 			if err := repo.NotificationState(ctx, c.Owner, n, "sending"); err != nil {
 				return err
 			}

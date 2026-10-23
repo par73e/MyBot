@@ -39,6 +39,9 @@ type renderSink struct {
 	thinking      strings.Builder
 	inThinking    bool
 	toolNames     map[string]string // tool ID -> name
+	finalOnly     bool
+	finalText     string
+	finalDone     bool
 	lastFlush     time.Time
 	lastProgress  time.Time
 	progressCount int
@@ -59,10 +62,16 @@ const (
 
 func newRenderSink(ctx context.Context, adapter Adapter, connID, domain, chatID string, chatType ChatType, userID string, replyTo string, logger *slog.Logger, onApproval func(event.Approval), onAsk func(event.Ask)) *renderSink {
 	editor, _ := adapter.(messageEditor)
+	policy, _ := adapter.(interface{ FinalOnlyReplies() bool })
+	finalOnly := policy != nil && policy.FinalOnlyReplies()
+	if finalOnly {
+		editor = nil
+	}
 	return &renderSink{
 		ctx:        ctx,
 		adapter:    adapter,
 		editor:     editor,
+		finalOnly:  finalOnly,
 		connID:     connID,
 		domain:     domain,
 		chatID:     chatID,
@@ -78,6 +87,9 @@ func newRenderSink(ctx context.Context, adapter Adapter, connID, domain, chatID 
 }
 
 func (s *renderSink) Emit(e event.Event) {
+	if s.finalOnly && s.emitFinalOnly(e) {
+		return
+	}
 	switch e.Kind {
 	case event.TurnStarted:
 		s.buf.Reset()
@@ -136,23 +148,7 @@ func (s *renderSink) Emit(e event.Event) {
 		s.emitApproval(e.Approval)
 
 	case event.AskRequest:
-		if s.onAsk != nil {
-			s.onAsk(e.Ask)
-		}
-		// 发送问答请求
-		askText := renderAskText(e.Ask)
-		msg := OutboundMessage{
-			ConnectionID: s.connID,
-			Domain:       s.domain,
-			ChatID:       s.chatID,
-			ChatType:     s.chatType,
-			Text:         askText,
-			ReplyToMsgID: s.replyTo,
-		}
-		if s.adapter.Platform() == PlatformFeishu {
-			msg.Card = askCard(e.Ask, askText, s.chatType, s.userID)
-		}
-		_ = s.send(msg)
+		s.emitAsk(e.Ask)
 
 	case event.TurnDone:
 		// 刷新缓冲

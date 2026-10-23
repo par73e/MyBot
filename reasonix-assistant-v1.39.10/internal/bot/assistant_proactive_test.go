@@ -128,3 +128,23 @@ func TestAssistantProactiveWaitsForUserTurnAndRejectsForeignTarget(t *testing.T)
 		t.Fatal("foreign notification target admitted")
 	}
 }
+
+func TestMailDeliveryAdmissionRunsInsideConversationBeforeSend(t *testing.T) {
+	t.Setenv("REASONIX_ASSISTANT", "1")
+	t.Setenv("REASONIX_HOME", t.TempDir())
+	adapter := newFakeAdapter(PlatformWeixin, "fixture")
+	at := time.Now()
+	gw, ctrl := notificationGateway(t, adapter, at)
+	target := heartbeat.Target{ConnectionID: "weixin", Domain: "weixin", ChatID: "owner", ChatType: "dm"}
+	called := false
+	err := gw.DeliverAssistantNotificationWhen(t.Context(), target, "paused-mail", "notice", "", at, func(context.Context) error { called = true; return heartbeat.ErrDeferred })
+	if !called || !errors.Is(err, heartbeat.ErrDeferred) || ctrl.records != 0 {
+		t.Fatal("closed policy was not enforced", called, err, ctrl.records)
+	}
+	if err = gw.DeliverAssistantNotificationWhen(t.Context(), target, "paused-mail", "notice", "", at, func(context.Context) error { return nil }); err != nil {
+		t.Fatal(err)
+	}
+	if ctrl.records != 1 {
+		t.Fatal("resumed notification was not imported once", ctrl.records)
+	}
+}

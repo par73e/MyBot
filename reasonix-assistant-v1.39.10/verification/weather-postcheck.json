@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checked_at": "2026-10-24T02:41:38.671472+08:00",
+  "version": "v1.39.10-assistant.7-weather",
+  "running_binary_sha256": "3f0b48088f18b3a8a5b452d52e3d50eafb7c60476bd2febf2ee0c219dd276a9a",
+  "server_source_files_verified": 9088,
+  "source_manifest_sha256": "6e00383b64309dca00193e6ae3712063dda6b1caef9a8721bf240fc9d10811b6",
+  "project_readme_matches": true,
+  "weather_morning_enabled": true,
+  "today_wake_time": "11:00",
+  "weather_native_dispatch": "completed",
+  "weather_native_runs": 1,
+  "weather_agent_jobs_before_wake": 0,
+  "live_deployed_components": {
+    "air_current": "fresh",
+    "current": "fresh"
+  },
+  "mail_still_enabled": true,
+  "test_weixin_messages": 0
+}

@@ -1,0 +1,10 @@
+ok  	reasonix/internal/bot	4.165s
+ok  	reasonix/internal/bot/dingtalk	0.448s
+ok  	reasonix/internal/bot/feishu	0.694s
+ok  	reasonix/internal/bot/qq	0.621s
+ok  	reasonix/internal/bot/weixin	0.605s
+ok  	reasonix/internal/config	12.340s
+ok  	reasonix/internal/botruntime	1.477s
+ok  	reasonix/internal/assistant	(cached)
+ok  	reasonix/internal/heartbeat	(cached)
+ok  	reasonix/internal/cli	40.651s

@@ -14,9 +14,10 @@ import (
 )
 
 type botHeartbeatOptions struct {
-	enabled bool
-	file    string
-	poll    time.Duration
+	workspace string
+	enabled   bool
+	file      string
+	poll      time.Duration
 }
 
 func bindBotHeartbeatFlags(fs *flag.FlagSet) *botHeartbeatOptions {
@@ -53,6 +54,13 @@ func startBotHeartbeat(ctx context.Context, gateway heartbeatGateway, options *b
 		Store: store, Runner: runner,
 		Sender: heartbeatGatewaySender{gateway: gateway},
 	}
+	if err := configureMailboxHeartbeat(ctx, &engine, model, options.workspace); err != nil {
+		return nil, err
+	}
+	if err := configureWeatherHeartbeat(ctx, &engine, model, options.workspace); err != nil {
+		return nil, err
+	}
+	engine.Sender = heartbeatGatewaySender{gateway: gateway, admit: engine.Admitted}
 	workerCtx, cancel := context.WithCancel(ctx)
 	done := make(chan struct{})
 	go func() {

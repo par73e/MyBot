@@ -58,5 +58,24 @@ func (s heartbeatGatewaySender) SendRun(ctx context.Context, t heartbeat.Task, r
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+	if t.Capability == "mail" || t.Capability == "weather" {
+		guarded, ok := s.gateway.(interface {
+			DeliverAssistantNotificationWhen(context.Context, heartbeat.Target, string, string, string, time.Time, func(context.Context) error) error
+		})
+		if !ok || s.admit == nil {
+			return errors.New("mail delivery admission unavailable")
+		}
+		check := func(ctx context.Context) error {
+			allowed, err := s.admit(ctx, t, time.Now())
+			if err != nil {
+				return err
+			}
+			if !allowed {
+				return heartbeat.ErrDeferred
+			}
+			return nil
+		}
+		return guarded.DeliverAssistantNotificationWhen(ctx, *t.Target, fmt.Sprintf("%s:%d", t.ID, run.StartedAt), run.Result, run.ConversationID, time.UnixMilli(run.StartedAt), check)
+	}
 	return gateway.DeliverAssistantNotification(ctx, *t.Target, fmt.Sprintf("%s:%d", t.ID, run.StartedAt), run.Result, run.ConversationID, time.UnixMilli(run.StartedAt))
 }

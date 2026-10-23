@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.8-weather-context",
+  "binary_sha256": "200d0ba84f99fff072ba3fd2ccdf6cd1d0063e3824c5b7a69c57216845416fb8",
+  "real_cloud_model": true,
+  "real_weather_api": true,
+  "isolated_memories_only": true,
+  "test_weixin_messages": 0,
+  "checks": [
+    {
+      "case": "month-away-memory",
+      "passed": true,
+      "weather_queries": 0
+    },
+    {
+      "case": "morning-trip",
+      "passed": true,
+      "selected_city": "杭州",
+      "actual_weather_result": true,
+      "location_reason": "当前有效短期记忆：Sir 2026-10-24至10-27在杭州旅行，今日日常活动地点为杭州；今天正是该行程首日。"
+    },
+    {
+      "case": "explicit-school-during-trip",
+      "passed": true,
+      "selected_configured_place": "school",
+      "actual_weather_result": true
+    },
+    {
+      "case": "expired-trip-restores-default",
+      "passed": true,
+      "selected_default": true,
+      "actual_weather_result": true
+    },
+    {
+      "case": "future-trip-for-tomorrow",
+      "passed": true,
+      "selected_city": "杭州",
+      "target_date": "2026-10-25",
+      "actual_weather_result": true
+    }
+  ]
+}

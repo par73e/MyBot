@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "real_bot_child_tool_sqlite": true,
+  "simulated_weather_model_weixin": true,
+  "test_messages_to_real_weixin": 0,
+  "queries": [
+    "evening",
+    "aqi",
+    "briefing"
+  ],
+  "restart_dedup": true,
+  "model_requests": 6,
+  "outbound_fixture_messages": 5,
+  "errors": []
+}

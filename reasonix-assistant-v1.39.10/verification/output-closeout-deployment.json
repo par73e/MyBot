@@ -1,0 +1,27 @@
+{
+  "version": "v1.39.10-assistant.10-output-closeout",
+  "binary_sha256": "3b9c1a1bcb64870cd0fa543a2f68aaf72f380c2db7babe18e6445b81dff6e2bc",
+  "source_archive_sha256": "45f6ce54d8d72eb0a53edacfbabeb7c22a3891607e916b19aac260e00fbf4f0f",
+  "source_manifest_sha256": "de5897d483b52ceaaf64ab84f5ba5ecd9dc292b9789217656407ce0e69f024a4",
+  "source_file_count": 9102,
+  "project_readme_sha256": "540b5c239ec843b8d5e9bb19a237703920366630538942ea5b6e1a4033ede6df",
+  "passed": true,
+  "service_active": true,
+  "weixin_poll_ready": true,
+  "source_directory": "/home/ubuntu/Project/MyBot/reasonix-assistant-v1.39.10",
+  "local_server_source_identical": true,
+  "host_settings_and_personal_memories_unchanged": true,
+  "weather_wake_times": {
+    "monday": "10:00",
+    "tuesday": "08:00",
+    "wednesday": "10:00",
+    "thursday": "10:00",
+    "friday": "08:00",
+    "saturday": "11:00",
+    "sunday": "11:00"
+  },
+  "timezone": "Asia/Shanghai",
+  "backup": "/var/lib/mybot/backups/output-closeout-20261023T194934Z",
+  "test_weixin_messages": 0,
+  "reply_policy_final_only": true
+}

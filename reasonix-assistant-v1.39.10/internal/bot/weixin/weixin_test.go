@@ -16,6 +16,16 @@ import (
 	"reasonix/internal/config"
 )
 
+func TestFinalOnlyRepliesUsesWeixinConfig(t *testing.T) {
+	for _, enabled := range []bool{false, true} {
+		a := New(config.WeixinBotConfig{FinalOnly: enabled}, slog.New(slog.NewTextHandler(io.Discard, nil)))
+		policy, ok := a.(interface{ FinalOnlyReplies() bool })
+		if !ok || policy.FinalOnlyReplies() != enabled {
+			t.Fatalf("final-only adapter policy did not match config %v", enabled)
+		}
+	}
+}
+
 func TestStartReturnsMissingToken(t *testing.T) {
 	isolateWeixinUserConfig(t)
 	t.Setenv("WEIXIN_TEST_TOKEN", "")

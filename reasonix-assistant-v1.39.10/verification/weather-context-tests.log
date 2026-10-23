@@ -1,0 +1,188 @@
+ok  	reasonix/internal/assistant	2.499s
+2026/10/24 02:59:09 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=6
+2026/10/24 02:59:09 WARN controller: keeping in-flight marker without commit digest marker_id=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2-1792781949494593000-1
+2026/10/24 02:59:13 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:13 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=1 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:14 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:15 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:16 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:17 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:17 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:18 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:18 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:18 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:18 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:18 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:18 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:20 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=6
+2026/10/24 02:59:20 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=6
+2026/10/24 02:59:20 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=6
+2026/10/24 02:59:20 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=6
+2026/10/24 02:59:20 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=2
+2026/10/24 02:59:21 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:21 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185921.247516000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:22 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:23 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:24 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:25 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:25 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185925.151531000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:25 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185925.701774000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:26 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185925.957290000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:26 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:26 WARN controller: active session was removed externally; moved runtime to stable recovery path path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotExternalRemovalMovesOnceToStableRecovery778015494/001/root.jsonl recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotExternalRemovalMovesOnceToStableRecovery778015494/001/root-recovery-487f6852c5738d0a.jsonl existing=false
+2026/10/24 02:59:26 WARN session: save without a held lease (write-authority probe, store P2) path=root-recovery-487f6852c5738d0a.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:27 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:27 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185927.178185000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:27 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:28 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185928.100260000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:28 WARN session: save without a held lease (write-authority probe, store P2) path=root.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:29 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185928.768558000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:29 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185929.617685000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:30 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=1 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:31 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:31 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:31 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:31 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:31 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:32 WARN agent: compaction failed detail="trigger=manual mode=summarized summary_input=cache_prefix cache=unknown src=12178 fold=26196 spans=1 proj=0 in=0 out=0 hit=0 miss=0 write=0 reqs=1 user_kept=0 user_dropped=0 err_type=summary_provider_error: summary unavailable"
+2026/10/24 02:59:34 WARN agent: compaction failed detail="trigger=pressure mode=summarized summary_input=cache_prefix cache=unknown src=12184 fold=26196 spans=1 proj=0 in=0 out=0 hit=0 miss=0 write=0 reqs=1 user_kept=0 user_dropped=0 err_type=summary_provider_error: summary unavailable"
+2026/10/24 02:59:34 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185934.635462000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:35 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:35 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:36 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:36 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:36 WARN controller: keeping in-flight marker after failed turn snapshot err="session event log for /var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestFinishInFlightTurnKeepsMarkerUntilSnapshotSucceeds2682935585/001/session.jsonl uses schema 99; this build supports up to 2"
+2026/10/24 02:59:36 WARN session: save without a held lease (write-authority probe, store P2) path=post-snapshot-crash.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:37 WARN controller: session has content but no session path; conversation will not be persisted label=test session_dir=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSetSessionPathAdoptsTemporaryBackgroundJobs301311900/001
+2026/10/24 02:59:37 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:38 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestResumeDoesNotActivateLegacyTranscriptOrTerminalGoalTodos3698862970/001/session.jsonl cache_state=unknown
+2026/10/24 02:59:38 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestResumeDoesNotActivateLegacyTranscriptOrRunningGoalTodos1834514967/001/session.jsonl cache_state=unknown
+2026/10/24 02:59:38 INFO controller: resume cache state path=/private/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestResumeRestoresRunningAutoResearchGoalFromSidecar4001221815/001/session.jsonl cache_state=unknown
+2026/10/24 02:59:38 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:38 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:38 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:38 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:38 WARN controller: snapshot conflict; adopted newer disk transcript path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotAdoptsNewerDiskForPureStalePrefix2419832934/001/session.jsonl mode=snapshot kind=stale_prefix disk_messages=5 snapshot_messages=3 base_revision=0 disk_revision=0
+2026/10/24 02:59:38 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:39 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotRecoversDivergedControllerTranscript3436168311/001/session.jsonl mode=snapshot kind=diverged disk_messages=4 snapshot_messages=4 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotRecoversDivergedControllerTranscript3436168311/001/session-recovery-35884ac2887ce0e3.jsonl existing=false
+2026/10/24 02:59:39 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:39 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotConflictRecoveryTransplantsInFlightTurnMarker824642029/001/session.jsonl mode=snapshot kind=diverged disk_messages=4 snapshot_messages=4 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotConflictRecoveryTransplantsInFlightTurnMarker824642029/001/session-recovery-55c61904c5c1e754.jsonl existing=false
+2026/10/24 02:59:39 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:39 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:39 WARN session: save without a held lease (write-authority probe, store P2) path=compacted-crash.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:40 WARN session: save without a held lease (write-authority probe, store P2) path=wal-newer-than-anchor.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:40 INFO session: log rotation deferred path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestResumePreservesNewerWALAfterStaleMarker229635595/001/wal-newer-than-anchor.jsonl reason="session log rotation denied: session lease is not held by this runtime"
+2026/10/24 02:59:40 INFO session: log rotation deferred path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestResumePreservesNewerWALAfterStaleMarker229635595/001/wal-newer-than-anchor.jsonl reason="session log rotation denied: session lease is not held by this runtime"
+2026/10/24 02:59:40 WARN controller: preserving WAL transcript after stale in-flight marker path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestResumePreservesNewerWALAfterStaleMarker229635595/001/wal-newer-than-anchor.jsonl messages=1315 marker_index=1149 resolved_index=1149 marker_revision=1 current_revision=2
+2026/10/24 02:59:40 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:40 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotRewriteRecoversStaleControllerTranscript681318109/001/session.jsonl mode=rewrite kind=diverged disk_messages=5 snapshot_messages=2 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotRewriteRecoversStaleControllerTranscript681318109/001/session-recovery-21d3759b2387346d.jsonl existing=false
+2026/10/24 02:59:40 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:40 WARN session: save without a held lease (write-authority probe, store P2) path=edited-mid-turn.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:40 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:41 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestRecoveryBranchPersistsLaterOwnedCompactionRewrite2710563349/001/session.jsonl mode=snapshot kind=diverged disk_messages=3 snapshot_messages=3 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestRecoveryBranchPersistsLaterOwnedCompactionRewrite2710563349/001/session-recovery-73ffe39a896bf5a5.jsonl existing=false
+2026/10/24 02:59:41 WARN session: save without a held lease (write-authority probe, store P2) path=session-recovery-73ffe39a896bf5a5.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:41 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:41 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestConcurrentSnapshotsShareSingleRecoveryHandoff2368162902/001/session.jsonl mode=snapshot kind=diverged disk_messages=3 snapshot_messages=3 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestConcurrentSnapshotsShareSingleRecoveryHandoff2368162902/001/session-recovery-78356ecc66fbdef6.jsonl existing=false
+2026/10/24 02:59:41 WARN session: save without a held lease (write-authority probe, store P2) path=session-recovery-78356ecc66fbdef6.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:42 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:42 WARN controller: shutdown snapshot lock timed out; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestRecoverShutdownSnapshotPersistsAndReanchorsSession3762127124/001/session.jsonl recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestRecoverShutdownSnapshotPersistsAndReanchorsSession3762127124/001/session-recovery-c67f0283e71baed7.jsonl existing=false
+2026/10/24 02:59:42 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:43 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSessionSwapWaitsForRecoveryHandoffSetSessionPath3917628880/001/session.jsonl mode=snapshot kind=diverged disk_messages=3 snapshot_messages=3 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSessionSwapWaitsForRecoveryHandoffSetSessionPath3917628880/001/session-recovery-c24a94ebbbf815f7.jsonl existing=false
+2026/10/24 02:59:43 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:43 WARN session: save without a held lease (write-authority probe, store P2) path=resumed.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:43 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSessionSwapWaitsForRecoveryHandoffResume2373141273/001/session.jsonl mode=snapshot kind=diverged disk_messages=3 snapshot_messages=3 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSessionSwapWaitsForRecoveryHandoffResume2373141273/001/session-recovery-fdcdacd98c1107bb.jsonl existing=false
+2026/10/24 02:59:44 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSessionSwapWaitsForRecoveryHandoffResume2373141273/001/resumed.jsonl cache_state=warm idle=0s
+2026/10/24 02:59:44 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:44 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSessionSwapWaitsForRecoveryHandoffCancelFlush2459162370/001/session.jsonl mode=snapshot kind=diverged disk_messages=3 snapshot_messages=3 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSessionSwapWaitsForRecoveryHandoffCancelFlush2459162370/001/session-recovery-a851bd1582b16103.jsonl existing=false
+2026/10/24 02:59:44 WARN session: save without a held lease (write-authority probe, store P2) path=session-recovery-a851bd1582b16103.jsonl mode=1 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:45 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:45 WARN controller: snapshot conflict; adopted newer disk transcript path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotConflictAdoptionResetsRewriteBaseline631005463/001/session.jsonl mode=rewrite kind=stale_prefix disk_messages=3 snapshot_messages=2 base_revision=0 disk_revision=0
+2026/10/24 02:59:45 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:45 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:46 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestAdoptHistoryPreservesRewriteBaseline2245510901/001/session.jsonl cache_state=warm idle=0s
+2026/10/24 02:59:46 WARN session: save without a held lease (write-authority probe, store P2) path=empty-session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:46 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestAdoptEmptyHistoryRestoresPersistedGoalState2772499618/001/empty-session.jsonl cache_state=warm idle=0s
+2026/10/24 02:59:46 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:46 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestAdoptHistoryRejectsStaleCarriedHistoryBaseline2454377094/001/session.jsonl cache_state=warm idle=0s
+2026/10/24 02:59:46 WARN controller: snapshot conflict; adopted newer disk transcript path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestAdoptHistoryRejectsStaleCarriedHistoryBaseline2454377094/001/session.jsonl mode=rewrite kind=stale_prefix disk_messages=5 snapshot_messages=3 base_revision=0 disk_revision=0
+2026/10/24 02:59:47 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:47 WARN controller: snapshot conflict; adopted newer disk transcript path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestCancelFlushRejectsStaleControllerOverwrite2748656410/001/session.jsonl mode=rewrite kind=stale_prefix disk_messages=5 snapshot_messages=2 base_revision=0 disk_revision=0
+2026/10/24 02:59:47 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:47 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:48 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:48 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:49 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotConflictAtRecoveryDepthCapIsolatesCurrentBranch1366775750/001/session.jsonl mode=rewrite kind=diverged disk_messages=4 snapshot_messages=4 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSnapshotConflictAtRecoveryDepthCapIsolatesCurrentBranch1366775750/001/session-recovery-e3ba7037b9968582.jsonl existing=false
+2026/10/24 02:59:49 WARN session: save without a held lease (write-authority probe, store P2) path=session-recovery-e3ba7037b9968582.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:49 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:49 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:49 WARN controller: snapshot conflict; forked recovery branch path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestNewSessionRefusesTurnStartedDuringSnapshot2358636934/001/session.jsonl mode=snapshot kind=diverged disk_messages=3 snapshot_messages=3 base_revision=0 disk_revision=1 recovery=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestNewSessionRefusesTurnStartedDuringSnapshot2358636934/001/session-recovery-baa20a7fd4bef3ae.jsonl existing=false
+2026/10/24 02:59:50 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:51 WARN session: save without a held lease (write-authority probe, store P2) path=20261023-185950.980452000-test.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:51 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:52 WARN session: save without a held lease (write-authority probe, store P2) path=old.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:52 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestResumeResetsTwoModelPlannerContext2049708242/001/resumed.jsonl cache_state=unknown
+2026/10/24 02:59:53 WARN session: save without a held lease (write-authority probe, store P2) path=resumed.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:53 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:54 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:55 WARN plugin: MCP call timed out server=timeout0 method=tools/call tool=slow timeout=1s
+2026/10/24 02:59:56 WARN plugin: MCP call timed out server=timeout1 method=tools/call tool=slow timeout=1s
+2026/10/24 02:59:57 WARN plugin: MCP call timed out server=timeout2 method=tools/call tool=slow timeout=1s
+2026/10/24 02:59:59 WARN session: save without a held lease (write-authority probe, store P2) path=session.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 02:59:59 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:59 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:59 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:59 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:59 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:59 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 02:59:59 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 02:59:59 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 03:00:00 WARN session: save without a held lease (write-authority probe, store P2) path=shared.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 03:00:00 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestConcurrentControllersShareOneLogWithoutRecoveryCopies3269884494/001/shared.jsonl cache_state=warm idle=0s
+2026/10/24 03:00:01 WARN session: save without a held lease (write-authority probe, store P2) path=s.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 03:00:01 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestSessionEventsFireAtLifecyclePoints2888304405/001/other.jsonl cache_state=unknown
+2026/10/24 03:00:02 WARN session: save without a held lease (write-authority probe, store P2) path=s.jsonl mode=0 writer=LouisdeMacBook-Air.local-40394-8b0f7b03fc101ca2
+2026/10/24 03:00:02 WARN controller: extension frontend event strategy tried to change the event kind; emitting the original event
+2026/10/24 03:00:02 WARN controller: extension frontend event suppressed: extension fake blocked frontend.event: suppress
+2026/10/24 03:00:06 ERROR controller: append turn event ledger err="turn event ledger unavailable: turn termination was not made durable: session persistence result is uncertain: append at offset 0 may have changed the log: fsync verified append: injected sync failure" kind=11
+2026/10/24 03:00:06 WARN controller: release exclusive v3 binding err="session persistence result is uncertain: append at offset 0 may have changed the log: fsync verified append: injected sync failure"
+2026/10/24 03:00:26 ERROR controller: append turn event ledger err="turn event ledger unavailable: turn termination was not made durable: session persistence result is uncertain: append at offset 0 may have changed the log: fsync: injected sync failure" kind=11
+2026/10/24 03:00:26 WARN controller: release exclusive v3 binding err="session persistence result is uncertain: append at offset 0 may have changed the log: fsync verified append: injected sync failure"
+2026/10/24 03:00:26 INFO controller: resume cache state path=/private/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarArchiveFailureBlocksWithRetryableTaskID1283357408/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:27 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarPendingTaskRetriesAfterRestart1521075614/001/sessions/restart.jsonl cache_state=unknown
+2026/10/24 03:00:27 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarPendingTaskRetriesAfterRestart1521075614/001/sessions/restart.jsonl cache_state=unknown
+2026/10/24 03:00:27 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarInvalidArchivesRemainRetryableAndReadOnlycorru3309207326/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:27 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarInvalidArchivesRemainRetryableAndReadOnlyinval755575164/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:27 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarInvalidArchivesRemainRetryableAndReadOnlyempty653681520/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:28 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarArchiveCanRetryInSameController2575815974/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:28 WARN controller: write goal state err="mkdir /var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacyArchiveMigrationWriteFailureRemainsBlockedAndRetryable1438163583/001/not-a-directory: not a directory"
+2026/10/24 03:00:28 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarWithGoalMigratesWithoutArchive2359834049/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:28 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestExplicitLegacyGoalRetryNeverRunsArchivePathAsGoal1708855784/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:28 WARN controller: resume legacy autoresearch task err="autoresearch: open root dir: autoresearch: stat archive path .reasonix: statat .reasonix: no such file or directory"
+2026/10/24 03:00:28 WARN controller: resume legacy autoresearch task err="autoresearch: open root dir: autoresearch: stat archive path .reasonix: statat .reasonix: no such file or directory"
+2026/10/24 03:00:28 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestMalformedExplicitLegacyGoalStaysBlockedAfterRestart1071385101/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:28 WARN controller: resume legacy autoresearch task err="autoresearch: open root dir: autoresearch: stat archive path .reasonix: statat .reasonix: no such file or directory"
+2026/10/24 03:00:28 WARN controller: resume legacy autoresearch task err="autoresearch: task unreadable-explicit-archive is invalid: [{task_spec.json  autoresearch: archive path state/task_spec.json is not a regular file}]"
+2026/10/24 03:00:29 WARN controller: session has content but no session path; conversation will not be persisted label="" session_dir=""
+2026/10/24 03:00:29 WARN controller: keeping in-flight marker after failed turn snapshot err="session has content but no session path; conversation cannot be persisted"
+2026/10/24 03:00:29 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestGoalSidecarCompatRestoresOldAndNewFieldsold_sidecar_restore3748449879/001/session.jsonl cache_state=unknown
+2026/10/24 03:00:30 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestGoalSidecarCompatRestoresOldAndNewFieldsremoved_numeric_pau3432032657/001/session.jsonl cache_state=unknown
+2026/10/24 03:00:30 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=6
+2026/10/24 03:00:30 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=2
+2026/10/24 03:00:30 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=2
+2026/10/24 03:00:30 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestResearchGoalUsesContinuousRuntimeWithoutArchive1409756762/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:30 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacyGoalSidecarMigratesToContinuousRuntimeWithoutTaskID3344403845/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:30 WARN controller: resume legacy autoresearch task err="autoresearch: open root dir: autoresearch: stat archive path .reasonix: statat .reasonix: no such file or directory"
+2026/10/24 03:00:30 INFO controller: resume cache state path=/private/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacySidecarEmptyGoalFilledFromArchive3033161822/001/sessions/s.jsonl cache_state=unknown
+2026/10/24 03:00:30 WARN controller: refusing to snapshot session with content but no system message label="" session_dir="" message_count=2
+2026/10/24 03:00:31 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestGoalSidecarRoundTripPreservesBlockedDeliveryCheckpoint1058806653/001/session.jsonl cache_state=unknown
+2026/10/24 03:00:31 INFO controller: resume cache state path=/var/folders/t9/2rvjx5mx4mq7l001n5l9db0m0000gn/T/TestLegacyRunningGoalSidecarAllocatesScope4133210112/001/legacy.jsonl cache_state=unknown
+2026/10/24 03:00:32 WARN controller: release exclusive v3 binding err="file already closed"
+--- FAIL: TestServeForkStartsNoBroaderThanInheritedReadOnly (0.10s)
+    session_permission_preset_test.go:315: permission preset "read-only" is unavailable: shell sandbox requested but unavailable on this host; refusing to run unconfined. Ensure `sandbox-exec` is installed and usable (the host must allow `sandbox_apply`), or explicitly select Full access for an unconfined session.
+FAIL
+FAIL	reasonix/internal/control	150.848s
+ok  	reasonix/internal/boot	83.905s
+ok  	reasonix/internal/cli	71.746s
+ok  	reasonix/internal/heartbeat	(cached)
+ok  	reasonix/internal/bot	6.512s
+FAIL

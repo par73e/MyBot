@@ -155,13 +155,13 @@ func botStart(args []string, version string) int {
 		return 1
 	}
 	defer gw.Stop()
+	heartbeatOptions.workspace = workspaceRoot
 	stopHeartbeat, err := startBotHeartbeat(ctx, gw, heartbeatOptions, modelName)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error: heartbeat:", err)
 		return 1
 	}
 	defer stopHeartbeat()
-
 	// 等待信号或 context 取消
 	<-ctx.Done()
 	return 0

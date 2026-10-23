@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.5-mail",
+  "binary_sha256": "3320a9e03c701827b55175e2cc6e7fb41a78d49112aa87de0945ce0aba83bf69",
+  "poll_seconds": 60,
+  "baseline_connections": 0,
+  "baseline_deferred_until_window": true,
+  "mailbox_sources": 4,
+  "timezone": "Asia/Shanghai",
+  "timeWindowStart": "08:00",
+  "timeWindowEnd": "00:00",
+  "weixin_poll_ready": true,
+  "backup": "/var/lib/mybot/backups/mail-20261023T165634Z",
+  "test_weixin_messages": 0,
+  "quiet_hours_verification": {
+    "observed_seconds": 65,
+    "mail_activity": 0,
+    "pid_unchanged": true,
+    "checked_at": "2026-10-24T00:58:30.823058+08:00",
+    "service_pid": 717490,
+    "restart_count": 0
+  }
+}

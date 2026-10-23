@@ -847,14 +847,6 @@ type FeishuBotConfig struct {
 	OutboundMediaRoots []string `toml:"outbound_media_roots"`
 }
 
-// WeixinBotConfig 微信 iLink Bot 配置。
-type WeixinBotConfig struct {
-	Enabled   bool   `toml:"enabled"`
-	AccountID string `toml:"account_id"`
-	TokenEnv  string `toml:"token_env"` // 环境变量名，如 WEIXIN_BOT_TOKEN
-	APIBase   string `toml:"api_base"`  // iLink API base URL
-}
-
 // DingtalkBotConfig 钉钉企业内部应用机器人（Stream 模式）配置。
 type DingtalkBotConfig struct {
 	Enabled          bool            `toml:"enabled"`

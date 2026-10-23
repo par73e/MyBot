@@ -17,7 +17,10 @@ import (
 	"reasonix/internal/heartbeat"
 )
 
-type heartbeatGatewaySender struct{ gateway heartbeatGateway }
+type heartbeatGatewaySender struct {
+	gateway heartbeatGateway
+	admit   func(context.Context, heartbeat.Task, time.Time) (bool, error)
+}
 
 type heartbeatGateway interface {
 	SendToAdapter(context.Context, string, string, bot.OutboundMessage) (bot.SendResult, error)

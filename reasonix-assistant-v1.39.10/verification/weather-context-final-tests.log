@@ -1,0 +1,5 @@
+ok  	reasonix/internal/assistant	(cached)
+ok  	reasonix/internal/boot	51.006s
+ok  	reasonix/internal/cli	42.471s
+ok  	reasonix/internal/heartbeat	(cached)
+ok  	reasonix/internal/bot	4.551s

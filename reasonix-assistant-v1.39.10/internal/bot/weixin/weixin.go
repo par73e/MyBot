@@ -144,6 +144,9 @@ func New(cfg config.WeixinBotConfig, logger *slog.Logger) bot.Adapter {
 func (a *adapter) Platform() bot.Platform { return bot.PlatformWeixin }
 func (a *adapter) Name() string           { return "weixin" }
 
+// FinalOnlyReplies selects host-side event filtering, independent of prompts.
+func (a *adapter) FinalOnlyReplies() bool { return a.cfg.FinalOnly }
+
 func (a *adapter) Start(ctx context.Context) error {
 	a.msgCh = make(chan bot.InboundMessage, 64)
 	ctx, a.cancel = context.WithCancel(ctx)
@@ -152,7 +155,7 @@ func (a *adapter) Start(ctx context.Context) error {
 		return a.tokenMissingError()
 	}
 
-	a.logger.Info("weixin polling started", "account", logHash(a.accountID()), "api_base", a.apiBase())
+	a.logger.Info("weixin polling started", "account", logHash(a.accountID()), "api_base", a.apiBase(), "final_only", a.cfg.FinalOnly)
 	go a.pollLoop(ctx)
 	return nil
 }

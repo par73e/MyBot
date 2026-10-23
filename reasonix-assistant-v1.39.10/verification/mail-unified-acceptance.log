@@ -1,0 +1,23 @@
+PASS empty unified check: zero model calls
+PASS foreground: actual child tool list/read and summary
+PASS 60-second poll: new mail -> Agent read -> important push
+PASS Gmail new mail analyzed and kept silent
+PASS owner Agent updates persisted Heartbeat running hours through tool
+{
+  "passed": true,
+  "real_binary": true,
+  "simulated_mail_model_weixin": true,
+  "poll_seconds": 60,
+  "sources": 4,
+  "direct_connections": 3,
+  "foreground_body_reads": 1,
+  "background_decisions": [
+    true,
+    false
+  ],
+  "model_requests": 10,
+  "outbound_messages": 5,
+  "owner_schedule_tool": true,
+  "restart_dedup": true,
+  "errors": []
+}

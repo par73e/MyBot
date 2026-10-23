@@ -36,6 +36,8 @@ var ErrDeliveryUncertain = errors.New("notification may already have been delive
 type Engine struct {
 	Store      TaskStore
 	Runner     Runner
+	Checker    Runner
+	Gate       func(context.Context, Task, time.Time) (bool, error)
 	Sender     Sender
 	Clock      func() time.Time
 	kindFilter string
@@ -70,7 +72,7 @@ func (e Engine) Tick(ctx context.Context, now time.Time) error {
 		return e.withLease(func() error { return e.dispatch(ctx, now, "") })
 	}
 	var failures []error
-	for _, kind := range []string{"message", "agent"} {
+	for _, kind := range []string{"message", "agent", "mail_check", "weather_check"} {
 		lane := e
 		lane.kindFilter = kind
 		failures = append(failures, lane.Tick(ctx, now))
@@ -156,6 +158,10 @@ func (e Engine) dispatchTask(ctx context.Context, task Task, now time.Time, manu
 	if !manual && !task.Due(now) {
 		return nil
 	}
+	allowed, gateErr := e.Admitted(ctx, task, now)
+	if gateErr != nil || !allowed {
+		return gateErr
+	}
 	if task.Expired(now) {
 		return errors.New("task has expired")
 	}
@@ -164,19 +170,17 @@ func (e Engine) dispatchTask(ctx context.Context, task Task, now time.Time, manu
 	}
 	out := Execution{Text: task.Prompt}
 	var err error
-	if task.Kind == "agent" {
-		// A removed workspace must not block management or unrelated jobs.
+	if task.Kind == "agent" || task.Kind == "mail_check" || task.Kind == "weather_check" {
 		err = task.validateWorkspace()
 		if err == nil {
-			if e.Runner == nil {
-				err = errors.New("Agent runner is unavailable")
-			} else {
-				out, err = e.Runner.Run(ctx, task)
-			}
+			out, err = e.runAdmitted(ctx, task)
 		}
 	}
 	if saveErr := e.finish(task.ID, out, err); saveErr != nil {
 		return saveErr
+	}
+	if errors.Is(err, ErrDeferred) {
+		return nil
 	}
 	if err != nil {
 		return err
@@ -207,6 +211,11 @@ func (e Engine) finish(id string, out Execution, runErr error) error {
 		r.DecisionReason = out.DecisionReason
 		r.ConversationID = out.ConversationID
 		r.Status = "completed"
+		if errors.Is(runErr, ErrDeferred) {
+			r.Status, r.Result = "deferred", ""
+			t.LastRunAt = 0
+			return
+		}
 		if runErr != nil {
 			r.Status, r.Error = "failed", runErr.Error()
 		}
@@ -248,6 +257,10 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 		if task.Expired(time.Now()) {
 			return e.updateRun(id, func(t *Task, r *Run) { r.Status = "delivery_expired"; t.Enabled = false })
 		}
+		allowed, gateErr := e.Admitted(ctx, task, now)
+		if gateErr != nil || !allowed {
+			return gateErr
+		}
 		if e.Sender == nil {
 			return errors.New("notification sender unavailable; result retained for delivery")
 		}
@@ -258,6 +271,9 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 			sendErr = sender.SendRun(ctx, task, *r)
 		} else {
 			sendErr = e.Sender.Send(ctx, *task.Target, r.Result)
+		}
+		if errors.Is(sendErr, ErrDeferred) {
+			return nil
 		}
 		if err := sendErr; err != nil {
 			_ = e.updateRun(id, func(t *Task, r *Run) { recordDeliveryFailure(t, r, err, now) })

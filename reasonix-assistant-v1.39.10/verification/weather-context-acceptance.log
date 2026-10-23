@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "real_bot_child_tool_sqlite": true,
+  "simulated_weather_model_weixin": true,
+  "test_messages_to_real_weixin": 0,
+  "queries": [
+    "future",
+    "evening",
+    "aqi",
+    "school",
+    "briefing",
+    "aqi"
+  ],
+  "location_selections": [
+    {
+      "mode": "future",
+      "place": "杭州"
+    },
+    {
+      "mode": "evening",
+      "place": "Fixture home"
+    },
+    {
+      "mode": "aqi",
+      "place": "杭州"
+    },
+    {
+      "mode": "school",
+      "place": "Fixture school"
+    },
+    {
+      "mode": "briefing",
+      "place": "杭州"
+    },
+    {
+      "mode": "aqi",
+      "place": "Fixture home"
+    }
+  ],
+  "month_away_memory_visible": true,
+  "restart_dedup": true,
+  "model_requests": 13,
+  "outbound_fixture_messages": 12,
+  "errors": []
+}

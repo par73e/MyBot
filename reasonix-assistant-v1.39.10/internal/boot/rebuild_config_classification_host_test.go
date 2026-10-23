@@ -46,7 +46,8 @@ func runtimeConfigHostClassification() []configTypeClassification {
 			runtime:  "AppSecretEnv",
 			excluded: "Enabled Domain AppID VerificationToken Mode WebhookPort RequireMention OutboundMediaRoots",
 		}),
-		classifyConfigType[config.WeixinBotConfig](configFieldClasses{runtime: "TokenEnv", excluded: "Enabled AccountID APIBase"}),
+		// Reply presentation belongs to the adapter, not the Agent fingerprint.
+		classifyConfigType[config.WeixinBotConfig](configFieldClasses{runtime: "TokenEnv", excluded: "Enabled AccountID APIBase FinalOnly"}),
 		classifyConfigType[config.DingtalkBotConfig](configFieldClasses{
 			excluded: "Enabled ClientID ClientSecret ClientIDEnv SecretEnv BotName RequireMention Model ToolApprovalMode " +
 				"WorkspaceRoot Access SessionMappings",

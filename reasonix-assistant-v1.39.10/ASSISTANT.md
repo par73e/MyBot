@@ -1,4 +1,6 @@
-# MyBot 私人助理 v1.39.10-assistant.1
+# MyBot 私人助理
+
+当前版本为 v1.39.10-assistant.10-output-closeout；邮件、天气及晨报已接入，详见 verification/MAIL.md、verification/WEATHER.md、verification/WEATHER_CONTEXT.md。微信通过 [bot.weixin] final_only=true 仅发送最终答复，保留必要问题、授权请求和简洁的最终失败说明；详见 verification/FINAL_ONLY.md。下文保留最初核心模块的结构说明。
 
 基于 Reasonix v1.39.10（195fc08132d253270de7d88afc8d395e3f96083e），包含此前的 CLI Heartbeat 移植与本次私人助理模块。源码、构建、测试在腾讯服务器完成。默认使用 qwen3.8-flash / Medium，Low、Medium、XHigh 配置保留。
 
@@ -7,11 +9,11 @@
 - 个人待办：保存、查看、更新、完成、取消、暂停、恢复、延期；可独立记录截止时间。
 - 定时提醒：一次性、持续间隔、每日/每周和 cron；支持结束时间、时区、仅完成今天这一轮。
 - 长期记忆：可读 Markdown。
-- 短期记忆：自定义生效和失效时间，每次上下文加载实时过滤。
+- 短期记忆：写入后立即可见；开始时间描述适用时段，失效和归档控制退出当前上下文。每个回合重新读取。
 - Heartbeat：后台常驻检查，固定消息与 AI 分析独立执行；AI 分析读取当前记忆和待办，判断通知或静默。
 - 微信对话调用两个受限工具管理上述状态；工具成功保存后才可以承诺已创建。
 
-邮箱、天气、新闻按本次确认暂缓接入。自动分析任务若要求读取这些未接入的数据源，应说明缺少连接，不能编造查询结果。
+邮箱与天气使用独立工具取数；新闻等尚未接入的数据源仍须说明缺少连接，不能编造查询结果。
 
 ## 结构和数据
 
@@ -24,7 +26,7 @@
 
 持久数据位于 REASONIX_HOME/assistant：
 - state.sqlite3：待办和对应的 Heartbeat 任务、执行与发送状态。新建提醒在同一事务中写入待办和触发任务。
-- memory/<随机ID>.md：JSON/YAML 兼容的 front matter + 正文；kind=long/short、revision、starts_at、expires_at、archived。失效/归档内容保留可查历史，但正文不会进入当前有效记忆。上下文附带最多 128 条不含正文的失效状态标记，并明确最新有效列表优先于旧对话，避免从旧聊天恢复已过期偏好。
+- memory/<随机ID>.md：JSON/YAML 兼容的 front matter + 正文；kind=long/short、revision、starts_at、expires_at、archived。未到开始时间的记忆正文同样立即可读，进入 known_future_memories；当前适用内容进入 active_memories，Agent按问题日期理解行程。失效/归档内容保留可查历史，但正文不会进入当前上下文。上下文附带最多 128 条不含正文的失效状态标记，并明确最新有效列表优先于旧对话，避免从旧聊天恢复已过期偏好。
 - *.lock：跨进程状态/执行锁；请勿运行时手工删除锁。
 
 内容更新要求当前 revision，防止聊天和调度并发时覆盖新状态。重复的有效内容会合并。相同标题但不同时间的提醒属于不同任务。待办完成和提醒发送分别记录：发出提醒不会自动标记你已完成这件事。
@@ -32,7 +34,7 @@
 ## 运行过程
 
 1. 微信消息 -> 已有 allowlist 校验 -> Agent 当前回合。
-2. 宿主加载当前时间、有效长期/短期记忆、未关闭待办。
+2. 宿主加载当前时间、当前与未来可见的长期/短期记忆、未关闭待办及天气默认地点候选。
 3. 模型根据意图调用 assistant_tasks 或 assistant_memory；程序校验时间、版本、范围，成功后持久化。
 4. Heartbeat 每秒检查。检查本身不调用模型。
 5. reminder 直接发送固定消息，不产生模型 token；automation 启动独立只读 Agent 进程。
