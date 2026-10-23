@@ -13,6 +13,7 @@ import (
 
 // Execution is the final answer and optional resumable Agent session.
 type Execution struct {
+	ConversationID string
 	DecisionReason string
 	Text           string
 	SessionID      string
@@ -189,6 +190,7 @@ func (e Engine) claim(ctx context.Context, task *Task, now time.Time, manual boo
 			return errors.New("schedule changed before execution")
 		}
 		*task = *current
+		task.RunStartedAt = now.UnixMilli()
 		current.LastRunAt = now.UnixMilli()
 		current.SnoozedUntil = ""
 		current.History = append(current.History, Run{StartedAt: now.UnixMilli(), Status: "running"})
@@ -203,6 +205,7 @@ func (e Engine) finish(id string, out Execution, runErr error) error {
 	return e.updateRun(id, func(t *Task, r *Run) {
 		r.Result, r.SessionID, r.EndedAt = out.Text, out.SessionID, time.Now().UnixMilli()
 		r.DecisionReason = out.DecisionReason
+		r.ConversationID = out.ConversationID
 		r.Status = "completed"
 		if runErr != nil {
 			r.Status, r.Error = "failed", runErr.Error()
@@ -248,7 +251,15 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 		if e.Sender == nil {
 			return errors.New("notification sender unavailable; result retained for delivery")
 		}
-		if err := e.Sender.Send(ctx, *task.Target, r.Result); err != nil {
+		var sendErr error
+		if sender, ok := e.Sender.(interface {
+			SendRun(context.Context, Task, Run) error
+		}); ok {
+			sendErr = sender.SendRun(ctx, task, *r)
+		} else {
+			sendErr = e.Sender.Send(ctx, *task.Target, r.Result)
+		}
+		if err := sendErr; err != nil {
 			_ = e.updateRun(id, func(t *Task, r *Run) { recordDeliveryFailure(t, r, err, now) })
 			return err
 		}

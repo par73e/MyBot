@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.4",
+  "weixin_poll_ready": true,
+  "config_credentials_persona_unchanged": true,
+  "personal_memory_files_unchanged": true,
+  "backup": "/var/lib/mybot/backups/daily-conversations-20261023T041243Z",
+  "binary_sha256": "af74748f96542456a2fbb5971b37d374ea20443efe1a5e156653e9208ccc51b2",
+  "real_weixin_test_messages": 0
+}

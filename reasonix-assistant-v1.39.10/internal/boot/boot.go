@@ -32,7 +32,6 @@ import (
 	"reasonix/internal/command"
 	"reasonix/internal/config"
 	"reasonix/internal/control"
-	"reasonix/internal/environment"
 	"reasonix/internal/event"
 	"reasonix/internal/extension"
 	"reasonix/internal/extension/dispatch"
@@ -642,26 +641,7 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 	}
 	sysPrompt = appendCorePolicies(sysPrompt)
 	sysPrompt += "\n\n" + sessioncontext.PolicyBlock()
-	sessionContextStatic := sessioncontext.Sections{Workspace: currentWorkspacePromptLine(root)}
-	// Execution modes no longer exist. Host obligations are fact-driven and
-	// never rewrite the cache-stable system prefix or tool schemas.
-	if cfg.EnvironmentEnabled() {
-		shellLabel := resolvedShellLabel(shell, cfg.Tools.Shell.Path, os.Getenv("SHELL"))
-		envSection := environment.FormatSection(
-			environment.RunProbesWithOptions(ctx, environment.DefaultProbes(), environment.ProbeOptions{
-				Overrides: cfg.Environment.Tools,
-				DenyRoots: []string{root},
-				// Persist probe results across restarts so transient probe flaps do
-				// not generate needless session-context replacements.
-				SnapshotDir: config.CacheDir(),
-			}),
-			runtime.GOOS+"/"+runtime.GOARCH,
-			shellLabel,
-			cfg.Environment.Tools,
-		)
-		sessionContextStatic.Environment = envSection
-	}
-	sessionContextStatic.Environment = appendOfflineEnvironmentNote(sessionContextStatic.Environment, cfg.Environment.Offline)
+	sessionContextStatic := runtimeSessionContext(ctx, cfg, root, resolvedShellLabel(shell, cfg.Tools.Shell.Path, os.Getenv("SHELL")))
 
 	// Stable memory policy and REASONIX.md / AGENTS.md standing instructions
 	// enter the system prompt. Pinned facts and the background index remain in
@@ -1254,7 +1234,7 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 	addDocsTool()
 	addSessionTools()
 	addMemoryTools()
-	registerPersonalAssistant(reg, cfg, root)
+	registerPersonalAssistant(reg, cfg, root, sessionService)
 	// The `ask` tool puts structured multiple-choice questions to the user. It
 	// reaches them through the Asker on the call context, which interactive
 	// frontends wire to the controller (EnableInteractiveApproval); a headless run

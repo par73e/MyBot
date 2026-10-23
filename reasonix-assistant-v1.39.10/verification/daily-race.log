@@ -1,0 +1,6 @@
+ok  	reasonix/internal/assistant	3.267s
+ok  	reasonix/internal/bot	1.834s
+ok  	reasonix/internal/control	3.121s
+ok  	reasonix/internal/heartbeat	1.340s [no tests to run]
+ok  	reasonix/internal/cli	1.940s
+ok  	reasonix/internal/heartbeat	2.069s

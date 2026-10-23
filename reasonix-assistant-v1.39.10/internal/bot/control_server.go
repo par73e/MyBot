@@ -65,6 +65,8 @@ func (gw *BotGateway) startControlServer(parent context.Context) error {
 	mux.HandleFunc("/health", gw.controlAuth(gw.handleControlStatus))
 	mux.HandleFunc("/metrics", gw.controlAuth(gw.handleControlMetrics))
 	mux.HandleFunc("/send", gw.controlAuth(gw.handleControlSend))
+	mux.HandleFunc("/assistant/prepare", gw.controlAuth(gw.handleAssistantPrepare))
+	mux.HandleFunc("/assistant/notify", gw.controlAuth(gw.handleAssistantNotify))
 
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {

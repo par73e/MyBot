@@ -110,6 +110,9 @@ func BuildSessionKey(src SessionSource) string {
 	default:
 		scope = fmt.Sprintf("%s:%s:%s:%s", source, src.ChatType, src.ChatID, src.UserID)
 	}
+	if src.AssistantDay != "" {
+		scope += ":day:" + src.AssistantDay
+	}
 	h := sha256.Sum256([]byte(scope))
 	return hex.EncodeToString(h[:])[:16]
 }

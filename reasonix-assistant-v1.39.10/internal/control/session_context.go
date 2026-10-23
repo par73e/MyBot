@@ -24,6 +24,8 @@ func (c *Controller) withTurnContext(ctx context.Context, realUserTurn bool) con
 	}
 
 	if assistant.Enabled() {
+		base.Environment = ""
+		base.Workspace = ""
 		snapshot, err := assistant.ContextFor(ctx, config.MemoryUserDir(), time.Now())
 		if err != nil {
 			snapshot = "\nPersonal assistant state is unavailable. Do not assume any memory or task state, and do not claim a durable change succeeded.\n"

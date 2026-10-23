@@ -45,8 +45,12 @@ func startBotHeartbeat(ctx context.Context, gateway heartbeatGateway, options *b
 	if err != nil {
 		return nil, err
 	}
+	var runner heartbeat.Runner = heartbeatProcessRunner{Executable: executable, DefaultModel: model}
+	if assistant.Enabled() {
+		runner = heartbeatConversationRunner{Runner: runner, Gateway: gateway}
+	}
 	engine := heartbeat.Engine{
-		Store: store, Runner: heartbeatProcessRunner{Executable: executable, DefaultModel: model},
+		Store: store, Runner: runner,
 		Sender: heartbeatGatewaySender{gateway: gateway},
 	}
 	workerCtx, cancel := context.WithCancel(ctx)

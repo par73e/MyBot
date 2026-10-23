@@ -31,6 +31,7 @@ const (
 
 // SessionSource 是会话的复合标识，用于生成稳定的 session key。
 type SessionSource struct {
+	AssistantDay string   `json:"assistant_day,omitempty"`
 	Platform     Platform `json:"platform"`
 	ConnectionID string   `json:"connection_id,omitempty"`
 	Domain       string   `json:"domain,omitempty"`
@@ -53,6 +54,8 @@ type InboundMedia struct {
 
 // InboundMessage 是从任一平台收到的入站消息。
 type InboundMessage struct {
+	// AssistantDay is stamped by the host at admission, retained through queues.
+	AssistantDay string   `json:"assistant_day,omitempty"`
 	Platform     Platform `json:"platform"`
 	ConnectionID string   `json:"connection_id,omitempty"`
 	Domain       string   `json:"domain,omitempty"`
@@ -80,6 +83,7 @@ type InboundMessage struct {
 // Session derives the SessionSource from this message.
 func (m InboundMessage) Session() SessionSource {
 	return SessionSource{
+		AssistantDay: m.AssistantDay,
 		Platform:     m.Platform,
 		ConnectionID: m.ConnectionID,
 		Domain:       m.Domain,

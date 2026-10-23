@@ -184,6 +184,7 @@ type BotGateway struct {
 	started     bool
 	stopped     bool
 	runCancel   context.CancelFunc
+	runContext  context.Context
 	startDone   chan struct{}
 	stopDone    chan struct{}
 	gatewayWG   sync.WaitGroup
@@ -412,6 +413,7 @@ func (gw *BotGateway) Start(ctx context.Context) (err error) {
 	gw.started = true
 	runCtx, cancel := context.WithCancel(ctx)
 	gw.runCancel = cancel
+	gw.runContext = runCtx
 	startDone := make(chan struct{})
 	gw.startDone = startDone
 	gw.lifecycleMu.Unlock()
@@ -753,6 +755,8 @@ func (gw *BotGateway) handleMessage(ctx context.Context, binding AdapterBinding,
 		gw.logger.Debug("bot ignored self message", "platform", binding.Platform, "connection", msg.ConnectionID, "chat", hashID(msg.ChatID), "message", hashID(msg.MessageID), "user", hashID(msg.UserID))
 		return
 	}
+	msg = stampAssistantDay(msg, time.Now())
+	gw.retireOldAssistantDays(msg.AssistantDay)
 	src := msg.Session()
 	key := BuildSessionKey(src)
 	logFields := []any{
@@ -2374,7 +2378,7 @@ func (gw *BotGateway) getOrCreateSession(ctx context.Context, key string, msg In
 	state.ctrl = ctrl
 	if identity, ok := any(ctrl).(control.IdentityLifecycle); ok && identity.UsesExclusiveSession() {
 		ref, bindErr := bindBotSessionIdentity(ctx, identity, profile, msg)
-		if bindErr != nil && (profile.sessionRefOptional || profile.sessionPathOptional) {
+		if bindErr != nil && canDegradeBotMapping(msg, profile) {
 			gw.logger.Warn("mapped bot session unavailable; starting fresh", "err", bindErr)
 			ref, bindErr = identity.BindFreshSession(ctx, "")
 			state.mappingDegraded = bindErr == nil
@@ -2494,6 +2498,10 @@ func (gw *BotGateway) sessionProfileForMessage(msg InboundMessage) sessionRuntim
 
 func (gw *BotGateway) sessionProfileForResolvedOverride(msg InboundMessage, override sessionRuntimeOverride, enabled bool) sessionRuntimeProfile {
 	model, workspaceRoot, toolApprovalMode := gw.sessionOptionsForResolvedOverride(msg, override, enabled)
+	if msg.AssistantDay != "" {
+		c := conversationForMessage(msg, workspaceRoot)
+		return sessionRuntimeProfile{model: strings.TrimSpace(model), workspaceRoot: workspaceRoot, toolApprovalMode: normalizeBotToolApprovalMode(toolApprovalMode), sessionRef: session.SessionRef{SessionID: c.SessionID}, sessionRefOptional: true}
+	}
 	var sessionPath string
 	var sessionRef session.SessionRef
 	sessionPathOptional := false

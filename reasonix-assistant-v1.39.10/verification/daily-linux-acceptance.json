@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "proactive_first_created_day": true,
+  "inbound_and_restart_reused_day": true,
+  "native_history_tool_calls": 1,
+  "native_date_title_verified": true,
+  "notifications": 2,
+  "model_requests": 6,
+  "fake_weixin_messages": 6,
+  "real_weixin_messages": 0,
+  "errors": []
+}

@@ -1,0 +1,22 @@
+{
+  "version": "v1.39.10-assistant.3",
+  "git_base_commit": "cf5769cb636a00b00aee323e6d7405bd5260d8ec",
+  "source_changes_uncommitted": true,
+  "resumed_system_prompt_refreshed_in_real_provider_request": true,
+  "old_and_current_host_deployment_context_absent": true,
+  "daily_dialogue_cases_passed": 4,
+  "isolated_memory_tool_passed": true,
+  "isolated_todo_tool_passed": true,
+  "on_demand_file_tool_passed": true,
+  "notification_jobs_created_in_test": 0,
+  "visible_transcript_and_user_text_preservation_test_passed": true,
+  "regression_packages_passed": ["internal/boot", "internal/control", "internal/assistant", "internal/heartbeat", "internal/cli"],
+  "golangci_lint_issues": 0,
+  "repolint": "clean; 1152 pre-existing baselined findings",
+  "production_service_active": true,
+  "production_weixin_poll_ready": true,
+  "production_credentials_unchanged": true,
+  "production_memory_files_unchanged": true,
+  "linux_binary_sha256": "568ab98f36554b386705f859530e839ba8f1f8f01e3086106f1f4048587740d0",
+  "original_delivery_archive_unchanged": true
+}

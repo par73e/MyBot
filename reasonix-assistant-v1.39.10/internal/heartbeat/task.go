@@ -21,6 +21,7 @@ type Target struct {
 
 // Run records execution separately from delivery; pending delivery never reruns AI.
 type Run struct {
+	ConversationID   string `json:"conversationId,omitempty"`
 	DeliveryAttempts int    `json:"deliveryAttempts,omitempty"`
 	NextDeliveryAt   int64  `json:"nextDeliveryAt,omitempty"`
 	DecisionReason   string `json:"decisionReason,omitempty"`
@@ -34,6 +35,8 @@ type Run struct {
 
 // Task is a persisted headless job. Calendar rules use the desktop interval syntax.
 type Task struct {
+	// RunStartedAt is host-only admission time, not persisted task configuration.
+	RunStartedAt           int64   `json:"-"`
 	ID                     string  `json:"id"`
 	Title                  string  `json:"title"`
 	Prompt                 string  `json:"prompt"`

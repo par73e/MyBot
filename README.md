@@ -2,7 +2,7 @@
 
 基于 Reasonix `v1.39.10` 的云端私人助理，通过微信对话管理待办、定时提醒及长期/短期记忆，由常驻 Heartbeat 调度主动任务。
 
-当前服务版本为 `v1.39.10-assistant.2`，模型配置为 `qwen3.8-flash`，提供 Low、Medium、XHigh 档位。邮箱、天气、新闻和日历等业务数据源尚未接入。
+当前服务版本为 `v1.39.10-assistant.4`，模型配置为 `qwen3.8-flash`，提供 Low、Medium、XHigh 档位。日常上下文不自动加载部署环境与工作目录，技术工具通过按需入口使用。微信日常会话每天北京时间 06:00 切换、按日期命名；主动通知进入同一天会话，历史可以按需查询。邮箱、天气、新闻和日历等业务数据源尚未接入。
 
 ## 当前版本
 
@@ -13,13 +13,15 @@
 - [配置模板](reasonix-assistant-v1.39.10/deploy/tencent/assistant.example.toml)
 - [核心模块测试报告](reasonix-assistant-v1.39.10/TEST_REPORT.md)
 - [Friday 身份更新及验证](reasonix-assistant-v1.39.10/verification/FRIDAY_PERSONA_UPDATE.md)
+- [Friday 日常上下文调整及验证](reasonix-assistant-v1.39.10/verification/FRIDAY_CONTEXT_UPDATE.md)
+- [每日会话与主动任务验收](reasonix-assistant-v1.39.10/verification/DAILY_CONVERSATIONS.md)
 - [源码来源](reasonix-assistant-v1.39.10/SOURCE_PROVENANCE.md)
 
 使用 Go `1.26.10` 在源码目录构建：
 
 ```sh
 cd reasonix-assistant-v1.39.10
-go build -ldflags '-X main.version=v1.39.10-assistant.2' -o bin/reasonix ./cmd/reasonix
+go build -ldflags '-X main.version=v1.39.10-assistant.4' -o bin/reasonix ./cmd/reasonix
 ```
 
 配置应使用独立的 `REASONIX_HOME`，启用 `REASONIX_ASSISTANT=1`。Friday 提示词放到该目录的 `prompts/friday.md`，配置参考上述模板。不要直接将模板覆盖到已配对的服务器配置。

@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import pwd
+import re
 import shutil
 import subprocess
 import tempfile
@@ -29,6 +30,10 @@ def main():
         shutil.copyfile(os.environ.get('MYBOT_FRIDAY_BINARY', '/opt/mybot/current/reasonix'), executable)
         executable.chmod(0o700)
         os.chown(executable, account.pw_uid, account.pw_gid)
+        previous_executable = root / 'previous-reasonix'
+        shutil.copyfile('/opt/mybot/current/reasonix', previous_executable)
+        previous_executable.chmod(0o700)
+        os.chown(previous_executable, account.pw_uid, account.pw_gid)
         for name in ('config.toml', '.env'):
             p = home / name
             shutil.copyfile(production / name, p)
@@ -36,10 +41,14 @@ def main():
             os.chown(p, account.pw_uid, account.pw_gid)
         config_path = home / 'config.toml'
         original = config_path.read_text()
-        if any(k in tomllib.loads(original).get('agent', {}) for k in ('system_prompt', 'system_prompt_file')):
-            raise RuntimeError('Expected the pre-persona production configuration')
+        old_prompt = home / 'previous-friday.md'
+        shutil.copyfile(production / 'prompts/friday.md', old_prompt)
+        old_prompt.chmod(0o600)
+        os.chown(old_prompt, account.pw_uid, account.pw_gid)
+        original = re.sub(r'^system_prompt_file\s*=.*$', 'system_prompt_file = ' + json.dumps(str(old_prompt)), original, flags=re.M)
         upstream = next(p['base_url'].rstrip('/') for p in tomllib.loads(original)['providers'] if p['name'] == 'ali-medium')
         wire_systems = []
+        wire_messages = []
 
         class Proxy(BaseHTTPRequestHandler):
             def log_message(self, *args):
@@ -48,6 +57,7 @@ def main():
             def do_POST(self):
                 data = self.rfile.read(int(self.headers.get('Content-Length', 0)))
                 request_body = json.loads(data)
+                wire_messages.append(request_body['messages'])
                 wire_systems.append('\n'.join(m.get('content', '') for m in request_body['messages'] if m.get('role') == 'system'))
                 headers = {k: v for k, v in self.headers.items() if k.lower() not in ('host', 'content-length', 'connection', 'accept-encoding')}
                 request = urllib.request.Request(upstream + '/chat/completions', data=data, headers=headers, method='POST')
@@ -69,8 +79,10 @@ def main():
                 str(executable), 'run', '--output-format', 'json',
                 '--permission-mode', 'read-only', '--dir', str(work), '--max-steps', '8']
 
-        def run(prompt, resume=None):
+        def run(prompt, resume=None, previous=False):
             args = base + (['--resume', resume] if resume else []) + ['--', prompt]
+            if previous:
+                args[args.index(str(executable))] = str(previous_executable)
             r = subprocess.run(args, capture_output=True, text=True, cwd=work, timeout=180)
             if r.returncode:
                 raise RuntimeError('CLI failed, exit=' + str(r.returncode))
@@ -79,7 +91,9 @@ def main():
                 raise RuntimeError('Model reported an error')
             return v.get('result', '')
 
-        run('你好，仅简短回复一句问候。不要调用工具。')
+        run('你是谁', previous=True)
+        if not any('## Environment' in m.get('content', '') or '## Workspace' in m.get('content', '') for m in wire_messages[-1]):
+            raise RuntimeError('Old-version seed did not contain deployment context')
         manifests = [p for p in home.rglob('manifest.json') if p.parent.parent.name == 'sessions-v4']
         if len(manifests) != 1:
             raise RuntimeError('Expected one disposable conversation')
@@ -88,21 +102,33 @@ def main():
         shutil.copyfile(source, p)
         p.chmod(0o600)
         os.chown(p, account.pw_uid, account.pw_gid)
-        changed = original.replace('[agent]\n', '[agent]\nsystem_prompt_file = ' + json.dumps(str(p)) + '\n', 1)
+        changed = re.sub(r'^system_prompt_file\s*=.*$', 'system_prompt_file = ' + json.dumps(str(p)), original, flags=re.M)
         assert tomllib.loads(changed)['agent']['system_prompt_file'] == str(p)
         config_path.write_text(changed)
-        answer = run('在吗', session_id)
+        answers = []
+        for prompt in ('在吗', '你是谁', '你平时能帮我处理什么事情？', '今天事情有点多，有点乱。'):
+            answer = run(prompt, session_id)
+            answers.append({'prompt': prompt, 'reply': answer})
+            if source.read_text().strip() not in wire_systems[-1]:
+                raise RuntimeError('Current persona file did not reach the resumed provider request')
+            for message in wire_messages[-1]:
+                content = message.get('content', '')
+                if isinstance(content, str) and '<session-context version="1">' in content and ('## Environment' in content or '## Workspace' in content):
+                    raise RuntimeError('Old or current deployment context reached the provider')
+            if any(term in answer.lower() for term in ('工作目录', '工作区', '运行环境', '干活环境', str(work).lower(), '/var/lib/mybot', 'docker', 'python3', 'git', 'make', '代码', '编程', '命令', '服务器', '仓库')):
+                raise RuntimeError('Daily reply returned the deployment/coding introduction: ' + json.dumps({'prompt': prompt, 'reply': answer}, ensure_ascii=False))
         leading = wire_systems[-1]
         refreshed = leading.startswith('# Friday 的身份与工作方式') and 'You are Reasonix, a coding agent.' not in leading
         print(json.dumps({'resumed_system_prompt_refreshed': refreshed,
-                          'greeting': answer, 'production_state_modified': False}, ensure_ascii=False), flush=True)
+                          'deployment_context_absent': True,
+                          'daily_dialogue': answers, 'production_state_modified': False}, ensure_ascii=False), flush=True)
         if not refreshed:
             raise RuntimeError('Existing conversation retained its old system prompt')
         if 'review the final diff' in leading:
             raise RuntimeError('Assistant still received the unconditional coding policy')
-        if 'Sir' not in answer or any(s in answer for s in ('写代码', '跑测试', '仓库结构', '编程助手')):
+        if 'Sir' not in answers[0]['reply'] or 'Friday' not in answers[1]['reply']:
             raise RuntimeError('Greeting retained the coding persona')
-        run('这是隔离验收。请实际使用 assistant_memory 保存一条 kind=long、subject=验收_偏好、body=喜欢简短中文的记忆；使用 assistant_tasks 创建一个 kind=todo、title=验收_整理日程 的普通待办，不安排提醒。不发送微信消息。两项均成功后简短确认。')
+        run('这是隔离验收。请实际使用 assistant_memory 保存一条 kind=long、subject=验收_偏好、body=喜欢简短中文的记忆；使用 assistant_tasks 创建一个 kind=todo、title=验收_整理日程 的普通待办，不安排提醒。不发送微信消息。两项均成功后简短确认。', session_id)
         import sqlite3
         db = sqlite3.connect(home / 'assistant/state.sqlite3')
         todos = [json.loads(row[0]) for row in db.execute("SELECT payload FROM assistant_entities WHERE kind='todo'")]
@@ -111,8 +137,17 @@ def main():
         notes = list((home / 'assistant/memory').glob('*.md'))
         assert len(todos) == 1 and todos[0]['title'] == '验收_整理日程' and jobs == 0
         assert len(notes) == 1 and '验收_偏好' in notes[0].read_text()
+
+        probe = work / 'probe.txt'
+        probe.write_text('ASSISTANT_CONTEXT_TOOL_OK')
+        probe.chmod(0o600)
+        os.chown(probe, account.pw_uid, account.pw_gid)
+        technical_answer = run('这是文件处理验收。请使用 use_capability 调用 tool:read_file，读取当前目录的 probe.txt 并返回内容。', session_id)
+        if 'ASSISTANT_CONTEXT_TOOL_OK' not in technical_answer:
+            raise RuntimeError('On-demand file tool was unavailable')
         print(json.dumps({'passed': True, 'resumed_persona': True,
                           'memory_tool': True, 'todo_tool': True,
+                          'on_demand_file_tool': True,
                           'notification_jobs': 0, 'production_state_modified': False}), flush=True)
         proxy.shutdown()
 

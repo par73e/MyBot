@@ -39,18 +39,20 @@ def main():
     config = home / 'config.toml'
     before = config.read_bytes()
     old = tomllib.loads(before.decode())
-    if any(k in old.get('agent', {}) for k in ('system_prompt', 'system_prompt_file')):
-        raise RuntimeError('Existing custom persona requires review')
+    prompt_file = old.get('agent', {}).get('system_prompt_file')
+    if prompt_file not in (None, 'prompts/friday.md'):
+        raise RuntimeError('Unexpected custom persona requires review')
     fallback = '你叫 Friday，是 Sir 的人工智能私人助手。自然简短地回应日常交流；根据当前有效记忆和待办协助用户，仅在实际提出编程需求时进入开发工作。'
-    changed = before.decode().replace('[agent]\n', '[agent]\nsystem_prompt_file = "prompts/friday.md"\nsystem_prompt = ' + json.dumps(fallback, ensure_ascii=False) + '\n', 1).encode()
+    changed = before if prompt_file else before.decode().replace('[agent]\n', '[agent]\nsystem_prompt_file = "prompts/friday.md"\nsystem_prompt = ' + json.dumps(fallback, ensure_ascii=False) + '\n', 1).encode()
     parsed = tomllib.loads(changed.decode())
     assert parsed['agent']['system_prompt_file'] == 'prompts/friday.md'
     comparable = json.loads(json.dumps(parsed))
-    for key in ('system_prompt_file', 'system_prompt'):
-        del comparable['agent'][key]
+    if not prompt_file:
+        for key in ('system_prompt_file', 'system_prompt'):
+            del comparable['agent'][key]
     assert comparable == old
     binary = root / 'bin/reasonix-linux-amd64-friday'
-    version = 'v1.39.10-assistant.2'
+    version = 'v1.39.10-assistant.3'
     assert version in command(str(binary), '--version')
     current = Path('/opt/mybot/current')
     old_target = os.readlink(current)
@@ -58,8 +60,7 @@ def main():
     if release.exists():
         raise RuntimeError('Release already exists')
     prompt = home / 'prompts/friday.md'
-    if prompt.exists():
-        raise RuntimeError('Prompt file already exists')
+    old_prompt = prompt.read_bytes() if prompt.exists() else None
     credential_paths = [home / '.env', home / 'weixin/accounts/default.json']
     credentials = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in credential_paths}
     memory_before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (home / 'assistant/memory').glob('*.md')}
@@ -68,6 +69,8 @@ def main():
     backup.mkdir(mode=0o700)
     atomic(backup / 'config.toml', before, 0o600)
     atomic(backup / 'previous-release.txt', old_target.encode(), 0o600)
+    if old_prompt is not None:
+        atomic(backup / 'friday.md', old_prompt, 0o600)
     release.mkdir(mode=0o755)
     shutil.copyfile(binary, release / 'reasonix')
     (release / 'reasonix').chmod(0o755)
@@ -99,6 +102,8 @@ def main():
         print(json.dumps(result, ensure_ascii=False))
     except Exception:
         atomic(config, before, 0o600, account.pw_uid, account.pw_gid)
+        if old_prompt is not None:
+            atomic(prompt, old_prompt, 0o600, account.pw_uid, account.pw_gid)
         pointer(current, old_target)
         command('systemctl', 'restart', 'mybot-heartbeat.service')
         raise

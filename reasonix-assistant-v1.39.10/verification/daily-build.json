@@ -1,0 +1,12 @@
+{
+  "version": "v1.39.10-assistant.4",
+  "toolchain": "go1.26.10",
+  "darwin_arm64": {
+    "path": "bin/reasonix-daily",
+    "sha256": "3fefab8fa3ad941a50b795b63307e6ccfd2ab9bfc0756b50134abc6fdec3dd26"
+  },
+  "linux_amd64": {
+    "path": "bin/reasonix-linux-amd64-daily",
+    "sha256": "af74748f96542456a2fbb5971b37d374ea20443efe1a5e156653e9208ccc51b2"
+  }
+}

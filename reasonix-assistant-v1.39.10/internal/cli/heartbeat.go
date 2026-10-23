@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"reasonix/internal/assistant"
 	"reasonix/internal/config"
 	"reasonix/internal/heartbeat"
 )
@@ -198,6 +199,9 @@ func heartbeatWork(operation, id string, poll time.Duration, store heartbeat.Sto
 	}
 	engine := heartbeat.Engine{Store: store, Runner: heartbeatProcessRunner{Executable: executable}, Clock: time.Now}
 	engine.Sender = heartbeatControlSender{}
+	if assistant.Enabled() {
+		engine.Runner = heartbeatConversationRunner{Runner: engine.Runner, Gateway: heartbeatControlConversation{}}
+	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	switch operation {

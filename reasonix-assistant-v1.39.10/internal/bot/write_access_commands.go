@@ -56,6 +56,9 @@ func (gw *BotGateway) pendingApprovalIsWriteAccess(key, id string) bool {
 }
 
 func (gw *BotGateway) handleSlashCommand(ctx context.Context, adapter Adapter, key string, msg InboundMessage) {
+	if gw.handleDailySessionCommand(ctx, adapter, msg) {
+		return
+	}
 	if gw.handleWriteAccessSlashCommand(ctx, adapter, msg, key) {
 		return
 	}

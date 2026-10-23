@@ -16,6 +16,7 @@ import (
 const botInboxMessageExtraKey = "reasonix.bot.inbound.v1"
 
 type durableBotMessage struct {
+	AssistantDay   string   `json:"assistantDay,omitempty"`
 	Platform       Platform `json:"platform"`
 	ConnectionID   string   `json:"connectionId,omitempty"`
 	Domain         string   `json:"domain,omitempty"`
@@ -31,7 +32,7 @@ type durableBotMessage struct {
 
 func botInboxExtra(msg InboundMessage) map[string]string {
 	data, err := json.Marshal(durableBotMessage{
-		Platform: msg.Platform, ConnectionID: msg.ConnectionID, Domain: msg.Domain,
+		AssistantDay: msg.AssistantDay, Platform: msg.Platform, ConnectionID: msg.ConnectionID, Domain: msg.Domain,
 		ChatType: msg.ChatType, ChatID: msg.ChatID, UserID: msg.UserID,
 		UserName: msg.UserName, OperatorID: msg.OperatorID, MessageID: msg.MessageID,
 		ThreadID: msg.ThreadID, SessionWebhook: msg.SessionWebhook,
@@ -47,6 +48,7 @@ func botMessageFromEnvelope(env sessioninbox.PromptEnvelope, fallback InboundMes
 	if raw := env.Extra[botInboxMessageExtraKey]; raw != "" {
 		var stored durableBotMessage
 		if json.Unmarshal([]byte(raw), &stored) == nil {
+			msg.AssistantDay = stored.AssistantDay
 			msg.Platform = stored.Platform
 			msg.ConnectionID = stored.ConnectionID
 			msg.Domain = stored.Domain

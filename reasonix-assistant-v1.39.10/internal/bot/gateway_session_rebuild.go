@@ -153,7 +153,7 @@ func (gw *BotGateway) buildSessionState(ctx context.Context, key string, msg Inb
 	if identity, ok := any(ctrl).(control.IdentityLifecycle); ok && identity.UsesExclusiveSession() {
 		ref, bindErr := bindBotSessionIdentity(ctx, identity, profile, msg)
 		if bindErr != nil {
-			if (profile.sessionRefOptional || profile.sessionPathOptional) && !reusedRuntime {
+			if canDegradeBotMapping(msg, profile) && !reusedRuntime {
 				gw.logger.Warn("mapped bot session unavailable; starting fresh", "err", bindErr)
 				ref, bindErr = identity.BindFreshSession(ctx, "")
 				state.mappingDegraded = bindErr == nil
@@ -206,7 +206,12 @@ func (gw *BotGateway) buildSessionState(ctx context.Context, key string, msg Inb
 	return &builtBotSession{state: state, reusedLease: reusedLease}, nil
 }
 
-func bindBotSessionIdentity(ctx context.Context, identity control.IdentityLifecycle, profile sessionRuntimeProfile, msg InboundMessage) (session.SessionRef, error) {
+func bindBotSessionIdentity(ctx context.Context, identity control.IdentityLifecycle, profile sessionRuntimeProfile, msg InboundMessage) (ref session.SessionRef, err error) {
+	defer func() {
+		if err == nil {
+			err = registerDailyIdentity(ctx, msg, profile, identity, ref)
+		}
+	}()
 	service := identity.SessionService()
 	if service == nil {
 		return session.SessionRef{}, errors.New("bot v3 session service is unavailable")
