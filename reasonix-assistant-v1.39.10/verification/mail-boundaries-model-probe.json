@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "real_cloud_model": true,
+  "synthetic_mailboxes": true,
+  "production_mail_read": false,
+  "weixin_messages": 0,
+  "checks": [
+    {
+      "case": "mixed",
+      "passed": true,
+      "body_read": true,
+      "notify": true,
+      "characters": 92,
+      "body_pages_read": 1
+    },
+    {
+      "case": "unknown",
+      "passed": true,
+      "body_read": true,
+      "notify": true,
+      "characters": 64,
+      "body_pages_read": 1
+    },
+    {
+      "case": "unconfirmed",
+      "passed": true,
+      "body_read": true,
+      "notify": true,
+      "characters": 223,
+      "body_pages_read": 1
+    },
+    {
+      "case": "late",
+      "passed": true,
+      "body_read": true,
+      "notify": true,
+      "characters": 203,
+      "body_pages_read": 2
+    },
+    {
+      "case": "advertisement",
+      "passed": true,
+      "body_read": true,
+      "notify": false,
+      "characters": 0,
+      "body_pages_read": 1
+    },
+    {
+      "case": "routine_security",
+      "passed": true,
+      "body_read": true,
+      "notify": false,
+      "characters": 0,
+      "body_pages_read": 1
+    }
+  ],
+  "scope": "Six targeted examples, not a comprehensive classification benchmark."
+}

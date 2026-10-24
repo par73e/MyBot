@@ -200,10 +200,10 @@ func scheduleDue(t Task, now time.Time) bool {
 	if baseMillis == 0 {
 		baseMillis = t.CreatedAt
 	}
-	hasTimeWindow := t.TimeWindowStart != "" || t.TimeWindowEnd != ""
+	hasTimeWindow := t.TimeWindowStart != "" || t.TimeWindowEnd != "" || len(t.DateOverrides) > 0
 	if baseMillis == 0 {
 		if hasTimeWindow {
-			return heartbeatWithinTimeWindow(t, now)
+			return t.WithinTimeWindow(now)
 		}
 		return true
 	}
@@ -215,7 +215,7 @@ func scheduleDue(t Task, now time.Time) bool {
 	// falls within the configured window. If outside, defer until the next
 	// tick that falls within the window.
 	if hasTimeWindow {
-		return heartbeatWithinTimeWindow(t, now)
+		return t.WithinTimeWindow(now)
 	}
 
 	return true

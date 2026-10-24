@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.20-modular-heartbeat",
+  "binary_sha256": "0601a3e34a6b2600282e0af52a9df587716023bfa11028ba6dbc0fc55881e7ab",
+  "source_archive_sha256": "b28a8954381cea17f835747ddf170003bdd7b81321cdefa787ef002d3bc25b3d",
+  "source_file_count": 9120,
+  "service_active": true,
+  "weixin_ready": true,
+  "single_clock_entry": true,
+  "legacy_clocks_disabled": true,
+  "weekly_defaults_preserved": true,
+  "module_ids": [
+    "mail_check",
+    "weather_briefing"
+  ],
+  "memory_subject": "Twitch邮件通知偏好",
+  "memory_kind": "long",
+  "protected_files_unchanged": true,
+  "configuration_change": "only allow assistant_heartbeat",
+  "unrelated_database_state_preserved_at_migration": true,
+  "test_weixin_messages": 0,
+  "backup": "/var/lib/mybot/backups/modular-heartbeat-20261024T110056Z",
+  "personal_memory_identifier_redacted": true
+}

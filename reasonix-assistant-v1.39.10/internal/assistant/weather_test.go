@@ -27,7 +27,7 @@ func weatherFixture(t *testing.T) (WeatherService, Options) {
 		defaults[day] = "school"
 	}
 	defaults["saturday"], defaults["sunday"] = "home", "home"
-	writeWeatherFixture(t, filepath.Join(home, "locations.json"), weatherLocations{Timezone: "Asia/Shanghai", Defaults: defaults, Places: map[string]WeatherPlace{"school": {Name: "Fixture school", Latitude: 30, Longitude: 120}, "home": {Name: "Fixture home", Latitude: 31, Longitude: 121}}})
+	writeWeatherFixture(t, filepath.Join(home, "locations.json"), weatherLocations{Timezone: "Asia/Shanghai", Defaults: defaults, Places: map[string]WeatherPlace{"school": {Name: "Fixture school", Region: "School district", Latitude: 30, Longitude: 120}, "home": {Name: "Fixture home", Region: "Home district", Latitude: 31, Longitude: 121}}})
 	now, _ := time.Parse(time.RFC3339, "2026-10-24T11:00:00+08:00")
 	return WeatherService{Home: home, Clock: func() time.Time { return now }}, Options{Workspace: home, Model: "fixture/model", Target: &heartbeat.Target{ConnectionID: "weixin", Domain: "weixin", ChatID: "owner", ChatType: "dm"}}
 }

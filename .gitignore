@@ -31,3 +31,6 @@ id_ed25519
 # OS metadata
 .DS_Store
 ._*
+
+# Local release staging, test sessions, duplicate snapshots and build outputs
+/work/

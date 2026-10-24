@@ -1,0 +1,49 @@
+{
+  "version": "v1.39.10-assistant.20-modular-heartbeat",
+  "binary_sha256": "0601a3e34a6b2600282e0af52a9df587716023bfa11028ba6dbc0fc55881e7ab",
+  "source_archive_sha256": "b28a8954381cea17f835747ddf170003bdd7b81321cdefa787ef002d3bc25b3d",
+  "source_manifest_sha256": "7ba9bd6f98a1f925f1ff75c3fdfaad23d43ccefdae18adcdd4c08c2c151f7df8",
+  "source_file_count": 9120,
+  "changed_source_files": [
+    "internal/assistant/context.go",
+    "internal/assistant/mail.go",
+    "internal/assistant/mail_query.go",
+    "internal/assistant/mail_schedule.go",
+    "internal/assistant/types.go",
+    "internal/assistant/weather_context.go",
+    "internal/boot/assistant.go",
+    "internal/boot/prompt_policy.go",
+    "internal/bot/assistant_proactive.go",
+    "internal/cli/assistant.go",
+    "internal/cli/heartbeat.go",
+    "internal/cli/heartbeat_bot.go",
+    "internal/cli/heartbeat_conversation.go",
+    "internal/cli/mail_poll.go",
+    "internal/heartbeat/admission.go",
+    "internal/heartbeat/engine.go",
+    "internal/heartbeat/lanes.go",
+    "internal/heartbeat/task.go",
+    "verification/MAIL.md"
+  ],
+  "added_source_files": [
+    "internal/assistant/heartbeat_config.go",
+    "internal/assistant/heartbeat_runtime.go",
+    "internal/assistant/heartbeat_test.go",
+    "internal/assistant/heartbeat_tool.go",
+    "internal/cli/unified_heartbeat.go",
+    "internal/heartbeat/lanes_test.go",
+    "scripts/deploy-modular-heartbeat.py",
+    "verification/MODULAR_HEARTBEAT.md",
+    "verification/modular-heartbeat-model-probe.json",
+    "verification/modular-heartbeat-weather-probe.json"
+  ],
+  "validation": [
+    "go test ./internal/assistant ./internal/heartbeat ./internal/cli ./internal/boot ./internal/bot",
+    "go test -race ./internal/assistant ./internal/heartbeat",
+    "10 isolated real model scenarios",
+    "isolated background weather module with real API and shared five-paragraph rules"
+  ],
+  "model_checks_passed": true,
+  "weather_check_passed": true,
+  "scope": "unified configurable module triggers; foreground independent; interest-aware mail policy and explicit Twitch long-term preference"
+}

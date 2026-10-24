@@ -7,25 +7,63 @@ import (
 	"time"
 )
 
-// StartLanes isolates fixed reminders from slow Agent turns. Each lane keeps its
-// own cross-process lease, including manual triggers, preventing double claims.
+// StartLanes has one scheduling clock. Independent bounded workers prevent slow
+// module calls from blocking the clock or the fixed-message lane. Signals
+// coalesce while busy; they are not an inbox or a backlog of missed ticks.
 func (e Engine) StartLanes(ctx context.Context, interval time.Duration, report func(error)) error {
+	if interval < time.Second {
+		return errors.New("poll interval must be at least 1s")
+	}
+	if e.Clock == nil {
+		e.Clock = time.Now
+	}
 	var wg sync.WaitGroup
-	errs := make(chan error, 4)
+	signals := []chan time.Time{}
 	for _, kind := range []string{"message", "agent", "mail_check", "weather_check"} {
 		lane := e
 		lane.kindFilter = kind
-		wg.Go(func() { errs <- lane.Start(ctx, interval, report) })
+		lane.Prepare = nil
+		ch := make(chan time.Time, 1)
+		signals = append(signals, ch)
+		wg.Go(func() {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case now := <-ch:
+					if err := lane.Tick(ctx, now); err != nil && report != nil {
+						report(err)
+					}
+				}
+			}
+		})
 	}
-	wg.Wait()
-	close(errs)
-	var all []error
-	for err := range errs {
-		all = append(all, err)
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		now := time.Now()
+		if e.Clock != nil {
+			now = e.Clock()
+		}
+		if e.Prepare != nil {
+			if err := e.Prepare(ctx, now); err != nil && report != nil {
+				report(err)
+			}
+		}
+		for _, ch := range signals {
+			select {
+			case ch <- now:
+			default:
+			}
+		}
+		select {
+		case <-ctx.Done():
+			wg.Wait()
+			return nil
+		case <-ticker.C:
+		}
 	}
-	return errors.Join(all...)
 }
-
 func skipped(t Task, now time.Time) bool {
 	end, err := time.Parse(time.RFC3339, t.SkipUntil)
 	return err == nil && now.Before(end)

@@ -1,0 +1,27 @@
+{
+  "version": "v1.39.10-assistant.18-mail-date-override",
+  "binary_sha256": "962fb75c3571ea90f6f718386c49fef426bcc43c0294c6f3d2996862e71b501f",
+  "source_archive_sha256": "bef8a059a61e7fe65f30045fa5f111987f0b5c83c9f621b156dd5dfaeea4870c",
+  "source_manifest_sha256": "6e15a0cac1d5b0e6b2c7606f17ff2a833688329826f7277d723a6bd7a5775a16",
+  "source_file_count": 9110,
+  "changed_source_files": [
+    "internal/assistant/mail_schedule.go",
+    "internal/boot/prompt_policy.go",
+    "internal/heartbeat/schedule.go",
+    "internal/heartbeat/task.go",
+    "verification/MAIL.md"
+  ],
+  "added_source_files": [
+    "internal/assistant/mail_date_override_test.go",
+    "internal/heartbeat/date_window.go",
+    "internal/heartbeat/date_window_test.go",
+    "scripts/deploy-mail-date-override.py",
+    "verification/mail-date-override-model-probe.json"
+  ],
+  "tests": [
+    "go test ./internal/assistant ./internal/heartbeat ./internal/boot ./internal/cli",
+    "3 isolated real model cases: natural-language postpone, cancel, missing-time clarification"
+  ],
+  "real_model_cases_passed": true,
+  "scope": "single-civil-date mail schedule overrides, owner tool interface and guidance; normal weekly settings and existing production state preserved"
+}

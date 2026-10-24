@@ -13,10 +13,13 @@ import (
 // Options binds trusted host routing; model arguments cannot select an owner,
 // notification recipient, workspace, credentials path or permission preset.
 type Options struct {
-	MailScheduleID string
-	Workspace      string
-	Model          string
-	Target         *heartbeat.Target
+	TriggerID       string
+	OccurrenceID    string
+	TriggerRevision int
+	MailScheduleID  string
+	Workspace       string
+	Model           string
+	Target          *heartbeat.Target
 }
 
 // Todo is a personal obligation, independent from its reminder delivery status.

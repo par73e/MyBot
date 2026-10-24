@@ -1,0 +1,27 @@
+{
+  "version": "v1.39.10-assistant.14-weather-concise",
+  "binary_sha256": "a2ffc16ac5bf70a3104c116aca313a6fa71e4a221085028e9593db8d0e59e2f3",
+  "source_archive_sha256": "3bc65903d076729bf88ca3bb9764dd002cc9e61de3fb0a002cfa65833ebed96b",
+  "source_manifest_sha256": "b2fc1800b7c5b1ffdb7c020b59c2ab7e6b49391fec9dc7ef3740d9cb40c7a83c",
+  "source_file_count": 9102,
+  "project_readme_sha256": "c0aaef6a7629ec68fbf63f1143c835012d307ff8731bbdc4989f586a34b1dd2d",
+  "passed": true,
+  "service_active": true,
+  "weixin_poll_ready": true,
+  "local_server_source_identical": true,
+  "host_settings_and_personal_memories_unchanged": true,
+  "weather_wake_times": {
+    "monday": "10:00",
+    "tuesday": "08:00",
+    "wednesday": "10:00",
+    "thursday": "10:00",
+    "friday": "08:00",
+    "saturday": "11:00",
+    "sunday": "11:00"
+  },
+  "timezone": "Asia/Shanghai",
+  "test_weixin_messages": 0,
+  "reply_policy_final_only": true,
+  "state_unchanged_before_restart": true,
+  "weather_tests_passed": true
+}

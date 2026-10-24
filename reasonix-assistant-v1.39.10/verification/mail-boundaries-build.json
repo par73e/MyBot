@@ -1,0 +1,14 @@
+{
+  "version": "v1.39.10-assistant.16-mail-boundaries",
+  "binary_sha256": "5504e4afbafb365e1bd4dca611c1ac97d2156ca7ee77931973db12a4d39b610a",
+  "source_archive_sha256": "668523afcda5c14725ce95d1f1a3f102b8a46d55c19bdd2c845722f29c56fdb3",
+  "source_manifest_sha256": "a8d6bb8b1d878c5589b1f729c356b4ca33e75ec843de12f8fe5da22c8a6e1390",
+  "source_file_count": 9102,
+  "changed_source_files": [
+    "internal/assistant/mail.go",
+    "verification/MAIL.md"
+  ],
+  "prompt_sha256": "f1cf18425a434eb24c9d556d8d91b62ec556cb9d5a3a328c8c49fcb186675cad",
+  "scope": "mail analysis prompt and documentation only; no scheduling or transport code changes",
+  "mail_regression_passed": true
+}

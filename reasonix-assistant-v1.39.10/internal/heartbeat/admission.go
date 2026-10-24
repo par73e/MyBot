@@ -25,7 +25,7 @@ func (e Engine) runAdmitted(ctx context.Context, task Task) (Execution, error) {
 	if runner == nil {
 		return Execution{}, errors.New("heartbeat runner unavailable for task kind")
 	}
-	if e.Gate == nil || (task.Kind != "mail_check" && task.Kind != "weather_check" && task.Capability != "mail" && task.Capability != "weather") {
+	if e.Gate == nil || (task.Kind != "mail_check" && task.Kind != "weather_check" && task.ModuleID == "" && task.Capability != "mail" && task.Capability != "weather") {
 		return runner.Run(ctx, task)
 	}
 	runCtx, cancel := context.WithCancel(ctx)

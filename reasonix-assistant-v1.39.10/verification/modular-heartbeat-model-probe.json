@@ -1,0 +1,120 @@
+{
+  "passed": true,
+  "real_cloud_model": true,
+  "isolated_state": true,
+  "production_mail_read": false,
+  "production_configuration_changed": false,
+  "weixin_messages": 0,
+  "checks": [
+    {
+      "case": "early",
+      "passed": true,
+      "replies": [
+        "Sir，收到。你明天（周日 10 月 25 日）大概几点起来？\n\n现在的安排是周日从 11:00 才开始跑晨报和邮箱检查。你告诉我一个起床时间，我就把明天那天的起始时间对齐过去，这样天气晨报和邮件汇总会跟着你真正醒来的时候走，不会空跑，也不会错过。",
+        "已经安排好了，Sir：\n\n- **明天（周日 10 月 25 日）** 的日程起点从 11:00 提前到 **08:00**，天气晨报和邮箱检查会跟着这个时间走，之后白天的邮件巡检也照常每小时跑。\n- 只改这一天，后天起恢复原来的安排（周日 11:00 / 周一 10:00），不用你再交代。\n\n明早见，如果事情有具体时间点需要我提前提醒你，随时说一声。"
+      ],
+      "tools": [
+        "assistant_heartbeat",
+        "assistant_heartbeat"
+      ]
+    },
+    {
+      "case": "old_alarm",
+      "passed": true,
+      "replies": [
+        "记下了，Sir — 明天（10-25）早上有事、预计早起。\n\n需要我做点什么就说一声：定个起床/出门提醒，或者把明天的邮件检查窗口提前到早上（现在是按默认时间跑的）。具体几点你告诉我，我再改。",
+        "好，Sir，已经按 08:00 调好了。\n\n明天原本是周六（默认 11:00 才开始跑），我给 10-25 单独设了起始时间 08:00，起床时的那一轮（天气晨报 + 邮箱检查）和之后的白天邮件检查都会跟着提前到 8 点起。后天自动恢复原样，不用你管。"
+      ],
+      "tools": [
+        "assistant_memory",
+        "assistant_heartbeat",
+        "assistant_heartbeat",
+        "assistant_memory"
+      ]
+    },
+    {
+      "case": "selection",
+      "passed": true,
+      "replies": [
+        "已经调整好了，Sir。\n\n- **周一起床那一次**：只跑邮箱检查，不发天气晨报。\n- **周二到周日**：起床时照旧是天气晨报 + 邮箱检查。\n- **白天重复邮箱检查**：所有日期都照常，每小时内的节奏不受影响。\n\n周一的作息窗口（10:00 起）我也没动，只是把那一次的模块列表换成了邮箱。配置已保存并确认生效。"
+      ],
+      "tools": [
+        "assistant_heartbeat",
+        "assistant_heartbeat"
+      ]
+    },
+    {
+      "case": "fixed_time",
+      "passed": true,
+      "replies": [
+        "已添加，Sir。当前计划状态：\n\n- **新增**：周一午后天气播报 — 每周一 14:00 运行 `weather_briefing`（固定时间触发，不受起床窗口影响）\n- **保留**：起床时的原有计划（天气晨报 + 邮箱检查，随每天起床窗口触发）\n- **保留**：白天重复邮箱检查（间隔触发）\n\n原有的每周作息表和日期覆盖都没动。"
+      ],
+      "tools": [
+        "assistant_heartbeat",
+        "assistant_heartbeat",
+        "assistant_heartbeat",
+        "assistant_heartbeat",
+        "assistant_heartbeat",
+        "assistant_heartbeat"
+      ]
+    },
+    {
+      "case": "vague",
+      "passed": true,
+      "replies": [
+        "明天（周日 10 月 25 日）原本的计划是从 11:00 开始自动汇报：起床时的天气晨报和邮箱检查，以及之后每隔一小时的邮箱增量检查。\n\n想睡到几点？告诉我一个大概的时间，我就把明天的自动汇报整体推迟到那个点开始，其他日子的安排不动。"
+      ],
+      "tools": [
+        "assistant_heartbeat"
+      ]
+    },
+    {
+      "case": "manual",
+      "passed": true,
+      "replies": [
+        "在的，Sir，有什么需要我帮忙的吗？"
+      ],
+      "tools": []
+    },
+    {
+      "case": "mail_live",
+      "passed": true,
+      "replies": [
+        "{\"notify\":true,\"message\":\"Sir，你关注的 jingggxd（PRX Jinggg）正在 Twitch 开播，直播内容是 VALORANT。\",\"reason\":\"发件地址为 no-reply@twitch.tv，属已关注主播的开播提醒；按 Sir 的长期通知偏好，Twitch 全部邮件须通知。\"}"
+      ],
+      "tools": [
+        "assistant_mail"
+      ]
+    },
+    {
+      "case": "mail_newsletter",
+      "passed": true,
+      "replies": [
+        "{\"notify\":true,\"message\":\"Sir，Twitch 发来本周的社区介绍和频道订阅优惠资讯，属于营销推送，没有需要处理的事项。\",\"reason\":\"实际发件地址为 no-reply@twitch.tv，命中 Sir 明确的 Twitch 全量通知偏好，故即使正文标注为群发营销也需简短告知；无期限、无要求动作，只做一两句摘要。\"}"
+      ],
+      "tools": [
+        "assistant_mail"
+      ]
+    },
+    {
+      "case": "mail_other_interest",
+      "passed": true,
+      "replies": [
+        "{\"notify\":true,\"message\":\"Sir，邮件称您关注的博主“小林”正在直播编程访谈；不过发件地址是无效示例域，来源无法核实，仅供您判断是否要看。\",\"reason\":\"开播提醒有时效价值，但发件地址非Twitch且无法核实，故简短提示并说明局限。\"}"
+      ],
+      "tools": [
+        "assistant_mail"
+      ]
+    },
+    {
+      "case": "mail_ad",
+      "passed": true,
+      "replies": [
+        "{\"notify\":false,\"message\":\"\",\"reason\":\"已完整读取正文：来自offers@example.invalid的通用配件促销广告，无个人订单或账号关联，也不属于Twitch明确放行来源；无新增有用信息，不值得打扰。\"}"
+      ],
+      "tools": [
+        "assistant_mail"
+      ]
+    }
+  ]
+}

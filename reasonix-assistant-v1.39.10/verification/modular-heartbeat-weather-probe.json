@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "real_cloud_model": true,
+  "real_weather_api": true,
+  "isolated_state": true,
+  "weixin_messages": 0,
+  "query_count": 1,
+  "five_paragraph_format": true,
+  "reply": "Sir，家这边今天以强降雨为主线，白天达到大雨量级，中心城区暴雨蓝色预警和大风蓝色预警目前都还有效至今天22时。\n\n气温：全天18至21℃，波动不大，主要是降雨带来的偏凉感。\n\n降雨：白天大雨，入夜后转为小雨；眼下仍是间歇性降雨，预计持续到20时前后，之后逐渐减弱。\n\n湿度：当前相对湿度86%，全天偏湿。\n\n风力：以北偏东风为主，白天多为3级，入夜升到4级，阵风可达7级。"
+}

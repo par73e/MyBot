@@ -2,7 +2,7 @@
 
 基于 Reasonix `v1.39.10` 的云端私人助理，通过微信对话管理待办、定时提醒及长期/短期记忆，由常驻 Heartbeat 调度主动任务。
 
-当前服务版本为 `v1.39.10-assistant.10-output-closeout`，模型配置为 `qwen3.8-flash`，提供 Low、Medium、XHigh 档位。日常上下文不自动加载部署环境与工作目录，技术工具通过按需入口使用。微信日常会话每天北京时间 06:00 切换、按日期命名；主动通知进入同一天会话，历史可以按需查询。和风天气查询与每日晨报已接入，支持按问题查询天气、空气质量和官方预警；新闻和日历尚未接入。统一邮件工具和 Heartbeat 分钟级检查已部署，支持通过 Agent 修改运行时段及暂停/恢复；当前邮件每周重复：周一/三/四 10:00、周二/五 08:00、周六/日 11:00 开启，每天 24:00 关闭（北京时间）。天气晨报按相同起床时间每日播报一次，工作日学校、周末家仅作为地点候选，Agent结合长期／短期记忆及本次问题决定实际查询地点；未来安排写入后即进入上下文，按行程日期使用。邮件检查与天气晨报独立控制。微信已启用程序级最终答复过滤，详见[验证说明](reasonix-assistant-v1.39.10/verification/FINAL_ONLY.md)。
+当前服务版本为 `v1.39.10-assistant.22-module-closeout`，模型配置为 `qwen3.8-flash`，提供 Low、Medium、XHigh 档位。日常上下文不自动加载部署环境与工作目录，技术工具通过按需入口使用。微信日常会话每天北京时间 06:00 切换、按日期命名；主动通知进入同一天会话，历史可以按需查询。和风天气查询与每日晨报已接入，支持按问题查询天气、空气质量和官方预警；新闻和日历尚未接入。统一模块化 Heartbeat 已部署，支持通过 Agent 配置触发时间、选择天气／邮箱模块、修改指定日期的安排，以及独立的每周或单次模块调用；当前邮件每周重复：周一/三/四 10:00、周二/五 08:00、周六/日 11:00 开启，每天 24:00 关闭（北京时间）。天气晨报按相同起床时间每日播报一次，工作日学校、周末家仅作为地点候选，Agent结合长期／短期记忆及本次问题决定实际查询地点；未来安排写入后即进入上下文，按行程日期使用。邮件检查与天气晨报独立控制。已支持从明确的自然表达保存长期偏好或有期限的短期安排；静默邮件汇总模块支持手动查看及自行配置定期运行，默认不额外添加汇总时间。微信已启用程序级最终答复过滤，详见[验证说明](reasonix-assistant-v1.39.10/verification/FINAL_ONLY.md)。
 
 ## 当前版本
 
@@ -15,6 +15,10 @@
 - [Friday 身份更新及验证](reasonix-assistant-v1.39.10/verification/FRIDAY_PERSONA_UPDATE.md)
 - [Friday 日常上下文调整及验证](reasonix-assistant-v1.39.10/verification/FRIDAY_CONTEXT_UPDATE.md)
 - [每日会话与主动任务验收](reasonix-assistant-v1.39.10/verification/DAILY_CONVERSATIONS.md)
+- [模块开发收尾与验证](reasonix-assistant-v1.39.10/verification/MODULE_CLOSEOUT.md)
+- [自然表达记忆与静默邮件汇总](reasonix-assistant-v1.39.10/verification/MEMORY_SILENT_DIGEST.md)
+- [模块化 Heartbeat 与 Twitch 通知偏好](reasonix-assistant-v1.39.10/verification/MODULAR_HEARTBEAT.md)
+- [地点身份、地区绑定与验收](reasonix-assistant-v1.39.10/verification/PLACE_IDENTITY.md)
 - [天气选址与未来记忆调整](reasonix-assistant-v1.39.10/verification/WEATHER_CONTEXT.md)
 - [天气查询、晨报与验收说明](reasonix-assistant-v1.39.10/verification/WEATHER.md)
 - [邮件能力、验收与上线说明](reasonix-assistant-v1.39.10/verification/MAIL.md)
@@ -24,7 +28,7 @@
 
 ```sh
 cd reasonix-assistant-v1.39.10
-go build -ldflags '-X main.version=v1.39.10-assistant.10-output-closeout' -o bin/reasonix ./cmd/reasonix
+go build -ldflags '-X main.version=v1.39.10-assistant.22-module-closeout' -o bin/reasonix ./cmd/reasonix
 ```
 
 配置应使用独立的 `REASONIX_HOME`，启用 `REASONIX_ASSISTANT=1`。Friday 提示词放到该目录的 `prompts/friday.md`，配置参考上述模板。不要直接将模板覆盖到已配对的服务器配置。

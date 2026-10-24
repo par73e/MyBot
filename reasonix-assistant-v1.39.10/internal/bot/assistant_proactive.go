@@ -122,6 +122,11 @@ func (gw *BotGateway) DeliverAssistantNotificationWhen(ctx context.Context, targ
 		case "sending", "uncertain":
 			return heartbeat.ErrDeliveryUncertain
 		case "prepared":
+			if admit == nil {
+				if err := (assistant.HeartbeatService{Home: config.MemoryUserDir()}).CheckRunNotification(ctx, runID, time.Now()); err != nil {
+					return err
+				}
+			}
 			if admit != nil {
 				if err := admit(ctx); err != nil {
 					return err

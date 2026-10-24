@@ -1,0 +1,28 @@
+{
+  "version": "v1.39.10-assistant.15-mail-brief",
+  "binary_sha256": "d7ea3fa3a3815af3849142d350da8cfea8bdd4ebc11d407bb36041d5def2960e",
+  "source_archive_sha256": "d18017f8f93e3352fe802950643443ceba5da01ab4740ba8936d60b5c801cde9",
+  "source_manifest_sha256": "8fc074554d003c54a544363efc1dc2da22a18922714434568bb22de6f7bbee1a",
+  "source_file_count": 9102,
+  "project_readme_sha256": "8ce25f7ec46fce5539a6aefffddd2892326723245356888b2c8e57be87f2f57c",
+  "passed": true,
+  "service_active": true,
+  "weixin_poll_ready": true,
+  "local_server_source_identical": true,
+  "host_settings_and_personal_memories_unchanged": true,
+  "weather_wake_times": {
+    "monday": "10:00",
+    "tuesday": "08:00",
+    "wednesday": "10:00",
+    "thursday": "10:00",
+    "friday": "08:00",
+    "saturday": "11:00",
+    "sunday": "11:00"
+  },
+  "timezone": "Asia/Shanghai",
+  "test_weixin_messages": 0,
+  "reply_policy_final_only": true,
+  "state_unchanged_before_restart": true,
+  "mail_prompt_regression_passed": true,
+  "real_model_synthetic_mail_checks_passed": true
+}

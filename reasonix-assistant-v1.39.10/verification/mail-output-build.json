@@ -1,0 +1,14 @@
+{
+  "version": "v1.39.10-assistant.15-mail-brief",
+  "binary_sha256": "d7ea3fa3a3815af3849142d350da8cfea8bdd4ebc11d407bb36041d5def2960e",
+  "source_archive_sha256": "d18017f8f93e3352fe802950643443ceba5da01ab4740ba8936d60b5c801cde9",
+  "source_manifest_sha256": "8fc074554d003c54a544363efc1dc2da22a18922714434568bb22de6f7bbee1a",
+  "source_file_count": 9102,
+  "changed_source_files": [
+    "internal/assistant/mail.go",
+    "internal/boot/prompt_policy.go",
+    "verification/MAIL.md"
+  ],
+  "mail_regression_passed": true,
+  "fixture_binary_not_for_deployment": true
+}

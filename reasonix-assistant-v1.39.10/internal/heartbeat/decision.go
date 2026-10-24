@@ -14,9 +14,11 @@ const DecisionInstructions = "\n\n[Host notification contract]\nRead the current
 // model output is retained as an error rather than accidentally sent to chat.
 func NotificationText(raw string) (string, error) {
 	var value struct {
-		Notify  *bool  `json:"notify"`
-		Message string `json:"message"`
-		Reason  string `json:"reason"`
+		Notify        *bool           `json:"notify"`
+		Message       string          `json:"message"`
+		Reason        string          `json:"reason"`
+		MailDecisions json.RawMessage `json:"mail_decisions,omitempty"`
+		DigestIDs     json.RawMessage `json:"digest_ids,omitempty"`
 	}
 	decoder := json.NewDecoder(bytes.NewBufferString(raw))
 	decoder.DisallowUnknownFields()

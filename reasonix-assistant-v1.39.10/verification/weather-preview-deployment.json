@@ -1,0 +1,29 @@
+{
+  "version": "v1.39.10-assistant.12-weather-preview",
+  "binary_sha256": "e617ee7cbb2fccce28dfb36580b1e9b40ab43723426d1d787d105e1555430bb2",
+  "source_archive_sha256": "f8186f0fced5100a5961ee73e9e3ab78d7ff1111e2f01d41b8758b301eea7e26",
+  "source_manifest_sha256": "a278d28cfc79e68a6a5df4d4452c928820b9840a77a2c45aee1f8bba40579be4",
+  "source_file_count": 9102,
+  "project_readme_sha256": "14f6aa67f1aa2f84355cc758053eebc9ff850aa1e053406b5c661649e27cfae3",
+  "passed": true,
+  "service_active": true,
+  "weixin_poll_ready": true,
+  "local_server_source_identical": true,
+  "host_settings_and_personal_memories_unchanged": true,
+  "weather_wake_times": {
+    "monday": "10:00",
+    "tuesday": "08:00",
+    "wednesday": "10:00",
+    "thursday": "10:00",
+    "friday": "08:00",
+    "saturday": "11:00",
+    "sunday": "11:00"
+  },
+  "timezone": "Asia/Shanghai",
+  "test_weixin_messages": 0,
+  "reply_policy_final_only": true,
+  "state_unchanged_before_restart": true,
+  "weather_tests_passed": true,
+  "real_cloud_model_manual_preview_verified": true,
+  "manual_preview_prompt": "按自动晨报的规则，现在播报一次。"
+}

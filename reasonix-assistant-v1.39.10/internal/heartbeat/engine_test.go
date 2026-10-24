@@ -80,6 +80,40 @@ func fixture(t *testing.T) (Store, Task, time.Time) {
 	}
 	return store, task, now
 }
+
+func TestAfterDeliveryAcknowledgesOnlyConfirmedSend(t *testing.T) {
+	store, task, now := fixture(t)
+	target := &Target{ConnectionID: "weixin", ChatID: "sir"}
+	if e := store.Update(t.Context(), task.ID, func(t *Task) error { t.Target = target; return nil }); e != nil {
+		t.Fatal(e)
+	}
+	sender := &testSender{err: errors.New("send failed")}
+	runner := &testRunner{result: Execution{Text: "digest"}}
+	acks := 0
+	e := Engine{Store: store, Runner: runner, Sender: sender, Clock: func() time.Time { return now }, AfterDelivery: func(_ context.Context, t Task, r Run) error {
+		acks++
+		if r.Status != "delivery_pending" {
+			return errors.New("wrong checkpoint")
+		}
+		return nil
+	}}
+	if err := e.Tick(t.Context(), now); err == nil {
+		t.Fatal("missing send failure")
+	}
+	if acks != 0 {
+		t.Fatal("failed send advanced digest progress")
+	}
+	sender.err = nil
+	now = now.Add(time.Minute)
+	if err := e.Tick(t.Context(), now); err != nil {
+		t.Fatal(err)
+	}
+	if acks != 1 || runner.calls != 1 || lastRunPtrStatus(onlyTask(t, store)) != "delivered" {
+		t.Fatal("retry did not deliver and checkpoint once", acks, runner.calls)
+	}
+}
+
+func lastRunPtrStatus(t Task) string { return lastRun(&t).Status }
 func onlyTask(t *testing.T, s Store) Task {
 	t.Helper()
 	tasks, err := s.List(t.Context())

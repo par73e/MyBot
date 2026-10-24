@@ -20,6 +20,28 @@ func assistantCommand(args []string) int {
 	var err error
 	home := config.MemoryUserDir()
 	switch args[0] {
+	case "heartbeat-init":
+		result, err = (assistant.HeartbeatService{Home: home}).Ensure(context.Background())
+	case "heartbeat":
+		request := `{"action":"get"}`
+		if len(args) > 1 {
+			request = args[1]
+		}
+		var raw string
+		raw, err = (assistant.HeartbeatTool{Service: assistant.HeartbeatService{Home: home}}).Execute(context.Background(), json.RawMessage(request))
+		if err == nil {
+			err = json.Unmarshal([]byte(raw), &result)
+		}
+	case "memory":
+		var request assistant.MemoryRequest
+		if len(args) != 2 {
+			err = errors.New("memory requires one JSON request")
+		} else {
+			err = json.Unmarshal([]byte(args[1]), &request)
+		}
+		if err == nil {
+			result, err = (assistant.Memories{Home: home}).Apply(context.Background(), request)
+		}
 	case "weather":
 		request := assistant.WeatherRequest{Action: "status"}
 		if len(args) > 1 {

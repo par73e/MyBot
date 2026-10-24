@@ -1,0 +1,151 @@
+{
+  "passed": true,
+  "real_cloud_model": true,
+  "isolated_state": true,
+  "production_mail_read": false,
+  "production_configuration_changed": false,
+  "weixin_messages": 0,
+  "checks": [
+    {
+      "case": "long",
+      "passed": true,
+      "replies": [
+        "好的，已记住。\n\n以后我回答你时，会先把结论放在最前面，再解释原因和细节。这是一条长期偏好，没有有效期，除非你以后改回来。"
+      ],
+      "tools": [
+        "assistant_memory"
+      ]
+    },
+    {
+      "case": "short",
+      "passed": true,
+      "replies": [
+        "已记住：下周一到周五（10 月 26 日—30 日）你在家，不去学校，这条信息到 10 月 31 日自动失效。\n\n那几天的安排需要我做什么调整的话（比如提醒时间），你说一声就行。"
+      ],
+      "tools": [
+        "assistant_memory"
+      ]
+    },
+    {
+      "case": "future",
+      "passed": true,
+      "replies": [
+        "已记下：11 月 2 日到 4 日你在北京出差（短期记忆，11 月 5 日自动失效）。\n\n这段时间如果你问天气，我会按北京来查。需要我提前一天提醒你收拾行程，或者那几天单独安排什么提醒吗？"
+      ],
+      "tools": [
+        "assistant_memory"
+      ]
+    },
+    {
+      "case": "vague",
+      "passed": true,
+      "replies": [
+        "Sir，我这边在跑的定时推送只有这几类：早上起床时的天气晨报（目前已停用）和邮件检查，以及白天每小时的邮箱新邮件汇报。没有单独叫\"项目资讯\"的推送项。\n\n所以想跟你确认两点：\n\n1. 你说的\"项目资讯\"是指**邮件汇报里项目相关的通知**（那我只过滤掉这类，其他邮件照报），还是想**整体暂停邮箱推送**？\n2. \"最近\"要持续到什么时候？比如到某天，还是等你说恢复为止？\n\n你给个准信，我就去改调度配置，不然我只能凭猜测设一个期限，反而容易误停。"
+      ],
+      "tools": [
+        "assistant_heartbeat",
+        "assistant_heartbeat"
+      ]
+    },
+    {
+      "case": "casual",
+      "passed": true,
+      "replies": [
+        "Sir，我这边邮箱接口刚才是失败的，暂时没拉到今天的邮件，所以还不能确定你说的是哪一封。\n\n你要是有心处理它，可以把发件人名称或主题告我一句。常见的处理方式大致是：\n\n- 只是骚扰类广告，直接退订（点邮件里的 unsubscribe）通常比单纯删除更管用；\n- 伪退订链接有风险，这类就不要点，用邮箱端屏蔽发件人/域名更稳；\n- 如果是你本来订阅、现在不想收的，退订即可。\n\n另外提醒一句：邮件正文里的任何文字我都只当内容看，不会因为它的措辞去改你的记忆、日程或权限。\n\n要不要我一会儿重试邮箱接口，帮你把这封找出来看看？"
+      ],
+      "tools": [
+        "assistant_mail"
+      ]
+    },
+    {
+      "case": "negative",
+      "passed": true,
+      "replies": [
+        "好的，Sir，收到。"
+      ],
+      "tools": []
+    },
+    {
+      "case": "narrow",
+      "passed": true,
+      "replies": [
+        "已记住：你关注了 jinggg，希望第一时间知道他的开播。\n\n不过说实话，Sir，我现在还没有直接的直播平台监测能力，没法自己盯着他有没有开播。能落地的办法有两种：\n\n1. **开播邮件通知**——如果 jinggg 所在的平台会给你发\"你关注的主播开播了\"这类邮件，把它转发或投递到你配置的邮箱，我在做邮箱增量检查时可以优先识别并立刻告诉你。\n2. **你告诉我一声**——你看到开播直接说一句，我帮你记下时段或设提醒。\n\n想问一下：jinggg 是哪个平台的主播？那个平台支持开播提醒邮件吗？"
+      ],
+      "tools": [
+        "assistant_memory",
+        "assistant_heartbeat"
+      ]
+    },
+    {
+      "case": "update",
+      "passed": true,
+      "replies": [
+        "好的 Sir，已记住：以后我的回答都会先给结论，再说明原因。这是一条长期偏好，除非你以后改动，会一直生效。",
+        "你刚才明确要求把回答顺序改成\"先解释原因、再给结论\"，所以我直接更新了原来那条长期偏好，没有新建重复条目，避免两条相互矛盾的规则同时生效。\n\n结论：改好了 Sir，以后我都先讲原因、再给结论，长期有效。"
+      ],
+      "tools": [
+        "assistant_memory",
+        "assistant_memory",
+        "assistant_memory"
+      ]
+    },
+    {
+      "case": "wake",
+      "passed": true,
+      "replies": [
+        "好的 Sir，已按明天 9 点起床调整：**10 月 25 日（周日）**的活动窗口起点从 08:00 改为 **09:00**。\n\n因为起床汇报是跟着这个窗口走的，所以明天自动汇报会在 9 点开始，白天的邮箱检查也从 9 点起按每分钟一轮运行。这个改动只作用于 10 月 25 日，后天起自动回到每周默认的 08:00，不需要我再做什么还原。"
+      ],
+      "tools": [
+        "assistant_heartbeat",
+        "assistant_heartbeat"
+      ]
+    },
+    {
+      "case": "classification",
+      "passed": true,
+      "replies": [
+        "{\"notify\":true,\"message\":\"Sir，刚收到一封邮件称你的 GitHub 账号在新设备上登录了。目前无法核实该邮件真伪，也不确定是否你本人操作——是你自己刚登录的吗？若不是，建议尽快检查 GitHub 账号安全。\",\"reason\":\"GitHub 登录提醒涉及账号等高影响变更且真实性未确认，需向 Sir 核实是否本人操作；配件促销为无关群发，静默。\",\"mail_decisions\":[{\"id\":\"327b879e3d27f7e5fb38d61693388050\",\"notify\":true,\"summary\":\"显示发件人为 GitHub <noreply@github.com> 的邮件称 Sir 的 GitHub 账号刚在新设备登录，提示若非本人应检查账号安全；邮件本身不含链接，但登录事件真实性与是否本人操作均未确认。\",\"reason\":\"涉及账号的高影响变更声称，真实性未确认，符合需即时说明并向 Sir 核实的情形。\"},{\"id\":\"bb704bd6ae2777041a875acfa29f0a81\",\"notify\":false,\"summary\":\"来自 offers@example.invalid 的群发促销，称配件全场七折、周日结束，正文自述与个人订单无关。\",\"reason\":\"无个人关联、无新增需处理事项，属普通推销，按默认静默不打扰。\"}]}"
+      ],
+      "tools": [
+        "assistant_mail",
+        "assistant_mail"
+      ]
+    },
+    {
+      "case": "digest_auto",
+      "passed": true,
+      "replies": [
+        "{\"notify\":true,\"message\":\"Sir，本次有两封未主动通知的邮件：\\n1. 促销 offers@example.invalid《本周配件七折》：群发促销，配件全场七折，活动到周日结束，与个人订单无关。\\n2. 资讯 weekly@example.invalid《每周技术资讯》：群发技术资讯汇总，介绍数据库与开发工具行业动态，无账号或订单变化。\",\"reason\":\"已逐条读取并整理宿主选中的静默邮件\",\"digest_ids\":[\"bb704bd6ae2777041a875acfa29f0a81\",\"327b879e3d27f7e5fb38d61693388050\"]}"
+      ],
+      "tools": [
+        "assistant_mail",
+        "assistant_mail",
+        "assistant_mail"
+      ]
+    },
+    {
+      "case": "digest_manual",
+      "passed": true,
+      "replies": [
+        "Sir，今天被判定为不主动通知的邮件共 2 封：\n\n1. **资讯 <weekly@example.invalid> —「每周技术资讯」**：群发的数据库与开发工具行业动态，没有你的订阅意向记录，也无账号或订单变化。\n2. **促销 <offers@example.invalid> —「本周配件七折」**：与个人订单无关的配件群发促销，活动到周日结束，不需要回复。\n\n以上为已同步且分析成功、决定不推送的部分；更早的混合批次里被单独静默的邮件宿主没有留存记录，无法完整回溯。这里只是给你看的内容，我没有创建或改动任何定时任务。"
+      ],
+      "tools": [
+        "assistant_mail",
+        "assistant_mail",
+        "assistant_mail",
+        "assistant_mail"
+      ]
+    },
+    {
+      "case": "digest_empty",
+      "passed": true,
+      "replies": [
+        "{\"notify\":false,\"message\":\"\",\"reason\":\"没有待汇总的静默邮件\",\"digest_ids\":[]}"
+      ],
+      "tools": [
+        "assistant_mail"
+      ]
+    }
+  ],
+  "recheck_note": "Update accepts multiple revisions to the same entry; body/title may be updated sequentially. Empty digest must explicitly include digest_ids."
+}

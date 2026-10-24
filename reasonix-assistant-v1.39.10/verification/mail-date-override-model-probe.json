@@ -1,0 +1,42 @@
+{
+  "passed": true,
+  "real_cloud_model": true,
+  "isolated_state": true,
+  "production_schedule_changed": false,
+  "weixin_messages": 0,
+  "checks": [
+    {
+      "case": "postpone",
+      "passed": true,
+      "prompt": "明天我想睡个懒觉，邮箱检查推迟到上午11点再开始，就明天这一天。",
+      "reply": "搞定了，Sir。明天（10月25日，周日）邮箱检查会推迟到上午 11:00 才开始，11 点前不会有邮件动静；当晚照常检查到 24:00。后天自动恢复平时的 8 点开始，不用你再管。睡个好懒觉 🌙",
+      "date_overrides": {
+        "2026-10-25": {
+          "enabled": true,
+          "end": "24:00",
+          "start": "11:00"
+        }
+      },
+      "normal_schedule_unchanged": true,
+      "extra_jobs_created": false
+    },
+    {
+      "case": "cancel",
+      "passed": true,
+      "prompt": "明天不用晚起了，取消明天邮箱的临时调整，照原来的时间。",
+      "reply": "好的 Sir，已经取消明天（10 月 25 日）的临时调整。明天邮箱检查恢复按原来的时间执行——每天 08:00 到 24:00 正常运行。",
+      "date_overrides": null,
+      "normal_schedule_unchanged": true,
+      "extra_jobs_created": false
+    },
+    {
+      "case": "vague",
+      "passed": true,
+      "prompt": "明天我想睡个懒觉，早上别因为邮件打扰我。",
+      "reply": "好的 Sir，我先确认一下时间——明天（10 月 25 日，周日）邮件检查的常规安排是早上 08:00 开始。\n\n你想让我把明早的邮件打扰静默到几点？比如 10:00 或 11:00 之后再恢复提示。告诉我具体时间点，我就只针对明天这一天做临时调整，其他日子和原有安排都不受影响。",
+      "date_overrides": null,
+      "normal_schedule_unchanged": true,
+      "extra_jobs_created": false
+    }
+  ]
+}

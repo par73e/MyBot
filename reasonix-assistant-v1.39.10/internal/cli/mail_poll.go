@@ -18,6 +18,7 @@ type mailboxHeartbeatRunner struct {
 func (r mailboxHeartbeatRunner) Run(ctx context.Context, t heartbeat.Task) (heartbeat.Execution, error) {
 	options := r.options
 	options.MailScheduleID = t.ID
+	options.TriggerID, options.OccurrenceID, options.TriggerRevision = t.TriggerID, t.OccurrenceID, t.TriggerRevision
 	_, err := r.service.Poll(ctx, options)
 	return heartbeat.Execution{}, err
 }

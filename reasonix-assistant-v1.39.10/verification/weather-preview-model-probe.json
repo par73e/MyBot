@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "real_cloud_model": true,
+  "real_weather_api": true,
+  "input": "按自动晨报的规则，现在播报一次。",
+  "rules_retrieved_before_weather": true,
+  "prompt_sha256": "58b4bda750bbdc5edb33e75867db29ecc90ec6fac01158090edd46a45b653913",
+  "weather_queries": 1,
+  "plain_text_response": true,
+  "required_fields_present": true,
+  "created_jobs": 0,
+  "created_notifications": 0,
+  "weixin_messages": 0,
+  "production_state_used": false
+}

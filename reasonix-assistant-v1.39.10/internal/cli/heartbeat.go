@@ -197,10 +197,21 @@ func heartbeatWork(operation, id string, poll time.Duration, store heartbeat.Sto
 	if err != nil {
 		return err
 	}
-	engine := heartbeat.Engine{Store: store, Runner: heartbeatProcessRunner{Executable: executable}, Clock: time.Now}
+	var taskStore heartbeat.TaskStore = store
+	if assistant.Enabled() {
+		taskStore = assistant.JobStore{Repository: assistant.NewRepository(config.MemoryUserDir())}
+	}
+	engine := heartbeat.Engine{Store: taskStore, Runner: heartbeatProcessRunner{Executable: executable}, Clock: time.Now}
 	engine.Sender = heartbeatControlSender{}
 	if assistant.Enabled() {
 		engine.Runner = heartbeatConversationRunner{Runner: engine.Runner, Gateway: heartbeatControlConversation{}}
+		root, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		if err = configureUnifiedHeartbeat(context.Background(), &engine, "", root); err != nil {
+			return err
+		}
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

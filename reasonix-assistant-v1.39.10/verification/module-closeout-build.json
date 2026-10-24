@@ -1,0 +1,16 @@
+{
+  "version": "v1.39.10-assistant.22-module-closeout",
+  "binary_sha256": "bfd940007b377585995d123109b961d8045562738f5ff4cc87ebb1b7275720d4",
+  "source_archive_sha256": "5e741fdc6e5c375bcb0d0b3aabbfb92823e646864a2d885bc4464bd6f9ff285f",
+  "source_file_count": 9238,
+  "source_manifest_sha256": "111dfd1ba308397cc8b6d9244a1383d43022ff5025fb3ce4b852f49b813f5523",
+  "functional_base": "v1.39.10-assistant.21-memory-silent-digest",
+  "related_packages_passed": 11,
+  "mail_protocol_tests_passed": 12,
+  "race_passed": true,
+  "golangci_lint": "0 issues",
+  "repolint": "clean (1151 baselined findings)",
+  "new_real_model_api_calls": 0,
+  "test_weixin_messages": 0,
+  "notes": "Behavior-preserving extraction; prior model tests retain their original release scope. Work artifacts ignored and private memory identifier redacted."
+}

@@ -32,6 +32,9 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 	}
 	if t.Capability == "mail" {
 		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_MAIL_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_MAIL_ATTEMPT=%d", t.RunStartedAt))
+		if t.ModuleID == "mail_digest" {
+			cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_MAIL_DIGEST=1")
+		}
 	}
 	if t.Capability == "weather" {
 		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_WEATHER_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_WEATHER_ATTEMPT=%d", t.RunStartedAt))
@@ -92,6 +95,18 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 			return heartbeat.Execution{}, err
 		}
 	}
+	if t.Capability == "mail" {
+		service := assistant.NewMailService(config.MemoryUserDir())
+		var err error
+		if t.ModuleID == "mail_digest" {
+			err = service.VerifyDigest(ctx, t, result.Result)
+		} else if len(t.MailIDs) > 0 {
+			err = service.RecordMailDecisions(ctx, t, result.Result)
+		}
+		if err != nil {
+			return heartbeat.Execution{}, err
+		}
+	}
 	return heartbeat.Execution{Text: text, SessionID: result.SessionID, DecisionReason: reason}, nil
 }
 
@@ -110,11 +125,22 @@ func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
 		}
 	}
 	if t.Capability == "mail" || t.Capability == "weather" {
-		args = append(args, "--max-steps", "24")
+		steps := "24"
+		if t.ModuleID == "mail_digest" {
+			steps = "64"
+		}
+		args = append(args, "--max-steps", steps)
 	}
 	prompt := t.Prompt
 	if t.DecideNotification {
-		prompt += heartbeat.DecisionInstructions
+		switch {
+		case t.ModuleID == "mail_digest":
+			prompt += assistant.MailDigestContract
+		case t.Capability == "mail" && len(t.MailIDs) > 0:
+			prompt += assistant.MailDecisionContract
+		default:
+			prompt += heartbeat.DecisionInstructions
+		}
 	}
 	return append(args, "--", prompt)
 }

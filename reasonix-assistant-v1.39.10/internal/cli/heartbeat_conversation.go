@@ -58,7 +58,7 @@ func (s heartbeatGatewaySender) SendRun(ctx context.Context, t heartbeat.Task, r
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	if t.Capability == "mail" || t.Capability == "weather" {
+	if t.ModuleID != "" || t.Capability == "mail" || t.Capability == "weather" {
 		guarded, ok := s.gateway.(interface {
 			DeliverAssistantNotificationWhen(context.Context, heartbeat.Target, string, string, string, time.Time, func(context.Context) error) error
 		})

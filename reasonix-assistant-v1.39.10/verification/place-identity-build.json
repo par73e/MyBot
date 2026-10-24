@@ -1,0 +1,25 @@
+{
+  "version": "v1.39.10-assistant.17-place-identity",
+  "binary_sha256": "882781699af81f54b982c09a2bd6899b1b1a8c87a12c173deb06817a120a3043",
+  "source_archive_sha256": "f63df6525faae160d9ecc3a05888f46080ac2b17381a24a05cad02fca40b5b80",
+  "source_manifest_sha256": "b50feafe10588386787092b35a7e1558b20672eafe6a76e81bbff4930e03c926",
+  "source_file_count": 9105,
+  "changed_source_files": [
+    "internal/assistant/context.go",
+    "internal/assistant/weather.go",
+    "internal/assistant/weather_context.go",
+    "internal/assistant/weather_context_test.go",
+    "internal/assistant/weather_test.go"
+  ],
+  "added_source_files": [
+    "scripts/deploy-place-identity.py",
+    "verification/PLACE_IDENTITY.md",
+    "verification/place-identity-model-probe.json"
+  ],
+  "tests": [
+    "go test ./internal/assistant ./internal/heartbeat ./internal/boot",
+    "5 isolated real model cases"
+  ],
+  "real_model_cases_passed": true,
+  "scope": "structured place references, region fields, generic location binding rules; unchanged coordinates, mail classification and scheduling"
+}

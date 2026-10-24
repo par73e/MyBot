@@ -27,6 +27,7 @@ type weatherCredentials struct {
 }
 type WeatherPlace struct {
 	Name      string  `json:"name"`
+	Region    string  `json:"region,omitempty"`
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 }

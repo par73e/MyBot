@@ -54,11 +54,17 @@ func startBotHeartbeat(ctx context.Context, gateway heartbeatGateway, options *b
 		Store: store, Runner: runner,
 		Sender: heartbeatGatewaySender{gateway: gateway},
 	}
-	if err := configureMailboxHeartbeat(ctx, &engine, model, options.workspace); err != nil {
+	if assistant.Enabled() {
+		if err := configureUnifiedHeartbeat(ctx, &engine, model, options.workspace); err != nil {
+			return nil, err
+		}
+	} else if err := configureMailboxHeartbeat(ctx, &engine, model, options.workspace); err != nil {
 		return nil, err
 	}
-	if err := configureWeatherHeartbeat(ctx, &engine, model, options.workspace); err != nil {
-		return nil, err
+	if !assistant.Enabled() {
+		if err := configureWeatherHeartbeat(ctx, &engine, model, options.workspace); err != nil {
+			return nil, err
+		}
 	}
 	engine.Sender = heartbeatGatewaySender{gateway: gateway, admit: engine.Admitted}
 	workerCtx, cancel := context.WithCancel(ctx)

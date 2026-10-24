@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "real_cloud_model": true,
+  "synthetic_mailboxes": true,
+  "production_mail_read": false,
+  "weixin_messages": 0,
+  "checks": [
+    {
+      "case": "ordinary",
+      "passed": true,
+      "body_read": true,
+      "notify": true,
+      "characters": 62
+    },
+    {
+      "case": "urgent",
+      "passed": true,
+      "body_read": true,
+      "notify": true,
+      "characters": 153
+    },
+    {
+      "case": "advertisement",
+      "passed": true,
+      "body_read": true,
+      "notify": false,
+      "characters": 0
+    },
+    {
+      "case": "routine_security",
+      "passed": true,
+      "body_read": true,
+      "notify": false,
+      "characters": 0
+    },
+    {
+      "case": "followup",
+      "passed": true,
+      "body_read": true,
+      "notify": null,
+      "characters": 448
+    }
+  ]
+}

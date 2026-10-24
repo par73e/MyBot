@@ -1,0 +1,8 @@
+{
+  "version": "v1.39.10-assistant.14-weather-concise",
+  "binary_sha256": "a2ffc16ac5bf70a3104c116aca313a6fa71e4a221085028e9593db8d0e59e2f3",
+  "source_archive_sha256": "3bc65903d076729bf88ca3bb9764dd002cc9e61de3fb0a002cfa65833ebed96b",
+  "source_manifest_sha256": "b2fc1800b7c5b1ffdb7c020b59c2ab7e6b49391fec9dc7ef3740d9cb40c7a83c",
+  "source_file_count": 9102,
+  "weather_regression_passed": true
+}

@@ -2,14 +2,65 @@ package assistant
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 )
+
+func TestWeatherMorningPromptReadsSharedRulesWithoutFetchingOrWriting(t *testing.T) {
+	home := t.TempDir()
+	s := WeatherService{Home: home, Fetch: func(context.Context, string) (json.RawMessage, error) {
+		t.Fatal("reading briefing rules must not fetch weather")
+		return nil, nil
+	}}
+	tool := WeatherTool{Service: s}
+	raw, err := tool.Execute(t.Context(), json.RawMessage(`{"action":"morning_prompt"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out struct {
+		Prompt string `json:"prompt"`
+		SHA256 string `json:"prompt_sha256"`
+		Mode   string `json:"reply_mode"`
+	}
+	if err := json.Unmarshal([]byte(raw), &out); err != nil {
+		t.Fatal(err)
+	}
+	if out.Prompt == "" || out.SHA256 != fmt.Sprintf("%x", sha256.Sum256([]byte(out.Prompt))) || out.Mode != "plain_text" {
+		t.Fatal("rules missing, corrupted or using background reply mode")
+	}
+	if strings.Contains(out.Prompt, "notify=true") || !strings.Contains(out.Prompt, "view=briefing") {
+		t.Fatal("manual content leaks the notification envelope or loses full-day query requirements")
+	}
+	files, err := os.ReadDir(home)
+	if err != nil || len(files) != 0 {
+		t.Fatal("reading rules created configuration, state or tasks", files, err)
+	}
+	if _, err := tool.Execute(t.Context(), json.RawMessage(`{"action":"morning_prompt","path":"/etc/passwd"}`)); err == nil {
+		t.Fatal("rules action accepted an arbitrary file argument")
+	}
+
+	// Scheduled tasks and manual replies must use one content source, with only
+	// the scheduled notification contract and host date appended separately.
+	configured, options := weatherFixture(t)
+	if err := configured.MorningTick(t.Context(), options); err != nil {
+		t.Fatal(err)
+	}
+	jobs, err := (JobStore{Repository: NewRepository(configured.Home)}).List(t.Context())
+	if err != nil || len(jobs) != 1 {
+		t.Fatal(jobs, err)
+	}
+	if !strings.HasPrefix(jobs[0].Prompt, out.Prompt+"\n") || !strings.Contains(jobs[0].Prompt[len(out.Prompt):], "notify=true") {
+		t.Fatal("manual and scheduled briefing content diverged")
+	}
+}
 
 func personalStateFixture(t *testing.T, s WeatherService, now time.Time) map[string]json.RawMessage {
 	t.Helper()
@@ -84,6 +135,74 @@ func TestWeatherDefaultReferenceUsesTargetDateWithoutFetchingWeather(t *testing.
 	}
 	if _, err = s.Query(t.Context(), WeatherRequest{Action: "status", Date: "bad"}); err == nil {
 		t.Fatal("invalid reference date accepted")
+	}
+}
+
+func TestWeatherLocationIdentityAndRegionStayTogetherAcrossWeekdays(t *testing.T) {
+	s, _ := weatherFixture(t)
+	start, _ := time.Parse(time.RFC3339, "2026-10-19T01:00:00+08:00")
+	for i := range 7 {
+		now := start.AddDate(0, 0, i)
+		t.Run(now.Weekday().String(), func(t *testing.T) {
+			state := personalStateFixture(t, s, now)
+			raw := state["weather_defaults"]
+			var reference struct {
+				Places    map[string]weatherPlaceReference `json:"places"`
+				Candidate weatherCandidateReference        `json:"candidate"`
+			}
+			if err := json.Unmarshal(raw, &reference); err != nil {
+				t.Fatal(err)
+			}
+			key, region := "school", "School district"
+			if now.Weekday() == time.Saturday || now.Weekday() == time.Sunday {
+				key, region = "home", "Home district"
+			}
+			c := reference.Candidate
+			if c.PlaceID != key || c.Region != region || c.Name != "Fixture "+key || c.weatherPlaceReference != reference.Places[key] {
+				t.Fatal("candidate identity or attributes crossed between places", string(raw))
+			}
+			for id, place := range reference.Places {
+				if place.PlaceID != id || place.Region == "" {
+					t.Fatal("place dictionary lost explicit identity or region", string(raw))
+				}
+			}
+			if strings.Contains(string(raw), `"latitude"`) || strings.Contains(string(raw), `"longitude"`) {
+				t.Fatal("ordinary context exposed coordinates")
+			}
+		})
+	}
+}
+
+func TestWeatherMissingRegionStaysUnknownAndExplicitPlaceKeepsCoordinates(t *testing.T) {
+	s, _ := weatherFixture(t)
+	l, err := s.locations()
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := l.Places["home"]
+	p.Region = ""
+	l.Places["home"] = p
+	writeWeatherFixture(t, filepath.Join(s.Home, "locations.json"), l)
+	out, err := s.Query(t.Context(), WeatherRequest{Action: "status"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := out.(map[string]any)["candidate"].(weatherCandidateReference)
+	if c.PlaceID != "home" || c.Region != "" {
+		t.Fatal("legacy home inherited another place's region", c)
+	}
+	s.Fetch = func(_ context.Context, path string) (json.RawMessage, error) {
+		if !strings.Contains(path, "/30.00/120.00") {
+			t.Fatal("explicit school query used another place's coordinates", path)
+		}
+		return json.RawMessage(`{"temperature":{"value":20,"unit":"C"}}`), nil
+	}
+	out, err = s.Query(t.Context(), WeatherRequest{Action: "query", Place: "school", LocationSource: "explicit_question", LocationReason: "User asks about school", Components: []string{"current"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := out.(map[string]any)["place"].(WeatherPlace); got != l.Places["school"] {
+		t.Fatal("weather result detached name, region or coordinates from selected place", got)
 	}
 }
 

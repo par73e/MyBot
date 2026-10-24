@@ -34,13 +34,15 @@ var ErrDeliveryUncertain = errors.New("notification may already have been delive
 
 // Engine dispatches serially, retaining its cross-process lease through delivery.
 type Engine struct {
-	Store      TaskStore
-	Runner     Runner
-	Checker    Runner
-	Gate       func(context.Context, Task, time.Time) (bool, error)
-	Sender     Sender
-	Clock      func() time.Time
-	kindFilter string
+	Prepare       func(context.Context, time.Time) error
+	AfterDelivery func(context.Context, Task, Run) error
+	Store         TaskStore
+	Runner        Runner
+	Checker       Runner
+	Gate          func(context.Context, Task, time.Time) (bool, error)
+	Sender        Sender
+	Clock         func() time.Time
+	kindFilter    string
 }
 
 // Start checks immediately and then polls until cancellation. Store errors are
@@ -72,6 +74,9 @@ func (e Engine) Tick(ctx context.Context, now time.Time) error {
 		return e.withLease(func() error { return e.dispatch(ctx, now, "") })
 	}
 	var failures []error
+	if e.Prepare != nil {
+		failures = append(failures, e.Prepare(ctx, now))
+	}
 	for _, kind := range []string{"message", "agent", "mail_check", "weather_check"} {
 		lane := e
 		lane.kindFilter = kind
@@ -197,7 +202,7 @@ func (e Engine) claim(ctx context.Context, task *Task, now time.Time, manual boo
 		task.RunStartedAt = now.UnixMilli()
 		current.LastRunAt = now.UnixMilli()
 		current.SnoozedUntil = ""
-		current.History = append(current.History, Run{StartedAt: now.UnixMilli(), Status: "running"})
+		current.History = append(current.History, Run{StartedAt: now.UnixMilli(), Status: "running", ModuleID: current.ModuleID, TriggerRevision: current.TriggerRevision, ScheduledAt: current.At})
 		if len(current.History) > 20 {
 			current.History = current.History[len(current.History)-20:]
 		}
@@ -278,6 +283,11 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 		if err := sendErr; err != nil {
 			_ = e.updateRun(id, func(t *Task, r *Run) { recordDeliveryFailure(t, r, err, now) })
 			return err
+		}
+		if e.AfterDelivery != nil {
+			if err := e.AfterDelivery(ctx, task, *r); err != nil {
+				return err
+			}
 		}
 		return e.updateRun(id, func(t *Task, r *Run) {
 			r.Status, r.Error = "delivered", ""

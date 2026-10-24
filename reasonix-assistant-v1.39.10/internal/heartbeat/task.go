@@ -21,6 +21,9 @@ type Target struct {
 
 // Run records execution separately from delivery; pending delivery never reruns AI.
 type Run struct {
+	ModuleID         string `json:"module_id,omitempty"`
+	TriggerRevision  int    `json:"trigger_revision,omitempty"`
+	ScheduledAt      string `json:"scheduled_at,omitempty"`
 	ConversationID   string `json:"conversationId,omitempty"`
 	DeliveryAttempts int    `json:"deliveryAttempts,omitempty"`
 	NextDeliveryAt   int64  `json:"nextDeliveryAt,omitempty"`
@@ -36,10 +39,14 @@ type Run struct {
 // Task is a persisted headless job. Calendar rules use the desktop interval syntax.
 type Task struct {
 	// Capability and MailIDs are host-created execution scope, never mail/model arguments.
-	Capability string   `json:"capability,omitempty"`
-	PolicyID   string   `json:"policy_id,omitempty"`
-	Revision   int      `json:"revision,omitempty"`
-	MailIDs    []string `json:"mail_ids,omitempty"`
+	Capability      string   `json:"capability,omitempty"`
+	PolicyID        string   `json:"policy_id,omitempty"`
+	Revision        int      `json:"revision,omitempty"`
+	MailIDs         []string `json:"mail_ids,omitempty"`
+	ModuleID        string   `json:"module_id,omitempty"`
+	TriggerID       string   `json:"trigger_id,omitempty"`
+	OccurrenceID    string   `json:"occurrence_id,omitempty"`
+	TriggerRevision int      `json:"trigger_revision,omitempty"`
 	// RunStartedAt is host-only admission time, not persisted task configuration.
 	RunStartedAt           int64          `json:"-"`
 	ID                     string         `json:"id"`
@@ -61,6 +68,7 @@ type Task struct {
 	TimeWindowStart        string         `json:"timeWindowStart,omitempty"`
 	TimeWindowEnd          string         `json:"timeWindowEnd,omitempty"`
 	WeeklySchedule         WeeklySchedule `json:"weeklySchedule,omitempty"`
+	DateOverrides          DateOverrides  `json:"dateOverrides,omitempty"`
 	CreatedAt              int64          `json:"createdAt"`
 	LastRunAt              int64          `json:"lastRunAt,omitempty"`
 	Target                 *Target        `json:"target,omitempty"`
@@ -104,6 +112,9 @@ func (t Task) validateWorkspace() error {
 }
 
 func (t Task) validateSchedule() error {
+	if err := t.DateOverrides.Validate(); err != nil {
+		return err
+	}
 	if t.WeeklySchedule != nil {
 		if t.TimeWindowStart != "" || t.TimeWindowEnd != "" {
 			return errors.New("weeklySchedule and daily window cannot be combined")
@@ -148,7 +159,7 @@ func (t Task) Due(now time.Time) bool {
 	if skip, err := time.Parse(time.RFC3339, t.SkipUntil); err == nil && now.Before(skip) {
 		return false
 	}
-	if (t.Kind == "mail_check" || t.Kind == "weather_check" || t.WeeklySchedule != nil) && !t.WithinTimeWindow(now) {
+	if (t.Kind == "mail_check" || t.Kind == "weather_check" || t.WeeklySchedule != nil || len(t.DateOverrides) > 0) && !t.WithinTimeWindow(now) {
 		return false
 	}
 	if (t.Kind == "mail_check" || t.Kind == "weather_check") && t.LastRunAt == 0 {
@@ -176,6 +187,9 @@ func (t Task) WithinTimeWindow(now time.Time) bool {
 	loc, err := time.LoadLocation(t.Timezone)
 	if err != nil {
 		return false
+	}
+	if allowed, matched := t.DateOverrides.allows(now.In(loc)); matched {
+		return allowed
 	}
 	if t.WeeklySchedule != nil {
 		return t.WeeklySchedule.Allows(now.In(loc))

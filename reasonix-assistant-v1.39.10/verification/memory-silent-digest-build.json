@@ -1,0 +1,36 @@
+{
+  "version": "v1.39.10-assistant.21-memory-silent-digest",
+  "binary_sha256": "51ba1d0cec844dba505cba4566cf216a9ef0957f90378b28963a555bcccf9d3e",
+  "source_archive_sha256": "65e0eeae7f745c5c9011ebc1d08bb30dff59876966250a559d4d19a8b4d5fdfa",
+  "source_file_count": 9127,
+  "changed_since_v20": [
+    "internal/assistant/context.go",
+    "internal/assistant/heartbeat_config.go",
+    "internal/assistant/heartbeat_runtime.go",
+    "internal/assistant/mail_query.go",
+    "internal/assistant/mail_receipts.go",
+    "internal/assistant/tools.go",
+    "internal/boot/prompt_policy.go",
+    "internal/cli/heartbeat_runner.go",
+    "internal/cli/unified_heartbeat.go",
+    "internal/heartbeat/decision.go",
+    "internal/heartbeat/engine.go",
+    "internal/heartbeat/engine_test.go"
+  ],
+  "added_since_v20": [
+    "internal/assistant/mail_digest.go",
+    "internal/assistant/mail_digest_test.go",
+    "internal/assistant/memory_policy.go",
+    "internal/assistant/memory_policy_test.go",
+    "scripts/deploy-memory-silent-digest.py",
+    "verification/MEMORY_SILENT_DIGEST.md",
+    "verification/memory-silent-digest-model-probe.json"
+  ],
+  "validation": [
+    "go test ./internal/assistant ./internal/heartbeat ./internal/cli ./internal/boot ./internal/bot",
+    "go test -race ./internal/assistant ./internal/heartbeat",
+    "13 isolated actual cloud model scenarios"
+  ],
+  "model_checks_passed": true,
+  "test_weixin_messages": 0
+}

@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.21-memory-silent-digest",
+  "binary_sha256": "51ba1d0cec844dba505cba4566cf216a9ef0957f90378b28963a555bcccf9d3e",
+  "source_archive_sha256": "65e0eeae7f745c5c9011ebc1d08bb30dff59876966250a559d4d19a8b4d5fdfa",
+  "source_file_count": 9127,
+  "service_active": true,
+  "weixin_ready": true,
+  "memory_intent_policy": true,
+  "per_message_mail_decisions": true,
+  "mail_digest_module_available": true,
+  "new_trigger_created": false,
+  "previous_timings_and_modules_preserved": true,
+  "protected_files_unchanged": true,
+  "production_memories_unchanged": true,
+  "unrelated_database_state_preserved_at_upgrade": true,
+  "test_weixin_messages": 0,
+  "backup": "/var/lib/mybot/backups/memory-silent-digest-20261024T115659Z"
+}

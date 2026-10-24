@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "real_cloud_model": true,
+  "synthetic_mailboxes": true,
+  "production_mail_read": false,
+  "weixin_messages": 0,
+  "checks": [
+    {
+      "case": "saturday",
+      "passed": true,
+      "reply": {
+        "home_region": "黄浦",
+        "school_region": "临港",
+        "candidate_place_id": "home",
+        "candidate_region": "黄浦",
+        "actual_location_confirmed": false
+      },
+      "bound_records_verified_in_actual_model_input": true
+    },
+    {
+      "case": "monday",
+      "passed": true,
+      "reply": {
+        "home_region": "黄浦",
+        "school_region": "临港",
+        "candidate_place_id": "school",
+        "candidate_region": "临港",
+        "actual_location_confirmed": false
+      },
+      "bound_records_verified_in_actual_model_input": true
+    },
+    {
+      "case": "different_regions",
+      "passed": true,
+      "reply": {
+        "home_region": "松江",
+        "school_region": "杨浦",
+        "candidate_place_id": "home",
+        "candidate_region": "松江",
+        "actual_location_confirmed": false
+      },
+      "bound_records_verified_in_actual_model_input": true
+    },
+    {
+      "case": "login",
+      "passed": true,
+      "body_read": true,
+      "reply": "Sir，收到一封登录提醒：称账号 sir-demo 刚用 Google 完成一次新登录，地点显示为台湾台北，设备 Mac OS X / Chrome，发件人显示为 Twitch。邮件本身无法证明真伪，这些也都还不是已核实的事实。请确认这次登录是否您本人操作——如果不是，建议尽快改密码并检查该账号的安全设置。",
+      "bound_records_verified_in_actual_model_input": true
+    },
+    {
+      "case": "login_old_mistake",
+      "passed": true,
+      "body_read": true,
+      "reply": "Sir，Twitch 发来一封登录提醒，称账号 sir-demo 刚用 Google 从台北（Mac/Chrome）新登录了一次。这件事我没法核实，也不确定是不是你本人操作——如果不是，账号密码建议尽快改一下。",
+      "bound_records_verified_in_actual_model_input": true
+    }
+  ]
+}
