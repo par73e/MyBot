@@ -17,7 +17,15 @@ func configureUnifiedHeartbeat(ctx context.Context, e *heartbeat.Engine, model, 
 		return err
 	}
 	e.Prepare = service.Prepare
-	e.AfterDelivery = assistant.NewMailService(config.MemoryUserDir()).AcknowledgeDigest
+	e.AfterDelivery = func(ctx context.Context, t heartbeat.Task, r heartbeat.Run) error {
+		if err := (assistant.MorningService{Home: config.MemoryUserDir()}).Acknowledge(ctx, t, r); err != nil {
+			return err
+		}
+		if err := (assistant.HotNewsService{Home: config.MemoryUserDir()}).Acknowledge(ctx, t, r); err != nil {
+			return err
+		}
+		return assistant.NewMailService(config.MemoryUserDir()).AcknowledgeDigest(ctx, t, r)
+	}
 	e.Gate = service.Allows
 	e.Checker = mailboxHeartbeatRunner{service: assistant.NewMailService(config.MemoryUserDir()), options: o}
 	return nil

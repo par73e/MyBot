@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "active_release": "/opt/mybot/releases/v1.39.10-assistant.27-morning-bold",
+  "greeting": "# **Sir，早上好。**",
+  "five_adjacent_lines": true,
+  "morning_modules": [
+    "morning_briefing"
+  ],
+  "routine_preserved": true,
+  "course_lead_minutes": 10,
+  "new_test_messages_sent": 0
+}

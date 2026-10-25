@@ -1,0 +1,45 @@
+{
+  "checked_at": "2026-10-25T14:15:12.902057+08:00",
+  "base_commit": "44e0d848cd742a268e57ed69cd7f40fcc1f589c8",
+  "production_version": "v1.39.10-assistant.32-url-chunks",
+  "binary_sha256": "947789c3c6be9f3d8d89dd53a4ea42d6af0c3e3ff244e174e61d4a1f3f934438",
+  "service_active": true,
+  "running_binary_matches_release": true,
+  "production_manifest_entries": 9321,
+  "production_manifest_integrity_checked": true,
+  "production_manifest_sha256": "71f1d5eea59f0622fd8d9d9f04eaaeb5656cafc74041b2f4e4a1c94602443f39",
+  "current_local_go_files_matching_production": 5391,
+  "local_differences_within_production_manifest": [
+    "ASSISTANT.md",
+    "verification/GOOD_MORNING_FRIDAY.md",
+    "verification/ROUTINE_COURSES.md",
+    "verification/URL_SAFE_REPLIES.md",
+    "verification/morning-shared-news-real-acceptance.json"
+  ],
+  "sync_scope": "All published Go sources match production; post-deployment documentation and redacted acceptance metadata are local/Git updates. Production runtime state is excluded.",
+  "fresh_related_packages": [
+    "assistant",
+    "heartbeat",
+    "cli",
+    "boot",
+    "bot",
+    "bot/weixin",
+    "config"
+  ],
+  "fresh_race_packages": [
+    "assistant",
+    "heartbeat",
+    "bot"
+  ],
+  "fresh_notification_control_targeted_passed": true,
+  "fresh_mail_protocol_tests": 12,
+  "full_root_suite_rerun": false,
+  "full_control_suite_rerun": false,
+  "full_control_limit": "Earlier full-control sandbox_apply environmental failure retained; targeted notification checks pass without weakening policy.",
+  "closeout_model_requests": 0,
+  "closeout_weixin_messages": 0,
+  "production_mutations_during_closeout": false,
+  "private_chat_text_removed_from_acceptance_metadata": true,
+  "golangci_lint": "0 issues",
+  "repolint": "clean (1150 existing findings); baseline not edited"
+}

@@ -1,0 +1,57 @@
+{
+  "version": "v1.39.10-assistant.23-routine-courses",
+  "base_commit": "44e0d848cd742a268e57ed69cd7f40fcc1f589c8",
+  "production_deployed": false,
+  "macos_arm64_sha256": "f2d7c4d2d2fdd9f9b1df919194fdbc2546c915e4c7fda8566ccc8143e9c1e474",
+  "linux_amd64_sha256": "3f8daae8ea0e2d844fffd5b61e5e0d8c85a3f61d6fa1ac4440e213270b21908b",
+  "related_packages": [
+    "assistant",
+    "heartbeat",
+    "cli",
+    "boot",
+    "bot"
+  ],
+  "related_tests_passed": true,
+  "assistant_heartbeat_race_passed": true,
+  "control_notification_targeted_passed": true,
+  "full_control_passed": false,
+  "full_control_limit": "TestServeForkStartsNoBroaderThanInheritedReadOnly: host sandbox_apply unavailable; no baseline or sandbox policy weakened",
+  "golangci_lint": "0 issues",
+  "repolint": "clean; 1151 existing baselined findings unchanged",
+  "binary_acceptance": {
+    "passed": true,
+    "actual_binary": true,
+    "timetable_query_has_room": true,
+    "outside_routine_fixed_event": "skipped",
+    "course_notification": "delivered",
+    "outbox_and_conversation_import": "delivered",
+    "restart_duplicate_count": 0,
+    "fake_weixin_messages": 1,
+    "model_requests": 0,
+    "real_weixin_messages": 0
+  },
+  "private_timetable_validation": {
+    "passed": true,
+    "first_week_monday": "2026-09-14",
+    "total_weeks": 16,
+    "course_blocks": 7,
+    "periods": 13,
+    "next_week_daily_counts": [
+      1,
+      2,
+      1,
+      1,
+      2,
+      0,
+      0
+    ],
+    "rooms_present": true,
+    "erroneous_prefix_removed": true,
+    "term_end_stops_courses": true,
+    "production_state_modified": false
+  },
+  "real_model_requests": 0,
+  "real_weixin_messages": 0,
+  "course_lead_minutes": 10,
+  "owner_confirmation_required_before_server_restart": true
+}

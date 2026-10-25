@@ -22,6 +22,14 @@ type heartbeatProcessRunner struct {
 }
 
 func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (heartbeat.Execution, error) {
+	var prepareErr error
+	t, prepareErr = prepareMorningTask(ctx, t)
+	if prepareErr != nil {
+		return heartbeat.Execution{}, prepareErr
+	}
+	if err := prepareStandaloneNews(ctx, t); err != nil {
+		return heartbeat.Execution{}, err
+	}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	args := heartbeatAgentArgs(t, r.DefaultModel)
@@ -38,6 +46,15 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 	}
 	if t.Capability == "weather" {
 		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_WEATHER_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_WEATHER_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.Capability == "course" {
+		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_COURSE_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_COURSE_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.ModuleID == "morning_briefing" {
+		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_MORNING_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_MORNING_ATTEMPT=%d", t.RunStartedAt), fmt.Sprintf("REASONIX_ASSISTANT_MAIL_ATTEMPT=%d", t.RunStartedAt), fmt.Sprintf("REASONIX_ASSISTANT_WEATHER_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.ModuleID == "ai_news_briefing" {
+		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_NEWS_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_NEWS_ATTEMPT=%d", t.RunStartedAt))
 	}
 	stdout, stderr := &heartbeatOutput{}, &heartbeatOutput{}
 	cmd.Stdout, cmd.Stderr = stdout, stderr
@@ -61,22 +78,22 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 	if result.Type != "result" || result.IsError || result.FromReasoning {
 		return heartbeat.Execution{}, errors.New("Agent did not produce a successful final answer")
 	}
-	if t.Capability == "mail" {
-		if err := assistant.NewMailService(config.MemoryUserDir()).VerifyMailReads(ctx, t.ID, t.RunStartedAt, t.MailIDs); err != nil {
-			return heartbeat.Execution{}, err
-		}
+	if err := verifyHeartbeatEvidence(ctx, t, result.Result); err != nil {
+		return heartbeat.Execution{}, err
 	}
-	if t.Capability == "weather" {
-		if err := assistant.NewWeatherService(config.MemoryUserDir()).VerifyWeatherRead(ctx, t.ID, t.RunStartedAt); err != nil {
+	if t.ModuleID == "ai_news_briefing" {
+		text, err := (assistant.HotNewsService{Home: config.MemoryUserDir()}).Finalize(ctx, t, result.Result)
+		if err != nil {
 			return heartbeat.Execution{}, err
 		}
-		var decision struct {
-			Notify  bool   `json:"notify"`
-			Message string `json:"message"`
+		return heartbeat.Execution{Text: text, SessionID: result.SessionID, DecisionReason: "AI News七条事件摘要"}, nil
+	}
+	if t.ModuleID == "morning_briefing" {
+		text, err := (assistant.MorningService{Home: config.MemoryUserDir()}).Finalize(ctx, t, result.Result)
+		if err != nil {
+			return heartbeat.Execution{}, err
 		}
-		if json.Unmarshal([]byte(result.Result), &decision) != nil || !decision.Notify || strings.TrimSpace(decision.Message) == "" {
-			return heartbeat.Execution{}, errors.New("morning task requires a nonempty daily notification")
-		}
+		return heartbeat.Execution{Text: text, SessionID: result.SessionID, DecisionReason: "早安Friday"}, nil
 	}
 	text := strings.TrimSpace(result.Result)
 	if text == "HEARTBEAT_OK" {
@@ -124,9 +141,9 @@ func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
 			args = append(args, "--resume", session)
 		}
 	}
-	if t.Capability == "mail" || t.Capability == "weather" {
+	if t.Capability == "mail" || t.Capability == "weather" || t.Capability == "course" || t.Capability == "morning" || t.Capability == "news" {
 		steps := "24"
-		if t.ModuleID == "mail_digest" {
+		if t.ModuleID == "mail_digest" || t.ModuleID == "morning_briefing" || t.ModuleID == "ai_news_briefing" {
 			steps = "64"
 		}
 		args = append(args, "--max-steps", steps)
@@ -134,6 +151,10 @@ func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
 	prompt := t.Prompt
 	if t.DecideNotification {
 		switch {
+		case t.ModuleID == "ai_news_briefing":
+			prompt += assistant.NewsBriefingContract
+		case t.ModuleID == "morning_briefing":
+			prompt += assistant.MorningContract
 		case t.ModuleID == "mail_digest":
 			prompt += assistant.MailDigestContract
 		case t.Capability == "mail" && len(t.MailIDs) > 0:

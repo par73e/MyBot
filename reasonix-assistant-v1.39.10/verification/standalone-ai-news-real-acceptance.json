@@ -1,0 +1,19 @@
+{
+  "version": "v1.39.10-assistant.28-standalone-ai-news",
+  "job_id": "hb-6bf7f66665633eca08f730b8616b1850-ai_news_briefing",
+  "status": "delivered",
+  "event_count": 7,
+  "title_plus_summary_lengths": [
+    243,
+    277,
+    256,
+    235,
+    281,
+    213,
+    231
+  ],
+  "user_confirmed_received": true,
+  "superseded_format": "owner requested title plus summary <=50 characters after first live delivery",
+  "temporary_trigger_removed": true,
+  "morning_integration": false
+}

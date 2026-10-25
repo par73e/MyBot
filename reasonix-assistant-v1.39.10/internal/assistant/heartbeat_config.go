@@ -22,7 +22,7 @@ type ModuleDefinition struct {
 }
 
 func HeartbeatModules() []ModuleDefinition {
-	return []ModuleDefinition{{"weather_briefing", "天气晨报", 1, "agent"}, {"mail_check", "邮箱增量检查及新邮件汇报", 2, "native_then_agent"}, {"mail_digest", "静默邮件汇总", 1, "agent"}}
+	return []ModuleDefinition{{"weather_briefing", "详细天气播报", 1, "agent"}, {"mail_check", "邮箱增量检查及新邮件汇报", 2, "native_then_agent"}, {"mail_digest", "静默邮件汇总", 1, "agent"}, {"course_briefing", "今日课程简报", 1, "agent"}, {"course_reminder", "课前提醒", 1, "native"}, {"morning_briefing", "早安Friday", 1, "native_then_agent"}, {"ai_news_briefing", "AI News热点新闻", 1, "native_then_agent"}}
 }
 func knownModule(id string) bool {
 	for _, m := range HeartbeatModules() {
@@ -34,6 +34,7 @@ func knownModule(id string) bool {
 }
 
 type ModuleTrigger struct {
+	LeadMinutes     int                 `json:"lead_minutes,omitempty"`
 	Clock           string              `json:"clock,omitempty"`
 	At              string              `json:"at,omitempty"`
 	Weekdays        []string            `json:"weekdays,omitempty"`
@@ -129,7 +130,7 @@ func (c HeartbeatConfig) Validate() error {
 		if _, ok := c.ModuleEnabled[m.ID]; !ok {
 			// v20 configurations predate the optional digest module. Missing
 			// means disabled until Ensure adds the catalog flag once.
-			if m.ID == "mail_digest" {
+			if m.ID == "mail_digest" || m.ID == "course_briefing" || m.ID == "course_reminder" || m.ID == "morning_briefing" || m.ID == "ai_news_briefing" {
 				continue
 			}
 			return errors.New("missing module enable state")
@@ -205,8 +206,7 @@ func (s HeartbeatService) Ensure(ctx context.Context) (HeartbeatConfig, error) {
 	err := s.repo().transact(ctx, func(tx *sql.Tx) error {
 		c, e := loadHeartbeatConfig(ctx, tx)
 		if e == nil {
-			if _, exists := c.ModuleEnabled["mail_digest"]; !exists {
-				c.ModuleEnabled["mail_digest"] = true
+			if upgradeHeartbeatCatalog(&c) {
 				c.Revision++
 				if err := saveEntity(ctx, tx, "heartbeat_config", heartbeatConfigID, c); err != nil {
 					return err
@@ -253,6 +253,10 @@ func (s HeartbeatService) Ensure(ctx context.Context) (HeartbeatConfig, error) {
 		_, merr := NewMailService(s.Home).Config()
 		c.ModuleEnabled["mail_check"] = merr == nil && (old.ID == "" || old.Enabled)
 		c.ModuleEnabled["mail_digest"] = true
+		c.ModuleEnabled["course_briefing"] = false
+		c.ModuleEnabled["course_reminder"] = false
+		c.ModuleEnabled["morning_briefing"] = false
+		c.ModuleEnabled["ai_news_briefing"] = false
 		c.ModuleEnabled["weather_briefing"] = werr == nil && weather.MorningEnabled
 		for date, w := range old.DateOverrides {
 			enabled := w.Enabled
@@ -311,17 +315,16 @@ func (c HeartbeatConfig) TriggerBounds(tr ModuleTrigger, date string) (time.Time
 			return time.Time{}, time.Time{}, false
 		}
 	}
-	start, end := day, day.AddDate(0, 0, 1)
-	if tr.RoutineBound {
-		var ok bool
-		start, end, ok = c.Bounds(date)
-		if !ok {
-			return start, end, false
-		}
+	start, end, ok := c.Bounds(date)
+	if !ok {
+		return start, end, false
 	}
 	if tr.Mode == "once" {
 		at, e := time.Parse(time.RFC3339, tr.At)
 		if e != nil || at.In(mustShanghai()).Format("2006-01-02") != date {
+			return start, end, false
+		}
+		if at.Before(start) || !at.Before(end) {
 			return start, end, false
 		}
 		start = at
@@ -338,4 +341,22 @@ func (c HeartbeatConfig) TriggerBounds(tr ModuleTrigger, date string) (time.Time
 		start = at
 	}
 	return start, end, start.Before(end)
+}
+
+func upgradeHeartbeatCatalog(c *HeartbeatConfig) bool {
+	changed := false
+	for _, m := range HeartbeatModules() {
+		if _, exists := c.ModuleEnabled[m.ID]; !exists {
+			c.ModuleEnabled[m.ID] = m.ID == "mail_digest"
+			changed = true
+		}
+	}
+	for id, tr := range c.Triggers {
+		if !tr.RoutineBound {
+			tr.RoutineBound = true
+			c.Triggers[id] = tr
+			changed = true
+		}
+	}
+	return changed
 }

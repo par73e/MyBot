@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "version": "reasonix v1.39.10-assistant.25-morning-spacing",
+  "service_active": true,
+  "requested_real_messages": 2,
+  "requested_resend_messages": 1,
+  "deliveries": [
+    {
+      "job_id": "hb-7b0fb7baaf6121216a9c280efec0b5d2-morning_briefing",
+      "attempts": 1,
+      "status": "delivered",
+      "confirmed_notification_records": 1
+    },
+    {
+      "job_id": "hb-02d20837ed50fdc849000002a744a9aa-morning_briefing",
+      "attempts": 1,
+      "status": "delivered",
+      "confirmed_notification_records": 1
+    }
+  ],
+  "six_paragraphs_with_blank_lines": true,
+  "one_sentence_each": true,
+  "temporary_triggers_removed": true,
+  "routine_preserved": true,
+  "normal_morning_modules": [
+    "morning_briefing"
+  ],
+  "daytime_mail_preserved": true
+}

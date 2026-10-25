@@ -45,6 +45,9 @@ func (s MailService) commitMailPoll(ctx context.Context, tx *sql.Tx, c MailConfi
 			return 0, err
 		}
 	}
+	if err := releaseFailedMorningMail(ctx, tx, byID, now); err != nil {
+		return 0, err
+	}
 	count, err := queueMailBatch(ctx, tx, byID, options, now)
 	if err != nil {
 		return 0, err
@@ -53,6 +56,9 @@ func (s MailService) commitMailPoll(ctx context.Context, tx *sql.Tx, c MailConfi
 		if err = saveEntity(ctx, tx, "mail_message", id, r); err != nil {
 			return 0, err
 		}
+	}
+	if options.MorningJobID != "" {
+		return count, nil
 	}
 	return count, retryMailJobs(ctx, tx, now)
 }
@@ -69,7 +75,7 @@ func (s MailService) applyMailAccount(ctx context.Context, tx *sql.Tx, a MailAcc
 		if result.Error != "" {
 			h.Error = result.Error
 		}
-		if h.Failures >= 3 && !h.Alerted && options.Target != nil {
+		if h.Failures >= 3 && !h.Alerted && options.Target != nil && options.MorningJobID == "" {
 			id := "mail-health-" + mailHash(a.ID+fmt.Sprint(h.FailureStarted))
 			task := newMailJob(id, MailAnalysisInstructions+"\nHost status: repeated connection failures for mailbox "+a.ID+". New-mail coverage is incomplete. Briefly notify Sir if this needs attention; do not claim there is no new mail.", options, now, nil)
 			if err := saveEntity(ctx, tx, "job", id, task); err != nil {
@@ -131,6 +137,9 @@ func queueMailBatch(ctx context.Context, tx *sql.Tx, byID map[string]mailRecord,
 	}
 	if len(ids) == 0 || options.Target == nil {
 		return 0, nil
+	}
+	if options.MorningJobID != "" {
+		return bindMorningMail(ctx, tx, byID, options, ids, selected)
 	}
 	id := "mail-analyze-" + mailHash(strings.Join(ids, ","))
 	raw, _ := json.Marshal(ids)

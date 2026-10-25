@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.25-morning-spacing",
+  "previous_version": "v1.39.10-assistant.24-good-morning-friday",
+  "binary_sha256": "de642a0f1c890d2cbeffa86fd794c1bfffc66c404769b10f9d42ebde08d6a569",
+  "source_file_count": 9278,
+  "service_active": true,
+  "weixin_ready": true,
+  "configuration_and_memories_unchanged": true,
+  "database_rewritten": false,
+  "six_paragraphs_with_blank_lines": true,
+  "backup": "/var/lib/mybot/backups/morning-spacing-20261025T033453Z"
+}

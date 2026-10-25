@@ -1,0 +1,27 @@
+{
+  "at": "2026-10-25T13:57:05.915649+08:00",
+  "job_id": "hb-49cc5510d822acfd6096071897e09a6f-morning_briefing",
+  "status": "delivered",
+  "error": "",
+  "delivery_attempts": 0,
+  "news_count": 3,
+  "news_summary_lengths": [
+    21,
+    21,
+    23
+  ],
+  "all_news_within_25": true,
+  "line_count": 6,
+  "greeting_correct": true,
+  "no_blank_lines": true,
+  "source_snapshot_id": "news-2db248787f1e15ce489318e0",
+  "outbox_matches": 1,
+  "outbox_states": [
+    "delivered"
+  ],
+  "version": "v1.39.10-assistant.31-morning-ai-news",
+  "explicit_owner_requested_real_run": true,
+  "temporary_trigger_removed": true,
+  "normal_morning_unchanged": true,
+  "private_chat_text_omitted": true
+}

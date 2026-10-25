@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.26-morning-lines",
+  "service_active": true,
+  "job_id": "hb-57df0f1c6422909414ed196aefa2cc0b-morning_briefing",
+  "status": "delivered",
+  "execution_attempts": 1,
+  "confirmed_notification_records": 1,
+  "six_adjacent_lines": true,
+  "no_blank_lines": true,
+  "one_sentence_each": true,
+  "temporary_trigger_removed": true,
+  "routine_preserved": true,
+  "normal_morning_modules": [
+    "morning_briefing"
+  ],
+  "daytime_mail_preserved": true
+}

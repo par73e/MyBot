@@ -3,6 +3,7 @@ package assistant
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 )
 
@@ -69,7 +70,15 @@ func (s WeatherService) status(r WeatherRequest, l weatherLocations) (any, error
 		for day, w := range c.Weekly {
 			times[day] = w.Start
 		}
-		out["morning_enabled"], out["wake_times"], out["schedule_source"] = c.ModuleEnabled["weather_briefing"], times, "assistant_heartbeat"
+		date := r.Date
+		if date == "" {
+			date = s.now().In(mustShanghai()).Format("2006-01-02")
+		}
+		tr := c.Triggers["morning"]
+		_, _, valid := c.TriggerBounds(tr, date)
+		out["morning_enabled"], out["wake_times"], out["schedule_source"] = c.ModuleEnabled["weather_briefing"] && tr.Enabled && valid && slices.Contains(c.Selected(tr, date), "weather_briefing"), times, "assistant_heartbeat"
+		out["detailed_weather_module_enabled"] = c.ModuleEnabled["weather_briefing"]
+		out["wake_modules"] = c.Selected(tr, date)
 	}
 	return out, nil
 }

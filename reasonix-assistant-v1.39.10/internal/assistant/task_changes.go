@@ -88,6 +88,9 @@ func (s Tasks) changeSchedule(todo *Todo, job *heartbeat.Task, in TaskRequest, n
 			todo.DueAt = in.DueAt
 		}
 	}
+	if err := setPlannedFor(todo, in.PlannedFor); err != nil {
+		return err
+	}
 	if in.Title != "" {
 		if len(in.Title) > 512 {
 			return errors.New("title exceeds 512 bytes")
@@ -180,4 +183,19 @@ func busy(job *heartbeat.Task) bool {
 	}
 	status := job.History[len(job.History)-1].Status
 	return status == "running" || status == "delivery_pending"
+}
+
+func setPlannedFor(todo *Todo, value string) error {
+	if value == "" {
+		return nil
+	}
+	if value == "never" {
+		todo.PlannedFor = ""
+		return nil
+	}
+	if _, err := courseDate(value); err != nil {
+		return err
+	}
+	todo.PlannedFor = value
+	return nil
 }

@@ -17,6 +17,9 @@ func registerPersonalAssistant(reg *tool.Registry, cfg *config.Config, root stri
 	reg.Remove("remember")
 	reg.Remove("forget")
 	reg.Add(assistant.HeartbeatTool{Service: assistant.HeartbeatService{Home: config.MemoryUserDir()}})
+	reg.Add(assistant.MorningTool{Service: assistant.MorningService{Home: config.MemoryUserDir()}})
+	reg.Add(assistant.NewsTool{Service: assistant.HotNewsService{Home: config.MemoryUserDir()}})
+	reg.Add(assistant.CourseTool{Service: assistant.CourseService{Home: config.MemoryUserDir()}})
 	options := assistant.Options{Workspace: root, Model: cfg.DefaultModel}
 	if len(cfg.Bot.Allowlist.WeixinUsers) == 1 {
 		options.Target = &heartbeat.Target{ConnectionID: "weixin", Domain: "weixin", ChatID: cfg.Bot.Allowlist.WeixinUsers[0], ChatType: "dm"}
@@ -66,13 +69,41 @@ func personalAssistantSurface(reg *tool.Registry, allow []string) []string {
 			}
 		}
 	}
+	if os.Getenv("REASONIX_ASSISTANT_COURSE_BACKGROUND") == "1" {
+		for _, name := range reg.AllNames() {
+			if name != "assistant_courses" && name != "assistant_memory" && name != "assistant_tasks" && name != "assistant_history" {
+				reg.Remove(name)
+			}
+		}
+	}
+	limitNewsSurface(reg)
+	if os.Getenv("REASONIX_ASSISTANT_MORNING_BACKGROUND") == "1" {
+		for _, name := range reg.AllNames() {
+			switch name {
+			case "assistant_morning", "assistant_weather", "assistant_mail", "assistant_memory", "assistant_tasks", "assistant_history":
+			default:
+				reg.Remove(name)
+			}
+		}
+	}
 	allow = nil
 	// Technical tools remain registered and callable through use_capability;
 	// their schemas need not frame every ordinary assistant conversation.
-	for _, name := range []string{"assistant_tasks", "assistant_memory", "assistant_history", "assistant_mail", "assistant_mail_schedule", "assistant_heartbeat", "assistant_weather", "ask", "web_search", "view_image", "compress", "use_capability", "create_goal", "get_goal", "update_goal"} {
+	for _, name := range []string{"assistant_tasks", "assistant_memory", "assistant_history", "assistant_courses", "assistant_morning", "assistant_ai_news", "assistant_mail", "assistant_mail_schedule", "assistant_heartbeat", "assistant_weather", "ask", "web_search", "view_image", "compress", "use_capability", "create_goal", "get_goal", "update_goal"} {
 		if _, ok := reg.Get(name); ok {
 			allow = append(allow, name)
 		}
 	}
 	return allow
+}
+
+func limitNewsSurface(reg *tool.Registry) {
+	if os.Getenv("REASONIX_ASSISTANT_NEWS_BACKGROUND") != "1" {
+		return
+	}
+	for _, name := range reg.AllNames() {
+		if name != "assistant_ai_news" && name != "assistant_memory" && name != "assistant_tasks" && name != "assistant_history" {
+			reg.Remove(name)
+		}
+	}
 }

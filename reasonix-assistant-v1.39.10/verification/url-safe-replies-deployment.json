@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.32-url-chunks",
+  "previous_version": "v1.39.10-assistant.31-morning-ai-news",
+  "binary_sha256": "947789c3c6be9f3d8d89dd53a4ea42d6af0c3e3ff244e174e61d4a1f3f934438",
+  "source_file_count": 9321,
+  "service_active": true,
+  "weixin_ready": true,
+  "configuration_and_memories_unchanged": true,
+  "existing_state_preserved": true,
+  "standalone_news_enabled": true,
+  "assistant_modules_unchanged": true,
+  "url_safe_reply_chunking": true,
+  "heartbeat_configuration_unchanged": true,
+  "no_recurring_news_trigger_added": true,
+  "backup": "/var/lib/mybot/backups/url-chunks-20261025T060613Z"
+}

@@ -200,13 +200,10 @@ func (s *renderSink) Emit(e event.Event) {
 func (s *renderSink) flush() {
 	for strings.TrimSpace(s.buf.String()) != "" {
 		raw := s.buf.String()
-		// When streaming into a live message, finalize the whole remaining text
-		// with one edit instead of splitting at a semantic boundary — otherwise
-		// a final answer that does not end on a boundary (code block, list, URL)
-		// gets shrunk in place and its tail re-sent as a separate message,
-		// defeating the point of in-place streaming. Only fall back to boundary
-		// chunking when the remainder genuinely exceeds the hard cap.
-		if s.editor != nil && s.liveMsgID != "" && len([]rune(raw)) < renderHardChunkRunes {
+		// Send completed short replies whole, including trailing URLs.
+		// Preserve live edits below the hard cap; only longer buffered
+		// replies need chunking at safe boundaries.
+		if len([]rune(raw)) <= renderMaxChunkRunes || s.editor != nil && s.liveMsgID != "" && len([]rune(raw)) < renderHardChunkRunes {
 			s.flushPrefix(len(raw))
 			continue
 		}
@@ -217,7 +214,7 @@ func (s *renderSink) flush() {
 		if idx <= 0 || idx > len(raw) {
 			idx = len(raw)
 		}
-		s.flushPrefix(idx)
+		s.flushPrefix(urlSafeChunkIndex(raw, idx))
 	}
 }
 
@@ -425,6 +422,8 @@ func lastSemanticBoundary(text string, maxRunes int) int {
 	lastBoundary := 0
 	lastNonSpaceBoundary := 0
 	inFence := false
+	urls := renderURLPattern.FindAllStringIndex(text, -1)
+	urlAt := 0
 	for idx, r := range text {
 		if strings.HasPrefix(text[idx:], "```") {
 			inFence = !inFence
@@ -448,7 +447,11 @@ func lastSemanticBoundary(text string, maxRunes int) int {
 		if inFence {
 			continue
 		}
-		if isSemanticBoundaryRune(r) {
+		for urlAt < len(urls) && idx >= urls[urlAt][1] {
+			urlAt++
+		}
+		inURL := urlAt < len(urls) && idx >= urls[urlAt][0]
+		if !inURL && isSemanticBoundaryRune(r) {
 			lastNonSpaceBoundary = next
 			lastBoundary = next
 		}

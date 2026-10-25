@@ -67,3 +67,26 @@ func TestDeferredDeliveryDoesNotConsumeAttempt(t *testing.T) {
 		t.Fatal(saved)
 	}
 }
+
+func TestGlobalGateCancelsPlainAutomationWithoutModuleMetadata(t *testing.T) {
+	store, _, now := fixture(t)
+	var allowed atomic.Bool
+	allowed.Store(true)
+	entered := make(chan struct{})
+	e := Engine{Store: store, Runner: &testRunner{entered: entered, resume: make(chan struct{})}, Gate: func(context.Context, Task, time.Time) (bool, error) { return allowed.Load(), nil }}
+	done := make(chan error, 1)
+	go func() { done <- e.Tick(t.Context(), now) }()
+	<-entered
+	allowed.Store(false)
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(4 * time.Second):
+		t.Fatal("ordinary automation ignored the global gate")
+	}
+	if task := onlyTask(t, store); lastRun(&task).Status != "deferred" || task.LastRunAt != 0 {
+		t.Fatal("plain automation was not cancelled safely", task)
+	}
+}

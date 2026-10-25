@@ -52,18 +52,14 @@ func (s heartbeatGatewaySender) SendRun(ctx context.Context, t heartbeat.Task, r
 	if !assistant.Enabled() {
 		return s.Send(ctx, *t.Target, run.Result)
 	}
-	gateway, ok := s.gateway.(heartbeatConversationGateway)
-	if !ok {
-		return errors.New("daily conversation gateway unavailable")
-	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	if t.ModuleID != "" || t.Capability == "mail" || t.Capability == "weather" {
+	{
 		guarded, ok := s.gateway.(interface {
 			DeliverAssistantNotificationWhen(context.Context, heartbeat.Target, string, string, string, time.Time, func(context.Context) error) error
 		})
 		if !ok || s.admit == nil {
-			return errors.New("mail delivery admission unavailable")
+			return errors.New("scheduled delivery admission unavailable")
 		}
 		check := func(ctx context.Context) error {
 			allowed, err := s.admit(ctx, t, time.Now())
@@ -77,5 +73,4 @@ func (s heartbeatGatewaySender) SendRun(ctx context.Context, t heartbeat.Task, r
 		}
 		return guarded.DeliverAssistantNotificationWhen(ctx, *t.Target, fmt.Sprintf("%s:%d", t.ID, run.StartedAt), run.Result, run.ConversationID, time.UnixMilli(run.StartedAt), check)
 	}
-	return gateway.DeliverAssistantNotification(ctx, *t.Target, fmt.Sprintf("%s:%d", t.ID, run.StartedAt), run.Result, run.ConversationID, time.UnixMilli(run.StartedAt))
 }

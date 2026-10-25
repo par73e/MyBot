@@ -155,6 +155,34 @@ func retryableModuleJob(tr ModuleTrigger, j heartbeat.Task, last heartbeat.Run, 
 func (s HeartbeatService) moduleTask(c HeartbeatConfig, tr ModuleTrigger, id, occurrenceID, date string, start, end, at, now time.Time) heartbeat.Task {
 	job := heartbeat.Task{ID: occurrenceID + "-" + id, Title: tr.Title + " / " + id, Prompt: "Host module invocation", At: at.Format(time.RFC3339), Timezone: c.Timezone, EndsAt: end.Format(time.RFC3339), Enabled: true, WorkspaceRoot: s.Options.Workspace, Model: s.Options.Model, ApprovalMode: "read-only", NewConversationEachRun: true, Target: s.Options.Target, CreatedAt: now.UnixMilli(), ModuleID: id, TriggerID: tr.ID, OccurrenceID: occurrenceID, TriggerRevision: c.Revision}
 	switch id {
+	case "ai_news_briefing":
+		job.Kind = "agent"
+		job.Capability = "news"
+		job.DecideNotification = true
+		job.Prompt = NewsBriefingInstructions
+		expires := at.Add(time.Duration(tr.CatchUpSeconds) * time.Second)
+		if expires.Before(end) {
+			job.EndsAt = expires.Format(time.RFC3339)
+		}
+
+	case "morning_briefing":
+		job.Kind = "agent"
+		job.Capability = "morning"
+		job.DecideNotification = true
+		job.Prompt = morningMailPolicy() + "\n" + MorningInstructions
+		expires := at.Add(time.Duration(tr.CatchUpSeconds) * time.Second)
+		if expires.Before(end) {
+			job.EndsAt = expires.Format(time.RFC3339)
+		}
+	case "course_briefing":
+		job.Kind = "agent"
+		job.Capability = "course"
+		job.DecideNotification = true
+		job.Prompt = CourseBriefingInstructions + "\n宿主日期：" + date
+		expires := at.Add(time.Duration(tr.CatchUpSeconds) * time.Second)
+		if expires.Before(end) {
+			job.EndsAt = expires.Format(time.RFC3339)
+		}
 	case "mail_digest":
 		job.Kind = "agent"
 		job.Capability = "mail"

@@ -9,6 +9,12 @@ import (
 // ErrDeferred leaves work pending without charging a failure or delivery attempt.
 var ErrDeferred = errors.New("heartbeat execution deferred by schedule policy")
 
+// ErrOutsideRoutine permanently skips this occurrence rather than postponing it.
+var ErrOutsideRoutine = errors.New("scheduled occurrence is outside the effective routine")
+
+// ErrOccurrenceChanged rejects a stale course snapshot before delivery.
+var ErrOccurrenceChanged = errors.New("scheduled occurrence changed or was cancelled")
+
 // Admitted checks the latest policy at execution and again at delivery.
 func (e Engine) Admitted(ctx context.Context, task Task, now time.Time) (bool, error) {
 	if e.Gate == nil {
@@ -25,7 +31,7 @@ func (e Engine) runAdmitted(ctx context.Context, task Task) (Execution, error) {
 	if runner == nil {
 		return Execution{}, errors.New("heartbeat runner unavailable for task kind")
 	}
-	if e.Gate == nil || (task.Kind != "mail_check" && task.Kind != "weather_check" && task.ModuleID == "" && task.Capability != "mail" && task.Capability != "weather") {
+	if e.Gate == nil {
 		return runner.Run(ctx, task)
 	}
 	runCtx, cancel := context.WithCancel(ctx)

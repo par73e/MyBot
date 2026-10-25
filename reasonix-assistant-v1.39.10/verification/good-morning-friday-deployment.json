@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.24-good-morning-friday",
+  "binary_sha256": "65102bf2eccaaf134003bff53d5efbd48751aa8856805cb432d9595c9f1650ac",
+  "source_file_count": 9275,
+  "service_active": true,
+  "weixin_ready": true,
+  "top_level_routine_gate": true,
+  "teaching_weeks": 16,
+  "course_blocks": 7,
+  "lead_minutes": 10,
+  "routine_unchanged": true,
+  "existing_modules_preserved": true,
+  "credentials_and_memories_unchanged": true,
+  "test_weixin_messages": 0,
+  "morning_modules": [
+    "morning_briefing"
+  ],
+  "existing_mail_selection_policy_preserved": true,
+  "ai_news_not_popularity_ranked": true,
+  "backup": "/var/lib/mybot/backups/routine-courses-20261025T033048Z"
+}

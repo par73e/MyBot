@@ -12,7 +12,7 @@ import (
 
 // A first page is not proof that the full available body was read.
 func (s MailService) recordMailBodyPage(ctx context.Context, id string, start, end, total int) error {
-	if os.Getenv("REASONIX_ASSISTANT_MAIL_BACKGROUND") != "1" {
+	if os.Getenv("REASONIX_ASSISTANT_MAIL_BACKGROUND") != "1" && os.Getenv("REASONIX_ASSISTANT_MORNING_BACKGROUND") != "1" {
 		return nil
 	}
 	job, attempt := os.Getenv("REASONIX_ASSISTANT_JOB_ID"), os.Getenv("REASONIX_ASSISTANT_MAIL_ATTEMPT")
@@ -52,7 +52,7 @@ func (s MailService) recordMailBodyPage(ctx context.Context, id string, start, e
 // Successful tool reads are host-recorded per execution attempt. A fluent final
 // answer without actual reads must not acknowledge the queue or trigger a push.
 func (s MailService) recordMailRead(ctx context.Context, id string) error {
-	if os.Getenv("REASONIX_ASSISTANT_MAIL_BACKGROUND") != "1" {
+	if os.Getenv("REASONIX_ASSISTANT_MAIL_BACKGROUND") != "1" && os.Getenv("REASONIX_ASSISTANT_MORNING_BACKGROUND") != "1" {
 		return nil
 	}
 	job := os.Getenv("REASONIX_ASSISTANT_JOB_ID")

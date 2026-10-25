@@ -115,3 +115,18 @@ scripts/assistant-acceptance.py <二进制> 在临时目录运行真实 Bot 和�
 - 集成 `bot start --heartbeat` 和启用了原有鉴权回环控制接口的独立 Heartbeat worker 都使用相同入口；不新增公网监听。
 
 验收脚本：`python3 scripts/daily-conversation-acceptance.py bin/reasonix-daily`，仅使用临时状态和本机模拟 OpenAI/微信接口，不向真实微信发送消息。生产部署脚本为 `scripts/deploy-daily-conversations.py`。
+
+
+## 统一作息与课程（assistant.24起已部署）
+
+所有自动事件统一检查预定时刻与当前执行/发送是否符合当天作息；窗口外事件跳过，不顺延。用户主动对话保持全天可用。`assistant_courses` 查询和管理数据库课表，支持学期周次、连续节次、教室和课程例外；课程通知使用统一Heartbeat的course触发器，提前量由lead_minutes配置。该模式按实际课程时间生成提醒，仍受顶层作息限制。详见[实现与验收](verification/ROUTINE_COURSES.md)。
+
+
+## 早安Friday（assistant.24起已部署）
+
+起床时的唯一晨报模块是“早安Friday”，按天气、课程、邮件、今日待办、AI News顺序极简汇总。旧详细天气和邮箱能力保留但从起床选择移除，白天邮箱巡检继续。邮件复用增量游标、正文读取、当前有效长期/短期记忆和原有筛选，只缩短入选通知；AI News初版选最多3条24小时内可确认条目，不声称热榜。详见[实现与验收](verification/GOOD_MORNING_FRIDAY.md)。
+
+
+## 当前新闻与输出规则（assistant.32）
+
+独立AI News默认七条，每条标题与摘要合计最多50字符，来源、时间与链接另列；正文到最后一条链接结束，不附来源健康或排序说明。早安Friday从同一采集排序中取前三个可读候选，每条最多25字符，合在新闻那一行；保留加粗问候和五行相邻内容。assistant.31已完成一次真实微信投递确认，独立七条与晨报都有原来源引用供追问。assistant.32修复短回复末尾网址被拆成独立气泡的问题，相关测试和模拟微信验收通过。详见[晨报新闻](verification/MORNING_SHARED_AI_NEWS.md)、[网址分段](verification/URL_SAFE_REPLIES.md)。历史构建、生产部署、模拟接口及真实投递证据分别记录，不把候选构建状态当作当前服务状态。

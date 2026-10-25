@@ -1,0 +1,26 @@
+{
+  "now": "2026-10-25T05:29:56.565632+00:00",
+  "job_id": "hb-e52e02aec0a1040a8abb8e4e5dbfc4c8-ai_news_briefing",
+  "status": "delivered",
+  "error": "",
+  "event_count": 7,
+  "title_plus_summary_lengths": [
+    48,
+    47,
+    48,
+    42,
+    48,
+    45,
+    40
+  ],
+  "all_within_50": true,
+  "outbox_matches": 1,
+  "outbox_states": [
+    "delivered"
+  ],
+  "version": "v1.39.10-assistant.30-ai-news-count-check",
+  "temporary_trigger_removed": true,
+  "morning_integration": false,
+  "source_time_link_excluded_from_50": true,
+  "delivery_recovered_after_owner_weixin_message": true
+}

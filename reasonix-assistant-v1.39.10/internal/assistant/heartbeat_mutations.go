@@ -28,6 +28,9 @@ func applyHeartbeatDate(c *HeartbeatConfig, r HeartbeatRequest, now time.Time) e
 			return errors.New("per-trigger end override is not supported; set the routine end separately")
 		}
 		if r.Start != "" {
+			if c.Triggers[r.TriggerID].Mode == "course" {
+				return errors.New("course trigger derives time from actual classes; change the course occurrence or lead_minutes")
+			}
 			if o.TriggerClocks == nil {
 				o.TriggerClocks = map[string]string{}
 			}
@@ -74,7 +77,7 @@ func applyHeartbeatTrigger(c *HeartbeatConfig, r HeartbeatRequest, now time.Time
 	}
 	if r.Clock != "" {
 		tr.Clock = r.Clock
-		tr.RoutineBound = false
+		tr.RoutineBound = true
 	}
 	if r.At != "" {
 		at, e := time.Parse(time.RFC3339, r.At)
@@ -83,14 +86,15 @@ func applyHeartbeatTrigger(c *HeartbeatConfig, r HeartbeatRequest, now time.Time
 		}
 		tr.At = r.At
 		tr.Mode = "once"
-		tr.RoutineBound = false
+		tr.RoutineBound = true
 	}
 	if r.Weekdays != nil {
 		tr.Weekdays = *r.Weekdays
 	}
-	if r.RoutineBound != nil {
-		tr.RoutineBound = *r.RoutineBound
+	if r.RoutineBound != nil && !*r.RoutineBound {
+		return errors.New("all scheduled events must obey the routine; routine_bound cannot be false")
 	}
+	tr.RoutineBound = true
 	if r.Title != "" {
 		tr.Title = r.Title
 	}
@@ -99,6 +103,12 @@ func applyHeartbeatTrigger(c *HeartbeatConfig, r HeartbeatRequest, now time.Time
 	}
 	if r.Mode != "" {
 		tr.Mode = r.Mode
+	}
+	if r.LeadMinutes != nil {
+		tr.LeadMinutes = *r.LeadMinutes
+	}
+	if tr.Mode == "course" && r.CatchUpSeconds == 0 {
+		tr.CatchUpSeconds = 60
 	}
 	if r.IntervalSeconds != 0 {
 		tr.IntervalSeconds = r.IntervalSeconds

@@ -50,7 +50,17 @@ func (s HeartbeatService) Prepare(ctx context.Context, now time.Time) error {
 				return err
 			}
 		}
+		start, end, open := c.Bounds(date)
+		if !open || now.Before(start) || !now.Before(end) {
+			return nil
+		}
 		for _, tr := range c.Triggers {
+			if tr.Mode == "course" {
+				if err := s.prepareCourseTrigger(ctx, tx, c, tr, now); err != nil {
+					return err
+				}
+				continue
+			}
 			if err := s.prepareModuleTrigger(ctx, tx, c, tr, date, now); err != nil {
 				return err
 			}
@@ -59,16 +69,29 @@ func (s HeartbeatService) Prepare(ctx context.Context, now time.Time) error {
 	})
 }
 
-// Admission concerns scheduled module work only. User conversations and explicit
-// standalone reminders are never blocked by the routine.
+// Admission applies the same top-level routine to every scheduled event.
 func (s HeartbeatService) Allows(ctx context.Context, t heartbeat.Task, now time.Time) (bool, error) {
-	if t.ModuleID == "" && t.Capability != "mail" && t.Capability != "weather" {
-		return true, nil
-	}
 	c, err := s.Config(ctx)
 	if err != nil {
 		return false, err
 	}
+	if allowed, err := routineAdmission(c, t, now); err != nil || !allowed {
+		return allowed, err
+	}
+	if t.ModuleID == "" && t.Capability != "mail" && t.Capability != "weather" {
+		return true, nil
+	}
+	if t.ModuleID == "course_reminder" {
+		return s.courseAdmission(ctx, t, now)
+	}
+	if t.ModuleID == "course_briefing" {
+		if ok, e := (CourseService{Home: s.Home}).briefingCurrent(ctx, t); e != nil || !ok {
+			return ok, e
+		}
+	}
+	return s.allowsModule(ctx, c, t, now)
+}
+func (s HeartbeatService) allowsModule(ctx context.Context, c HeartbeatConfig, t heartbeat.Task, now time.Time) (bool, error) {
 	module := t.ModuleID
 	if module == "mail_analysis" || (t.Capability == "mail" && module != "mail_digest") {
 		module = "mail_check"
@@ -117,7 +140,7 @@ func (s HeartbeatService) Allows(ctx context.Context, t heartbeat.Task, now time
 func (s HeartbeatService) CheckRunNotification(ctx context.Context, runID string, now time.Time) error {
 	i := strings.LastIndex(runID, ":")
 	if i < 0 {
-		return nil
+		return s.checkUntrackedNotification(ctx, now)
 	}
 	id := runID[:i]
 	var job heartbeat.Task
@@ -129,13 +152,10 @@ func (s HeartbeatService) CheckRunNotification(ctx context.Context, runID string
 		return json.Unmarshal([]byte(raw), &job)
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil
+		return s.checkUntrackedNotification(ctx, now)
 	}
 	if err != nil {
 		return err
-	}
-	if job.ModuleID == "" && job.Capability != "mail" && job.Capability != "weather" {
-		return nil
 	}
 	allowed, err := s.Allows(ctx, job, now)
 	if err != nil {
@@ -160,9 +180,6 @@ func (s HeartbeatService) Runs(ctx context.Context, r HeartbeatRequest) (any, er
 	}
 	records := []runView{}
 	for _, j := range jobs {
-		if j.ModuleID == "" && j.Capability != "mail" && j.Capability != "weather" {
-			continue
-		}
 		if r.TriggerID != "" && j.TriggerID != r.TriggerID {
 			continue
 		}
@@ -190,4 +207,20 @@ func (s HeartbeatService) Runs(ctx context.Context, r HeartbeatRequest) (any, er
 		records = records[:30]
 	}
 	return map[string]any{"runs": records, "coverage": "Latest 30 available run records. completed with empty result and a decision reason means no notification was requested; delivery status is separate. Older per-job history may be truncated."}, nil
+}
+
+// Legacy authenticated notifications still pass the global window even without a job record.
+func (s HeartbeatService) checkUntrackedNotification(ctx context.Context, now time.Time) error {
+	c, err := s.Config(ctx)
+	if err != nil {
+		return err
+	}
+	allowed, err := routineAdmission(c, heartbeat.Task{At: now.Format(time.RFC3339)}, now)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return heartbeat.ErrDeferred
+	}
+	return nil
 }

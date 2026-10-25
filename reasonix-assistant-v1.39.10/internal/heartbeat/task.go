@@ -39,6 +39,8 @@ type Run struct {
 // Task is a persisted headless job. Calendar rules use the desktop interval syntax.
 type Task struct {
 	// Capability and MailIDs are host-created execution scope, never mail/model arguments.
+	CourseID        string   `json:"course_id,omitempty"`
+	CourseDate      string   `json:"course_date,omitempty"`
 	Capability      string   `json:"capability,omitempty"`
 	PolicyID        string   `json:"policy_id,omitempty"`
 	Revision        int      `json:"revision,omitempty"`
@@ -77,10 +79,10 @@ type Task struct {
 
 // Validate rejects ambiguous schedules and unsupported unattended permissions.
 func (t Task) Validate() error {
-	if t.Capability != "" && t.Capability != "mail" && t.Capability != "weather" {
+	if t.Capability != "" && t.Capability != "mail" && t.Capability != "weather" && t.Capability != "course" && t.Capability != "morning" && t.Capability != "news" {
 		return errors.New("unknown host capability")
 	}
-	if (t.Capability == "mail" || t.Capability == "weather") && (t.Kind != "agent" || !t.DecideNotification || t.ApprovalMode != "read-only") {
+	if (t.Capability == "mail" || t.Capability == "weather" || t.Capability == "course" || t.Capability == "morning" || t.Capability == "news") && (t.Kind != "agent" || !t.DecideNotification || t.ApprovalMode != "read-only") {
 		return errors.New("scoped analysis requires a read-only notification agent")
 	}
 	if t.ID == "" || strings.TrimSpace(t.Title) == "" || strings.TrimSpace(t.Prompt) == "" {

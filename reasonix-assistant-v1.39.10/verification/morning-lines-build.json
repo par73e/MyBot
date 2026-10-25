@@ -1,0 +1,8 @@
+{
+  "version": "v1.39.10-assistant.26-morning-lines",
+  "parent": "v1.39.10-assistant.25-morning-spacing",
+  "linux_amd64_sha256": "710152a144509add375a0bf799aaf633ad4c45f4a1d46fb8466e8263724b94f7",
+  "change": "greeting and five adjacent lines without blank lines",
+  "existing_morning_tests_passed": true,
+  "production_deployed": false
+}

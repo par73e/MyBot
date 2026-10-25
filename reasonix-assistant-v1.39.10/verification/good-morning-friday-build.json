@@ -1,0 +1,81 @@
+{
+  "version": "v1.39.10-assistant.24-good-morning-friday",
+  "base_commit": "44e0d848cd742a268e57ed69cd7f40fcc1f589c8",
+  "verified_at": "2026-10-25T03:30:22.307701+00:00",
+  "production_deployed": false,
+  "macos_arm64_sha256": "16606fbb07cab7914de9d7f9884f3be1f766b1415402449ad7c1cc3b5a1aa684",
+  "linux_amd64_sha256": "65102bf2eccaaf134003bff53d5efbd48751aa8856805cb432d9595c9f1650ac",
+  "related_packages": [
+    "assistant",
+    "heartbeat",
+    "cli",
+    "boot",
+    "bot"
+  ],
+  "related_tests_passed": true,
+  "assistant_heartbeat_race_passed": true,
+  "control_notification_targeted_passed": true,
+  "full_control_passed": false,
+  "full_control_limit": "Earlier full control run: TestServeForkStartsNoBroaderThanInheritedReadOnly cannot apply host sandbox; no policy or baseline weakened",
+  "golangci_lint": "0 issues",
+  "repolint": "clean; 1151 existing baselined findings unchanged",
+  "binary_acceptance": {
+    "passed": true,
+    "actual_binary": true,
+    "proactive_morning_messages": 1,
+    "fake_weixin_messages": 3,
+    "active_long_and_short_memory_verified_in_provider_request": true,
+    "expired_memory_body_absent": true,
+    "background_tool_scope_verified": true,
+    "greeting_plus_five_lines_without_headings": true,
+    "follow_up_original_source": true,
+    "restart_duplicate_count": 0,
+    "mock_model_requests": 4,
+    "real_model_requests": 0,
+    "real_weixin_messages": 0,
+    "sources": "synthetic snapshot; weather unavailable/no new mail; mail delta and body paths separately unit-tested"
+  },
+  "course_binary_acceptance": {
+    "passed": true,
+    "actual_binary": true,
+    "timetable_query_has_room": true,
+    "outside_routine_fixed_event": "skipped",
+    "course_notification": "delivered",
+    "outbox_and_conversation_import": "delivered",
+    "restart_duplicate_count": 0,
+    "fake_weixin_messages": 1,
+    "model_requests": 0,
+    "real_weixin_messages": 0
+  },
+  "live_news_parser": {
+    "sample_published_at": "2026-10-23T10:00:00Z",
+    "parsed_candidates": 7,
+    "current_news_claimed": false,
+    "popularity_ranking": false
+  },
+  "preserved": [
+    "mail incremental cursors and selection policy",
+    "active long and short memory",
+    "detailed weather manual capability",
+    "daytime mail polling schedule",
+    "routine weekly and date schedule"
+  ],
+  "wake_modules": [
+    "morning_briefing"
+  ],
+  "course_lead_minutes": 10,
+  "real_model_requests": 0,
+  "real_weixin_messages": 0,
+  "owner_confirmation_required_before_server_restart": true,
+  "format_update": {
+    "greeting_plus_five_lines": true,
+    "one_sentence_per_line": true,
+    "no_section_headings": true,
+    "empty_sections_explicit": true,
+    "affected_assistant_boot_packages_passed": true,
+    "prior_race_check_precedes_format_only_update": false,
+    "natural_language_wording": true,
+    "overnight_already_processed_mail_not_claimed_empty": true
+  },
+  "deployment_and_one_real_morning_authorized": true
+}

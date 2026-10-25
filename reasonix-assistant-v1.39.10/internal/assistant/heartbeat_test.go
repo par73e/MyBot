@@ -155,11 +155,11 @@ func TestUnifiedModuleSelectionAndOwnerForegroundStayIndependent(t *testing.T) {
 		t.Fatal("unselected module ran", jobs)
 	}
 	night, _ := time.Parse(time.RFC3339, "2026-10-25T03:00:00+08:00")
-	if allowed, e := s.Allows(t.Context(), heartbeat.Task{Kind: "message"}, night); e != nil || !allowed {
-		t.Fatal("explicit reminder was blocked", e)
+	if allowed, _ := s.Allows(t.Context(), heartbeat.Task{Kind: "message"}, night); allowed {
+		t.Fatal("explicit reminder escaped the top-level routine")
 	}
-	if allowed, e := s.Allows(t.Context(), heartbeat.Task{ModuleID: "mail_analysis", Capability: "mail"}, night); e != nil || allowed {
-		t.Fatal("timed analysis escaped window", e)
+	if allowed, _ := s.Allows(t.Context(), heartbeat.Task{ModuleID: "mail_analysis", Capability: "mail"}, night); allowed {
+		t.Fatal("timed analysis escaped window")
 	}
 	callHeartbeat(t, tool, `{"action":"set_date_override","revision":3,"date":"2026-10-26","trigger_id":"morning","modules":["weather_briefing"]}`)
 	cfg, _ := s.Config(t.Context())
@@ -255,13 +255,13 @@ func TestUnifiedRetriesOnlyFailedDailyModule(t *testing.T) {
 	}
 }
 
-func TestIndependentClockAndOneShotModules(t *testing.T) {
+func TestFixedClockAndOneShotObeyTopLevelRoutine(t *testing.T) {
 	s, tool := unifiedFixture(t)
 	callHeartbeat(t, tool, `{"action":"set_trigger","revision":2,"trigger_id":"monday_afternoon","clock":"14:00","weekdays":["monday"],"modules":["weather_briefing"]}`)
 	c, _ := s.Config(t.Context())
 	tr := c.Triggers["monday_afternoon"]
-	if tr.RoutineBound || tr.Clock != "14:00" {
-		t.Fatal("fixed trigger incorrectly tied to wake", tr)
+	if !tr.RoutineBound || tr.Clock != "14:00" {
+		t.Fatal("fixed trigger bypasses the routine or moved clock", tr)
 	}
 	jobs := atHeartbeat(t, s, "2026-10-26T14:00:00+08:00")
 	found := false
@@ -291,8 +291,8 @@ func TestIndependentClockAndOneShotModules(t *testing.T) {
 			}
 		}
 	}
-	if !found {
-		t.Fatal("one-shot not invoked")
+	if found {
+		t.Fatal("one-shot outside routine was invoked")
 	}
 }
 

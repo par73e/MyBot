@@ -1,0 +1,121 @@
+{
+  "version": "v1.39.10-assistant.28-standalone-ai-news",
+  "base_commit": "44e0d848cd742a268e57ed69cd7f40fcc1f589c8",
+  "verified_at": "2026-10-25T05:05:24.067644+00:00",
+  "production_deployed": false,
+  "macos_arm64_sha256": "1c3ae1f13bc2b3fe6e6d89aae730dbf0327c110c09654e8198dabb5e0bb914ee",
+  "linux_amd64_sha256": "78a465a506485d9f6f3341469e200e3acb434f4fff0f63c357e13e2fd07bb098",
+  "related_packages": [
+    "assistant",
+    "heartbeat",
+    "cli",
+    "boot",
+    "bot"
+  ],
+  "related_tests_passed": true,
+  "assistant_heartbeat_race_passed": true,
+  "control_notification_targeted_passed": true,
+  "golangci_lint": "0 issues",
+  "repolint": "clean; 1151 existing baselined findings unchanged",
+  "binary_acceptance": {
+    "passed": true,
+    "actual_binary": true,
+    "standalone_news_messages": 1,
+    "fake_weixin_messages": 3,
+    "active_long_and_short_memory_verified_in_provider_request": true,
+    "expired_memory_body_absent": true,
+    "background_tool_scope_verified": true,
+    "seven_substantive_summaries_with_links": true,
+    "follow_up_original_source": true,
+    "restart_duplicate_count": 0,
+    "mock_model_requests": 5,
+    "real_model_requests": 0,
+    "real_weixin_messages": 0,
+    "sources": "synthetic seven-event snapshot; live RSS/API collection separately checked; no real model or Weixin calls"
+  },
+  "morning_regression": {
+    "passed": true,
+    "actual_binary": true,
+    "proactive_morning_messages": 1,
+    "fake_weixin_messages": 3,
+    "active_long_and_short_memory_verified_in_provider_request": true,
+    "expired_memory_body_absent": true,
+    "background_tool_scope_verified": true,
+    "greeting_plus_five_lines_without_headings": true,
+    "follow_up_original_source": true,
+    "restart_duplicate_count": 0,
+    "mock_model_requests": 4,
+    "real_model_requests": 0,
+    "real_weixin_messages": 0,
+    "sources": "synthetic snapshot; weather unavailable/no new mail; mail delta and body paths separately unit-tested"
+  },
+  "server_native_source_probe": {
+    "candidates": 28,
+    "status": "partial",
+    "sources": [
+      {
+        "id": "decoder",
+        "status": "ok",
+        "recent": 4
+      },
+      {
+        "id": "deepmind",
+        "status": "unavailable",
+        "recent": 0
+      },
+      {
+        "id": "hn_AI",
+        "status": "ok",
+        "recent": 16
+      },
+      {
+        "id": "hn_Anthropic",
+        "status": "ok",
+        "recent": 4
+      },
+      {
+        "id": "hn_DeepSeek",
+        "status": "ok",
+        "recent": 1
+      },
+      {
+        "id": "hn_Gemini",
+        "status": "ok",
+        "recent": 0
+      },
+      {
+        "id": "hn_LLM",
+        "status": "ok",
+        "recent": 4
+      },
+      {
+        "id": "hn_OpenAI",
+        "status": "ok",
+        "recent": 8
+      },
+      {
+        "id": "openai",
+        "status": "ok",
+        "recent": 0
+      },
+      {
+        "id": "qbitai",
+        "status": "ok",
+        "recent": 0
+      },
+      {
+        "id": "rundown",
+        "status": "ok",
+        "recent": 0
+      },
+      {
+        "id": "techmeme",
+        "status": "ok",
+        "recent": 7
+      }
+    ]
+  },
+  "morning_news_integration": false,
+  "new_recurring_news_schedule": false,
+  "real_model_and_weixin_acceptance": "pending deployment; synthetic test does not prove live model/delivery"
+}

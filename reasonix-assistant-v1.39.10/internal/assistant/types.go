@@ -13,6 +13,8 @@ import (
 // Options binds trusted host routing; model arguments cannot select an owner,
 // notification recipient, workspace, credentials path or permission preset.
 type Options struct {
+	MorningJobID    string
+	MorningAttempt  int64
 	TriggerID       string
 	OccurrenceID    string
 	TriggerRevision int
@@ -24,7 +26,8 @@ type Options struct {
 
 // Todo is a personal obligation, independent from its reminder delivery status.
 type Todo struct {
-	DueAt string `json:"due_at,omitempty"`
+	PlannedFor string `json:"planned_for,omitempty"`
+	DueAt      string `json:"due_at,omitempty"`
 
 	ID          string      `json:"id"`
 	Revision    int         `json:"revision"`
@@ -40,7 +43,8 @@ type Todo struct {
 
 // TaskRequest is validated input shared by the CLI, tools and tests.
 type TaskRequest struct {
-	DueAt string `json:"due_at,omitempty"`
+	PlannedFor string `json:"planned_for,omitempty"`
+	DueAt      string `json:"due_at,omitempty"`
 
 	Action         string `json:"action"`
 	ID             string `json:"id,omitempty"`

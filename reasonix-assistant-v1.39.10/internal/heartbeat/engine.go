@@ -164,6 +164,9 @@ func (e Engine) dispatchTask(ctx context.Context, task Task, now time.Time, manu
 		return nil
 	}
 	allowed, gateErr := e.Admitted(ctx, task, now)
+	if errors.Is(gateErr, ErrOutsideRoutine) || errors.Is(gateErr, ErrOccurrenceChanged) {
+		return e.skipOutsideRoutine(ctx, task, now, gateErr)
+	}
 	if gateErr != nil || !allowed {
 		return gateErr
 	}
@@ -198,11 +201,12 @@ func (e Engine) claim(ctx context.Context, task *Task, now time.Time, manual boo
 		if (!manual && !current.Due(now)) || current.Expired(now) {
 			return errors.New("schedule changed before execution")
 		}
+		scheduledAt := current.ScheduledTime(now)
 		*task = *current
 		task.RunStartedAt = now.UnixMilli()
 		current.LastRunAt = now.UnixMilli()
 		current.SnoozedUntil = ""
-		current.History = append(current.History, Run{StartedAt: now.UnixMilli(), Status: "running", ModuleID: current.ModuleID, TriggerRevision: current.TriggerRevision, ScheduledAt: current.At})
+		current.History = append(current.History, Run{StartedAt: now.UnixMilli(), Status: "running", ModuleID: current.ModuleID, TriggerRevision: current.TriggerRevision, ScheduledAt: scheduledAt.Format(time.RFC3339)})
 		if len(current.History) > 20 {
 			current.History = current.History[len(current.History)-20:]
 		}
@@ -263,6 +267,14 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 			return e.updateRun(id, func(t *Task, r *Run) { r.Status = "delivery_expired"; t.Enabled = false })
 		}
 		allowed, gateErr := e.Admitted(ctx, task, now)
+		if errors.Is(gateErr, ErrOutsideRoutine) || errors.Is(gateErr, ErrOccurrenceChanged) {
+			return e.updateRun(id, func(t *Task, r *Run) {
+				r.Status, r.DecisionReason, r.NextDeliveryAt = "skipped", gateErr.Error(), 0
+				if t.At != "" {
+					t.Enabled = false
+				}
+			})
+		}
 		if gateErr != nil || !allowed {
 			return gateErr
 		}
@@ -276,6 +288,16 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 			sendErr = sender.SendRun(ctx, task, *r)
 		} else {
 			sendErr = e.Sender.Send(ctx, *task.Target, r.Result)
+		}
+		if errors.Is(sendErr, ErrOutsideRoutine) || errors.Is(sendErr, ErrOccurrenceChanged) {
+			return e.updateRun(id, func(t *Task, r *Run) {
+				r.Status = "skipped"
+				r.DecisionReason = sendErr.Error()
+				r.NextDeliveryAt = 0
+				if t.At != "" {
+					t.Enabled = false
+				}
+			})
 		}
 		if errors.Is(sendErr, ErrDeferred) {
 			return nil
@@ -298,6 +320,24 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 		})
 	}
 	return nil
+}
+
+func (e Engine) skipOutsideRoutine(ctx context.Context, task Task, now time.Time, reason error) error {
+	return e.Store.Update(ctx, task.ID, func(current *Task) error {
+		if !current.Due(now) {
+			return nil
+		}
+		at := current.ScheduledTime(now)
+		current.LastRunAt = now.UnixMilli()
+		current.History = append(current.History, Run{StartedAt: now.UnixMilli(), EndedAt: now.UnixMilli(), ScheduledAt: at.Format(time.RFC3339), Status: "skipped", DecisionReason: reason.Error(), ModuleID: current.ModuleID, TriggerRevision: current.TriggerRevision})
+		if len(current.History) > 20 {
+			current.History = current.History[len(current.History)-20:]
+		}
+		if current.At != "" {
+			current.Enabled = false
+		}
+		return nil
+	})
 }
 
 func (e Engine) updateRun(id string, edit func(*Task, *Run)) error {

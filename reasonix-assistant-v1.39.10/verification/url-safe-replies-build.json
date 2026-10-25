@@ -1,0 +1,26 @@
+{
+  "version": "v1.39.10-assistant.32-url-chunks",
+  "binary_sha256": "947789c3c6be9f3d8d89dd53a4ea42d6af0c3e3ff244e174e61d4a1f3f934438",
+  "related_tests": "internal/bot and internal/bot/weixin passed",
+  "lint": "0 issues",
+  "repolint": "clean, 1150 existing findings; no baseline edit",
+  "actual_binary_acceptance": {
+    "passed": true,
+    "actual_binary": true,
+    "standalone_news_messages": 1,
+    "fake_weixin_messages": 2,
+    "active_long_and_short_memory_verified_in_provider_request": true,
+    "expired_memory_body_absent": true,
+    "background_tool_scope_verified": true,
+    "seven_summaries_title_plus_body_at_most_50_characters_with_links": true,
+    "follow_up_original_source": true,
+    "final_followup_trailing_url_in_one_message": true,
+    "restart_duplicate_count": 0,
+    "mock_model_requests": 6,
+    "real_model_requests": 0,
+    "real_weixin_messages": 0,
+    "sources": "synthetic seven-event snapshot; live RSS/API collection separately checked; no real model or Weixin calls"
+  },
+  "source_of_regression": "final flush used the last dot inside a trailing URL even for short replies",
+  "assistant_module_changes": false
+}

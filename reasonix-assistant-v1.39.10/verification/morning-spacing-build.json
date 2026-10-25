@@ -1,0 +1,8 @@
+{
+  "version": "v1.39.10-assistant.25-morning-spacing",
+  "parent": "v1.39.10-assistant.24-good-morning-friday",
+  "linux_amd64_sha256": "de642a0f1c890d2cbeffa86fd794c1bfffc66c404769b10f9d42ebde08d6a569",
+  "change": "greeting and five content paragraphs separated by blank lines",
+  "existing_morning_tests_passed": true,
+  "production_deployed": false
+}

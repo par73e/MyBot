@@ -1,0 +1,21 @@
+{
+  "version": "v1.39.10-assistant.27-morning-bold",
+  "parent": "v1.39.10-assistant.26-morning-lines",
+  "linux_amd64_sha256": "0cb95d9fcf24d9ca74990dbef2ce62bb9711cfe36571ee0b30b750c38482434c",
+  "greeting": "# **Sir，早上好。**",
+  "five_content_lines_unchanged": true,
+  "existing_morning_tests_passed": true,
+  "production_deployed": false,
+  "live_checks": {
+    "course_blocks": 7,
+    "rooms_present": true,
+    "course_lead_minutes": 10,
+    "healthy_mail_collectors": 3,
+    "news_source": "https://www.therundown.ai/articles-category/ai",
+    "news_snapshot_status": "ok",
+    "news_snapshot_items_within_24h": 0,
+    "latest_issue_published_at": "2026-10-23T10:00:00Z",
+    "live_source_http_status": 200,
+    "todays_todos_from_real_database": true
+  }
+}

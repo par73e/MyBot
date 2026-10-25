@@ -153,8 +153,13 @@ func (s Tasks) create(ctx context.Context, in TaskRequest) (TaskView, error) {
 	if _, err := timestamp(in.DueAt); err != nil {
 		return TaskView{}, err
 	}
+	if in.PlannedFor != "" {
+		if _, err := courseDate(in.PlannedFor); err != nil {
+			return TaskView{}, err
+		}
+	}
 	now := s.clock().UTC()
-	todo := Todo{DueAt: in.DueAt, ID: id, Revision: 1, Title: in.Title, Body: in.Body, Kind: in.Kind, Status: "open", CreatedAt: now, UpdatedAt: now}
+	todo := Todo{PlannedFor: in.PlannedFor, DueAt: in.DueAt, ID: id, Revision: 1, Title: in.Title, Body: in.Body, Kind: in.Kind, Status: "open", CreatedAt: now, UpdatedAt: now}
 	view := TaskView{Todo: todo}
 	if in.Kind != "todo" {
 		job, err := s.makeJob(id, in, now)
@@ -242,7 +247,7 @@ func (s Tasks) saveNewTask(ctx context.Context, view *TaskView) error {
 		}
 		// Stable active-content deduplication handles repeated model tool calls.
 		for _, old := range todos {
-			if old.Status == "done" || old.Status == "cancelled" || old.Title != view.Title || old.Body != view.Body || old.Kind != view.Kind || old.DueAt != view.DueAt {
+			if old.Status == "done" || old.Status == "cancelled" || old.Title != view.Title || old.Body != view.Body || old.Kind != view.Kind || old.DueAt != view.DueAt || old.PlannedFor != view.PlannedFor {
 				continue
 			}
 			var oldJob *heartbeat.Task

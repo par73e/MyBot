@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.29-ai-news-50chars",
+  "previous_version": "v1.39.10-assistant.28-standalone-ai-news",
+  "binary_sha256": "74966d8ef8e754f96b4242da318529ea823c34ce1e534afb25d580c67acbd17a",
+  "source_file_count": 9303,
+  "service_active": true,
+  "weixin_ready": true,
+  "configuration_and_memories_unchanged": true,
+  "existing_state_preserved": true,
+  "standalone_news_enabled": true,
+  "morning_implementation_and_selection_unchanged": true,
+  "no_recurring_news_trigger_added": true,
+  "backup": "/var/lib/mybot/backups/standalone-ai-news-20261025T051922Z"
+}

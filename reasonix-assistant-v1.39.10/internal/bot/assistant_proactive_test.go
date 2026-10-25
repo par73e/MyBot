@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"encoding/json"
+	"os"
+	"reasonix/internal/assistant"
 	"reasonix/internal/control"
 	"reasonix/internal/heartbeat"
 	"reasonix/internal/session"
@@ -46,6 +49,19 @@ func (*notificationController) RuntimeStatus() control.RuntimeStatus { return co
 
 func notificationGateway(t *testing.T, adapter Adapter, at time.Time) (*BotGateway, *notificationController) {
 	t.Helper()
+	hs := assistant.HeartbeatService{Home: os.Getenv("REASONIX_HOME")}
+	cfg, err := hs.Ensure(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	week := heartbeat.WeeklySchedule{}
+	for _, d := range []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"} {
+		week[d] = heartbeat.DailyWindow{Enabled: true, Start: "00:00", End: "24:00"}
+	}
+	args, _ := json.Marshal(assistant.HeartbeatRequest{Action: "set_weekly", Revision: cfg.Revision, Weekly: &week})
+	if _, err = (assistant.HeartbeatTool{Service: hs}).Execute(t.Context(), args); err != nil {
+		t.Fatal(err)
+	}
 	gw := NewGatewayWithAdapterBindings(GatewayConfig{WorkspaceRoot: "/work", Allowlist: AllowlistConfig{Enabled: true, Users: map[Platform][]string{PlatformWeixin: {"owner"}}}}, []AdapterBinding{{ID: "weixin", Domain: "weixin", Platform: PlatformWeixin, Adapter: adapter}}, nil)
 	msg := stampAssistantDay(InboundMessage{Platform: PlatformWeixin, ConnectionID: "weixin", Domain: "weixin", ChatID: "owner", UserID: "owner", ChatType: ChatDM}, at)
 	c := conversationForMessage(msg, "/work")

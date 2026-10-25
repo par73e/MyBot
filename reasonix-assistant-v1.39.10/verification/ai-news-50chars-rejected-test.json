@@ -1,0 +1,10 @@
+{
+  "now": "2026-10-25T05:21:47.484172+00:00",
+  "job_id": "hb-3dfe328d7a3c702aa3a773c85b1ad4b5-ai_news_briefing",
+  "status": "failed",
+  "error": "news event requires title and summary totaling at most 50 characters including punctuation",
+  "version": "v1.39.10-assistant.29-ai-news-50chars",
+  "delivered": false,
+  "temporary_trigger_removed": true,
+  "correction": "assistant_ai_news check returns exact lengths so agent can rewrite before final host validation"
+}
