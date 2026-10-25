@@ -41,6 +41,15 @@ func (s MorningService) Finalize(ctx context.Context, t heartbeat.Task, raw stri
 		return "", e
 	}
 	message := renderMorning(snap, v)
+	questions, e := (Proposals{Home: s.Home}).questions(ctx, t, 1)
+	if e != nil {
+		return "", e
+	}
+	if len(questions) > 0 {
+		lines := strings.Split(message, "\n")
+		lines[3] = strings.TrimSuffix(lines[3], "。") + "；" + questions[0]
+		message = strings.Join(lines, "\n")
+	}
 	displayed := []string{}
 	for _, d := range v.MailDecisions {
 		if *d.Notify {

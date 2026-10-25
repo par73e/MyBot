@@ -1,0 +1,18 @@
+{
+  "version": "v1.39.10-assistant.33-editorial-style",
+  "source_file_count": 9325,
+  "source_sha256": "7b1ee848c483845d529672b3f3e7cddda41222b3c01664ec98d1ff10af19123a",
+  "binary_sha256": "41c7441b6d980ad82fe7ad3bc016f4ea3f129b8798d234694d74a7f2f7d06a5f",
+  "prompt_sha256": "4f611de751996e590d8d29a86bdf7f5aa2b52818aa89f991f436d81201ff798e",
+  "related_tests_passed": [
+    "assistant: TestMorning / TestHotNews",
+    "cli: TestHeartbeatAgentArguments",
+    "control: TestPersonalAssistantReopenRefreshesOnlyModelPersona",
+    "config: TestResolveSystemPromptForRoot"
+  ],
+  "compiled_prompt_markers_verified": true,
+  "diff_check_passed": true,
+  "real_model_style_test_performed": false,
+  "explicit_weixin_test_messages_sent": 0,
+  "full_root_test_suite_run": false
+}

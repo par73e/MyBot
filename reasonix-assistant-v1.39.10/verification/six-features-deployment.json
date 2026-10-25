@@ -1,0 +1,118 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.34-six-features",
+  "previous_version": "v1.39.10-assistant.33-editorial-style",
+  "binary_sha256": "1018f91531ffd4aa8b58ee2246a2a9d82246b70012b230e05f12fc10a35623f0",
+  "prompt_sha256": "6fadd1480da1c46b59aa940f6909ebc15bc7cff6610e5e468cd05cd326e2c315",
+  "source_sha256": "57932742c1c3e75cbb4c7055a23b0144f4934617552e646988dfe6e0e61389e1",
+  "source_file_count": 9349,
+  "changed_go_files": [
+    "internal/assistant/deadline_reminders.go",
+    "internal/assistant/evening.go",
+    "internal/assistant/evening_tool.go",
+    "internal/assistant/expansion_config.go",
+    "internal/assistant/expansion_test.go",
+    "internal/assistant/heartbeat_config.go",
+    "internal/assistant/heartbeat_mutations.go",
+    "internal/assistant/heartbeat_prepare.go",
+    "internal/assistant/heartbeat_runtime.go",
+    "internal/assistant/heartbeat_tool.go",
+    "internal/assistant/heartbeat_validate.go",
+    "internal/assistant/mail.go",
+    "internal/assistant/mail_digest.go",
+    "internal/assistant/mail_proposal_evidence.go",
+    "internal/assistant/mail_query.go",
+    "internal/assistant/morning_prompt.go",
+    "internal/assistant/morning_render.go",
+    "internal/assistant/proposals.go",
+    "internal/assistant/proposals_test.go",
+    "internal/assistant/reminder_voice.go",
+    "internal/assistant/subscription_tool.go",
+    "internal/assistant/subscriptions.go",
+    "internal/assistant/task_changes.go",
+    "internal/assistant/tasks.go",
+    "internal/assistant/tools.go",
+    "internal/assistant/types.go",
+    "internal/boot/assistant.go",
+    "internal/cli/assistant.go",
+    "internal/cli/assistant_expansion.go",
+    "internal/cli/heartbeat_runner.go",
+    "internal/cli/unified_heartbeat.go",
+    "internal/control/foreground_authorization_test.go",
+    "internal/control/turn_orchestrator.go",
+    "internal/heartbeat/engine.go",
+    "internal/heartbeat/reminder_text.go",
+    "internal/heartbeat/reminder_text_test.go",
+    "internal/heartbeat/task.go",
+    "internal/tool/foreground_authorization.go"
+  ],
+  "service_active": true,
+  "weixin_ready": true,
+  "routine_and_two_new_triggers_verified": true,
+  "previous_triggers_and_date_overrides_preserved": true,
+  "all_other_personal_database_rows_preserved_at_activation": true,
+  "protected_configuration_and_memory_files_preserved": true,
+  "explicit_test_messages_sent": 0,
+  "backup": "/var/lib/mybot/backups/six-features-20261025T154234Z",
+  "heartbeat_revision": 27,
+  "post_activation": {
+    "verified_at": "2026-10-25T23:45:14.417118+08:00",
+    "active": true,
+    "nrestarts": "0",
+    "version": "reasonix v1.39.10-assistant.34-six-features",
+    "binary_sha256": "1018f91531ffd4aa8b58ee2246a2a9d82246b70012b230e05f12fc10a35623f0",
+    "heartbeat_revision": 27,
+    "weekly_schedule": {
+      "friday": {
+        "enabled": true,
+        "start": "08:00",
+        "end": "23:30"
+      },
+      "monday": {
+        "enabled": true,
+        "start": "09:50",
+        "end": "23:30"
+      },
+      "saturday": {
+        "enabled": true,
+        "start": "11:00",
+        "end": "23:30"
+      },
+      "sunday": {
+        "enabled": true,
+        "start": "11:00",
+        "end": "23:30"
+      },
+      "thursday": {
+        "enabled": true,
+        "start": "09:50",
+        "end": "23:30"
+      },
+      "tuesday": {
+        "enabled": true,
+        "start": "08:00",
+        "end": "23:30"
+      },
+      "wednesday": {
+        "enabled": true,
+        "start": "09:50",
+        "end": "23:30"
+      }
+    },
+    "enabled_trigger_ids": [
+      "course_classes",
+      "daytime_mail",
+      "evening",
+      "morning",
+      "subscription_expiries"
+    ],
+    "evening_production_preview_read": true,
+    "tomorrow_course_status": "ok",
+    "tomorrow_course_count": 1,
+    "todo_count": 3,
+    "mail_cursor_count": 3,
+    "subscription_count": 0,
+    "proposal_count": 0,
+    "sqlite_integrity": "ok"
+  }
+}

@@ -22,7 +22,7 @@ type ModuleDefinition struct {
 }
 
 func HeartbeatModules() []ModuleDefinition {
-	return []ModuleDefinition{{"weather_briefing", "详细天气播报", 1, "agent"}, {"mail_check", "邮箱增量检查及新邮件汇报", 2, "native_then_agent"}, {"mail_digest", "静默邮件汇总", 1, "agent"}, {"course_briefing", "今日课程简报", 1, "agent"}, {"course_reminder", "课前提醒", 1, "native"}, {"morning_briefing", "早安Friday", 1, "native_then_agent"}, {"ai_news_briefing", "AI News热点新闻", 1, "native_then_agent"}}
+	return []ModuleDefinition{{"evening_briefing", "睡前总结", 1, "native_then_agent"}, {"subscription_reminder", "订阅到期提醒", 1, "native"}, {"weather_briefing", "详细天气播报", 1, "agent"}, {"mail_check", "邮箱增量检查及新邮件汇报", 2, "native_then_agent"}, {"mail_digest", "静默邮件汇总", 1, "agent"}, {"course_briefing", "今日课程简报", 1, "agent"}, {"course_reminder", "课前提醒", 1, "native"}, {"morning_briefing", "早安Friday", 1, "native_then_agent"}, {"ai_news_briefing", "AI News热点新闻", 1, "native_then_agent"}}
 }
 func knownModule(id string) bool {
 	for _, m := range HeartbeatModules() {
@@ -130,7 +130,7 @@ func (c HeartbeatConfig) Validate() error {
 		if _, ok := c.ModuleEnabled[m.ID]; !ok {
 			// v20 configurations predate the optional digest module. Missing
 			// means disabled until Ensure adds the catalog flag once.
-			if m.ID == "mail_digest" || m.ID == "course_briefing" || m.ID == "course_reminder" || m.ID == "morning_briefing" || m.ID == "ai_news_briefing" {
+			if m.ID == "mail_digest" || m.ID == "course_briefing" || m.ID == "course_reminder" || m.ID == "morning_briefing" || m.ID == "ai_news_briefing" || m.ID == "evening_briefing" || m.ID == "subscription_reminder" {
 				continue
 			}
 			return errors.New("missing module enable state")
@@ -257,6 +257,8 @@ func (s HeartbeatService) Ensure(ctx context.Context) (HeartbeatConfig, error) {
 		c.ModuleEnabled["course_reminder"] = false
 		c.ModuleEnabled["morning_briefing"] = false
 		c.ModuleEnabled["ai_news_briefing"] = false
+		c.ModuleEnabled["evening_briefing"] = false
+		c.ModuleEnabled["subscription_reminder"] = false
 		c.ModuleEnabled["weather_briefing"] = werr == nil && weather.MorningEnabled
 		for date, w := range old.DateOverrides {
 			enabled := w.Enabled

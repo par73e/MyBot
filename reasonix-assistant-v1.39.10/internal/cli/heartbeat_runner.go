@@ -23,43 +23,23 @@ type heartbeatProcessRunner struct {
 
 func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (heartbeat.Execution, error) {
 	var prepareErr error
-	t, prepareErr = prepareMorningTask(ctx, t)
+	t, prepareErr = prepareHeartbeatSources(ctx, t)
 	if prepareErr != nil {
 		return heartbeat.Execution{}, prepareErr
 	}
-	if err := prepareStandaloneNews(ctx, t); err != nil {
-		return heartbeat.Execution{}, err
-	}
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, heartbeatModelTimeout(t))
 	defer cancel()
 	args := heartbeatAgentArgs(t, r.DefaultModel)
 	cmd := proc.CommandContext(ctx, r.Executable, args...)
 	cmd.WaitDelay = 5 * time.Second
-	if t.DecideNotification {
-		cmd.Env = append(os.Environ(), "REASONIX_ASSISTANT_BACKGROUND=1", "REASONIX_ASSISTANT_JOB_ID="+t.ID)
-	}
-	if t.Capability == "mail" {
-		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_MAIL_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_MAIL_ATTEMPT=%d", t.RunStartedAt))
-		if t.ModuleID == "mail_digest" {
-			cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_MAIL_DIGEST=1")
-		}
-	}
-	if t.Capability == "weather" {
-		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_WEATHER_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_WEATHER_ATTEMPT=%d", t.RunStartedAt))
-	}
-	if t.Capability == "course" {
-		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_COURSE_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_COURSE_ATTEMPT=%d", t.RunStartedAt))
-	}
-	if t.ModuleID == "morning_briefing" {
-		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_MORNING_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_MORNING_ATTEMPT=%d", t.RunStartedAt), fmt.Sprintf("REASONIX_ASSISTANT_MAIL_ATTEMPT=%d", t.RunStartedAt), fmt.Sprintf("REASONIX_ASSISTANT_WEATHER_ATTEMPT=%d", t.RunStartedAt))
-	}
-	if t.ModuleID == "ai_news_briefing" {
-		cmd.Env = append(cmd.Env, "REASONIX_ASSISTANT_NEWS_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_NEWS_ATTEMPT=%d", t.RunStartedAt))
-	}
+	cmd.Env = heartbeatAgentEnv(t)
 	stdout, stderr := &heartbeatOutput{}, &heartbeatOutput{}
 	cmd.Stdout, cmd.Stderr = stdout, stderr
 	_, err := proc.RunCommand(ctx, cmd, proc.RunOptions{Source: "heartbeat"})
 	if err != nil {
+		if t.ModuleID == "evening_briefing" {
+			return eveningFallback(context.Background(), t)
+		}
 		return heartbeat.Execution{}, fmt.Errorf("Agent execution: %w: %s", err, secrets.Redact(string(stderr.data)))
 	}
 	if stdout.overflow {
@@ -73,10 +53,23 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 		FromReasoning bool   `json:"result_from_reasoning"`
 	}
 	if err := json.Unmarshal(stdout.data, &result); err != nil {
+		if t.ModuleID == "evening_briefing" {
+			return eveningFallback(context.Background(), t)
+		}
 		return heartbeat.Execution{}, fmt.Errorf("invalid Agent JSON result: %w", err)
 	}
 	if result.Type != "result" || result.IsError || result.FromReasoning {
+		if t.ModuleID == "evening_briefing" {
+			return eveningFallback(context.Background(), t)
+		}
 		return heartbeat.Execution{}, errors.New("Agent did not produce a successful final answer")
+	}
+	if t.ModuleID == "evening_briefing" {
+		text, e := (assistant.EveningService{Home: config.MemoryUserDir()}).Finalize(ctx, t, result.Result, false)
+		if e != nil {
+			return eveningFallback(ctx, t)
+		}
+		return heartbeat.Execution{Text: text, SessionID: result.SessionID, DecisionReason: "23:00睡前总结"}, nil
 	}
 	if err := verifyHeartbeatEvidence(ctx, t, result.Result); err != nil {
 		return heartbeat.Execution{}, err
@@ -124,6 +117,13 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 			return heartbeat.Execution{}, err
 		}
 	}
+	if t.Capability == "mail" && t.ModuleID != "mail_digest" {
+		var e error
+		text, e = assistant.AppendMailProposalQuestions(ctx, config.MemoryUserDir(), t, text)
+		if e != nil {
+			return heartbeat.Execution{}, e
+		}
+	}
 	return heartbeat.Execution{Text: text, SessionID: result.SessionID, DecisionReason: reason}, nil
 }
 
@@ -141,7 +141,7 @@ func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
 			args = append(args, "--resume", session)
 		}
 	}
-	if t.Capability == "mail" || t.Capability == "weather" || t.Capability == "course" || t.Capability == "morning" || t.Capability == "news" {
+	if t.Capability == "mail" || t.Capability == "weather" || t.Capability == "course" || t.Capability == "morning" || t.Capability == "news" || t.Capability == "evening" {
 		steps := "24"
 		if t.ModuleID == "mail_digest" || t.ModuleID == "morning_briefing" || t.ModuleID == "ai_news_briefing" {
 			steps = "64"
@@ -151,6 +151,7 @@ func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
 	prompt := t.Prompt
 	if t.DecideNotification {
 		switch {
+		case t.ModuleID == "evening_briefing":
 		case t.ModuleID == "ai_news_briefing":
 			prompt += assistant.NewsBriefingContract
 		case t.ModuleID == "morning_briefing":
@@ -180,4 +181,57 @@ func (b *heartbeatOutput) Write(p []byte) (int, error) {
 	}
 	b.data = append(b.data, p...)
 	return n, nil
+}
+
+func heartbeatModelTimeout(t heartbeat.Task) time.Duration {
+	if t.ModuleID == "evening_briefing" {
+		return 90 * time.Second
+	}
+	return 10 * time.Minute
+}
+func eveningFallback(ctx context.Context, t heartbeat.Task) (heartbeat.Execution, error) {
+	text, e := (assistant.EveningService{Home: config.MemoryUserDir()}).Finalize(ctx, t, `{}`, true)
+	return heartbeat.Execution{Text: text, DecisionReason: "睡前总结使用事实降级"}, e
+}
+
+func heartbeatAgentEnv(t heartbeat.Task) []string {
+	var env []string
+	if t.DecideNotification {
+		env = append(os.Environ(), "REASONIX_ASSISTANT_BACKGROUND=1", "REASONIX_ASSISTANT_JOB_ID="+t.ID)
+	}
+	if t.ModuleID == "evening_briefing" {
+		env = append(env, "REASONIX_ASSISTANT_EVENING_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_EVENING_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.Capability == "mail" {
+		env = append(env, "REASONIX_ASSISTANT_MAIL_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_MAIL_ATTEMPT=%d", t.RunStartedAt))
+		if t.ModuleID == "mail_digest" {
+			env = append(env, "REASONIX_ASSISTANT_MAIL_DIGEST=1")
+		}
+	}
+	if t.Capability == "weather" {
+		env = append(env, "REASONIX_ASSISTANT_WEATHER_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_WEATHER_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.Capability == "course" {
+		env = append(env, "REASONIX_ASSISTANT_COURSE_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_COURSE_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.ModuleID == "morning_briefing" {
+		env = append(env, "REASONIX_ASSISTANT_MORNING_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_MORNING_ATTEMPT=%d", t.RunStartedAt), fmt.Sprintf("REASONIX_ASSISTANT_MAIL_ATTEMPT=%d", t.RunStartedAt), fmt.Sprintf("REASONIX_ASSISTANT_WEATHER_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.ModuleID == "ai_news_briefing" {
+		env = append(env, "REASONIX_ASSISTANT_NEWS_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_NEWS_ATTEMPT=%d", t.RunStartedAt))
+	}
+	return env
+}
+
+func prepareHeartbeatSources(ctx context.Context, t heartbeat.Task) (heartbeat.Task, error) {
+	if t.ModuleID == "evening_briefing" {
+		if e := (assistant.EveningService{Home: config.MemoryUserDir()}).Prepare(ctx, t); e != nil {
+			return t, e
+		}
+	}
+	t, e := prepareMorningTask(ctx, t)
+	if e != nil {
+		return t, e
+	}
+	return t, prepareStandaloneNews(ctx, t)
 }

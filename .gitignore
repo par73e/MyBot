@@ -1,4 +1,6 @@
 # Local credentials and private runtime state
+/githubtoken
+/githubtoken.*
 /apikey.txt
 /APIkey.txt
 /API key.txt

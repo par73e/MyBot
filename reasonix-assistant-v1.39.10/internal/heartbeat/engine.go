@@ -176,7 +176,7 @@ func (e Engine) dispatchTask(ctx context.Context, task Task, now time.Time, manu
 	if err := e.claim(ctx, &task, now, manual); err != nil {
 		return err
 	}
-	out := Execution{Text: task.Prompt}
+	out := Execution{Text: task.MessageText(now)}
 	var err error
 	if task.Kind == "agent" || task.Kind == "mail_check" || task.Kind == "weather_check" {
 		err = task.validateWorkspace()
@@ -278,6 +278,18 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 		if gateErr != nil || !allowed {
 			return gateErr
 		}
+		// Keep immutable outbox payloads across retries. A clock-bearing message
+		// from a previous minute is skipped rather than reporting a false time.
+		if staleReminderClock(task, *r, now) {
+			return e.updateRun(id, func(t *Task, r *Run) {
+				r.Status = "skipped"
+				r.DecisionReason = "time-aware reminder wording is stale"
+				r.NextDeliveryAt = 0
+				if t.At != "" {
+					t.Enabled = false
+				}
+			})
+		}
 		if e.Sender == nil {
 			return errors.New("notification sender unavailable; result retained for delivery")
 		}
@@ -371,4 +383,8 @@ func recordDeliveryFailure(t *Task, r *Run, err error, now time.Time) {
 			t.Enabled = false
 		}
 	}
+}
+
+func staleReminderClock(task Task, r Run, now time.Time) bool {
+	return task.Notification != nil && task.Notification.Mode == "time_aware" && r.Result != task.MessageText(now)
 }

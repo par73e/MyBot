@@ -106,7 +106,18 @@ func (s Tasks) changeSchedule(todo *Todo, job *heartbeat.Task, in TaskRequest, n
 			job.Title = todo.Title
 		}
 	}
+	if in.Notification != nil {
+		if job == nil || job.Kind != "message" {
+			return errors.New("notification formatting requires an existing fixed reminder")
+		}
+		job.Notification = in.Notification
+	}
 	if in.Body != "" {
+		if job != nil && job.Kind == "message" {
+			if err := validateReminderVoice(in.Body, job.Notification); err != nil {
+				return err
+			}
+		}
 		if len(in.Body) > 16000 {
 			return errors.New("body exceeds 16000 bytes")
 		}
@@ -115,11 +126,26 @@ func (s Tasks) changeSchedule(todo *Todo, job *heartbeat.Task, in TaskRequest, n
 			job.Prompt = in.Body
 		}
 	}
+	return changeJobSchedule(job, in, now)
+}
+
+func changeJobSchedule(job *heartbeat.Task, in TaskRequest, now time.Time) error {
 	if in.At == "" && in.Interval == "" && in.EndsAt == "" && in.Timezone == "" {
 		return nil
 	}
 	if job == nil {
 		return errors.New("unscheduled todo cannot gain a schedule through update; create a reminder instead")
+	}
+	if in.At != "" && in.EndsAt == "" && job.Notification != nil && job.Notification.Mode == "time_aware" {
+		oldAt, _ := timestamp(job.At)
+		oldEnd, _ := timestamp(job.EndsAt)
+		newAt, e := timestamp(in.At)
+		if e != nil {
+			return e
+		}
+		if oldEnd.Equal(oldAt.Add(10 * time.Minute)) {
+			job.EndsAt = newAt.Add(10 * time.Minute).Format(time.RFC3339)
+		}
 	}
 	if in.At != "" {
 		job.At = in.At

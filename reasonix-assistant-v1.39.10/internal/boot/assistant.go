@@ -14,6 +14,8 @@ func registerPersonalAssistant(reg *tool.Registry, cfg *config.Config, root stri
 	if !assistant.Enabled() {
 		return
 	}
+	reg.Add(assistant.SubscriptionTool{Service: assistant.Subscriptions{Repository: assistant.NewRepository(config.MemoryUserDir())}})
+	reg.Add(assistant.EveningTool{Service: assistant.EveningService{Home: config.MemoryUserDir()}})
 	reg.Remove("remember")
 	reg.Remove("forget")
 	reg.Add(assistant.HeartbeatTool{Service: assistant.HeartbeatService{Home: config.MemoryUserDir()}})
@@ -24,6 +26,7 @@ func registerPersonalAssistant(reg *tool.Registry, cfg *config.Config, root stri
 	if len(cfg.Bot.Allowlist.WeixinUsers) == 1 {
 		options.Target = &heartbeat.Target{ConnectionID: "weixin", Domain: "weixin", ChatID: cfg.Bot.Allowlist.WeixinUsers[0], ChatType: "dm"}
 	}
+	reg.Add(assistant.ProposalTool{Service: assistant.Proposals{Home: config.MemoryUserDir(), Options: options}})
 	if _, err := assistant.NewMailService(config.MemoryUserDir()).Config(); err == nil {
 		reg.Add(assistant.MailTool{Service: assistant.NewMailService(config.MemoryUserDir())})
 		if _, e := (assistant.HeartbeatService{Home: config.MemoryUserDir()}).Config(context.Background()); e != nil {
@@ -86,10 +89,19 @@ func personalAssistantSurface(reg *tool.Registry, allow []string) []string {
 			}
 		}
 	}
+	if os.Getenv("REASONIX_ASSISTANT_EVENING_BACKGROUND") == "1" {
+		for _, name := range reg.AllNames() {
+			switch name {
+			case "assistant_evening", "assistant_memory", "assistant_tasks", "assistant_history":
+			default:
+				reg.Remove(name)
+			}
+		}
+	}
 	allow = nil
 	// Technical tools remain registered and callable through use_capability;
 	// their schemas need not frame every ordinary assistant conversation.
-	for _, name := range []string{"assistant_tasks", "assistant_memory", "assistant_history", "assistant_courses", "assistant_morning", "assistant_ai_news", "assistant_mail", "assistant_mail_schedule", "assistant_heartbeat", "assistant_weather", "ask", "web_search", "view_image", "compress", "use_capability", "create_goal", "get_goal", "update_goal"} {
+	for _, name := range []string{"assistant_tasks", "assistant_memory", "assistant_history", "assistant_courses", "assistant_subscriptions", "assistant_proposals", "assistant_evening", "assistant_morning", "assistant_ai_news", "assistant_mail", "assistant_mail_schedule", "assistant_heartbeat", "assistant_weather", "ask", "web_search", "view_image", "compress", "use_capability", "create_goal", "get_goal", "update_goal"} {
 		if _, ok := reg.Get(name); ok {
 			allow = append(allow, name)
 		}

@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "actual_binary": true,
+  "real_weixin_messages": 0,
+  "real_model_calls": 0,
+  "mock_model_calls": 8,
+  "query_before_confirmation_has_no_todo": true,
+  "real_controller_confirmation_created_task_and_two_deadline_jobs": true,
+  "native_subscription_and_fixed_reminder_zero_model": true,
+  "evening_snapshot_and_acknowledgement": true,
+  "effective_long_short_and_expired_memory_boundaries": true,
+  "restart_duplicates": 0,
+  "sources": "synthetic proposal fixture; complete mail-read evidence and forged-confirmation cases covered by Go tests"
+}

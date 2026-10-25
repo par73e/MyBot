@@ -1,0 +1,53 @@
+{
+  "checked_at": "2026-10-26T00:48:48.783400+08:00",
+  "release": "/opt/mybot/releases/v1.39.10-assistant.34-six-features",
+  "version": "reasonix v1.39.10-assistant.34-six-features",
+  "service_active": "active",
+  "nrestarts": "0",
+  "binary_sha256": "1018f91531ffd4aa8b58ee2246a2a9d82246b70012b230e05f12fc10a35623f0",
+  "process_sha256": "1018f91531ffd4aa8b58ee2246a2a9d82246b70012b230e05f12fc10a35623f0",
+  "persona_sha256": "6fadd1480da1c46b59aa940f6909ebc15bc7cff6610e5e468cd05cd326e2c315",
+  "source_entry": "/opt/mybot/releases/v1.39.10-assistant.34-six-features/source",
+  "manifest_file_count": 9349,
+  "manifest_mismatches": [],
+  "github_credential_exists": true,
+  "github_credential_mode": "0o600",
+  "local_go_mismatches": [],
+  "matching_go_file_count": 5407,
+  "source_baseline_commit": "b574332a490a830af673fbe91e42b9dce4c89a0d",
+  "local_persona_sha256": "b540fbe310983de133c6209614daf758768e542ef75585150fbdb22b9910e986",
+  "local_after_deployment_changes": [
+    "persona example generalized during privacy review; not deployed",
+    "Git ignore protection for local GitHub credentials",
+    "research and closeout documentation"
+  ],
+  "new_verification": {
+    "related_packages": [
+      "assistant",
+      "heartbeat",
+      "cli",
+      "boot",
+      "bot",
+      "bot/weixin",
+      "config",
+      "tool"
+    ],
+    "control_targeted_tests_passed": true,
+    "race_assistant_heartbeat_passed": true,
+    "golangci_lint_clean": true,
+    "repolint_clean": true,
+    "mail_protocol_tests": 12,
+    "python_compile_check_passed": true,
+    "full_root_suite_run": false
+  },
+  "closeout_actions": {
+    "production_deployments": 0,
+    "production_restarts": 0,
+    "production_state_mutations": 0,
+    "real_model_requests": 0,
+    "real_weixin_messages": 0,
+    "github_pr_module_implemented": false,
+    "automatic_free_weather_alerts_enabled": false,
+    "calendar_deferred": true
+  }
+}

@@ -13,7 +13,7 @@ import (
 
 func assistantCommand(args []string) int {
 	if len(args) == 0 || args[0] == "help" || args[0] == "--help" {
-		fmt.Println("reasonix assistant status|tasks|memories|context|mail|mail-schedule|weather|courses|courses-import\nPersonal state is scoped to REASONIX_HOME. Manage tasks and memories through assistant_tasks / assistant_memory in the owner conversation.")
+		fmt.Println("reasonix assistant status|tasks|memories|context|mail|mail-schedule|weather|courses|courses-import|subscriptions|evening|expansion-enable\nPersonal state is scoped to REASONIX_HOME. Manage tasks and memories through assistant_tasks / assistant_memory in the owner conversation.")
 		return 0
 	}
 	var result any
@@ -24,6 +24,8 @@ func assistantCommand(args []string) int {
 		result, err = assistantCourseCommand(home, args)
 	case "news":
 		result, err = assistantNewsCommand(home, args)
+	case "expansion-enable", "subscriptions", "evening":
+		result, err = assistantExpansionCommand(home, args)
 	case "morning-enable":
 		result, err = (assistant.HeartbeatService{Home: home}).EnableMorning(context.Background())
 	case "heartbeat-init":

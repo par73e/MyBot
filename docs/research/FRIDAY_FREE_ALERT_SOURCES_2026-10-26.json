@@ -1,0 +1,36 @@
+{
+  "probed_at": "2026-10-25T16:18:24.271050+00:00",
+  "results": [
+    {
+      "url": "https://wx.soweather.com/wxapp/warn.jsp",
+      "error": "<urlopen error [Errno -2] Name or service not known>"
+    },
+    {
+      "url": "http://smb.shweather.cn:5678/smb/Home/GetAlertListByType?type=sh",
+      "error": "timed out"
+    },
+    {
+      "url": "https://data.sh.gov.cn/",
+      "error": "HTTP Error 412: Precondition Failed"
+    },
+    {
+      "url": "https://weather.cma.cn/",
+      "status": 200,
+      "final_url": "https://weather.cma.cn/",
+      "bytes": 10648,
+      "content_type": "text/html",
+      "resources": [
+        "data:,"
+      ]
+    },
+    {
+      "url": "https://www.12379.cn/",
+      "error": "<urlopen error timed out>"
+    }
+  ],
+  "cma_homepage_validation": {
+    "title": "WEB 应用防火墙",
+    "is_waf_challenge": true
+  },
+  "production_mutations": false
+}

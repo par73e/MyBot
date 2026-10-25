@@ -1,0 +1,31 @@
+{
+  "version": "v1.39.10-assistant.34-six-features",
+  "binary_sha256": "1018f91531ffd4aa8b58ee2246a2a9d82246b70012b230e05f12fc10a35623f0",
+  "darwin_binary_sha256": "c307ba2730634dd9d224a8f850ec83fe4b97fb8c51f90db3b372361bbd193741",
+  "prompt_sha256": "6fadd1480da1c46b59aa940f6909ebc15bc7cff6610e5e468cd05cd326e2c315",
+  "related_packages_passed": [
+    "assistant",
+    "heartbeat",
+    "cli",
+    "boot",
+    "bot",
+    "bot/weixin",
+    "config",
+    "tool"
+  ],
+  "controller_foreground_authorization_tests_passed": true,
+  "race_assistant_heartbeat_passed": true,
+  "golangci_lint_clean": true,
+  "repolint_clean": true,
+  "mail_protocol_tests_passed": 12,
+  "actual_binary_mock_model_weixin_acceptance_passed": [
+    "darwin",
+    "linux_amd64"
+  ],
+  "full_root_suite_run": false,
+  "real_model_style_evaluation_performed": false,
+  "explicit_real_weixin_test_messages_sent": 0,
+  "production_existing_active_deadline_todos_before_activation": 0,
+  "source_file_count": 9349,
+  "source_sha256": "57932742c1c3e75cbb4c7055a23b0144f4934617552e646988dfe6e0e61389e1"
+}

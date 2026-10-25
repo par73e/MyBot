@@ -40,6 +40,7 @@ func (s Tasks) Apply(ctx context.Context, in TaskRequest) (any, error) {
 		return nil, errors.New("id is required; inspect assistant_tasks list first")
 	}
 	var result TaskView
+	var reminderWarnings []string
 	err := s.Repository.transact(ctx, func(tx *sql.Tx) error {
 		todos, err := loadEntities[Todo](ctx, tx, "todo")
 		if err != nil {
@@ -61,6 +62,7 @@ func (s Tasks) Apply(ctx context.Context, in TaskRequest) (any, error) {
 				}
 			}
 			if in.Action != "get" {
+				old := todo
 				if in.Revision != todo.Revision {
 					return fmt.Errorf("revision conflict: current revision is %d; reload before changing", todo.Revision)
 				}
@@ -84,16 +86,35 @@ func (s Tasks) Apply(ctx context.Context, in TaskRequest) (any, error) {
 				}
 				todo.Revision++
 				todo.UpdatedAt = s.clock().UTC()
+				view := TaskView{Todo: todo, Schedule: job}
+				if err = s.refreshDeadlineJobs(ctx, tx, old, &view, in, jobs); err != nil {
+					return err
+				}
+				todo = view.Todo
+				reminderWarnings = view.ReminderWarnings
+				for _, r := range view.Reminders {
+					if err = saveEntity(ctx, tx, "job", r.ID, r); err != nil {
+						return err
+					}
+				}
 				if err = saveEntity(ctx, tx, "todo", todo.ID, todo); err != nil {
 					return err
 				}
 				if job != nil {
+					if err = job.Validate(); err != nil {
+						return err
+					}
 					if err = saveEntity(ctx, tx, "job", job.ID, *job); err != nil {
 						return err
 					}
 				}
 			}
-			result = TaskView{Todo: todo, Schedule: job}
+			result = TaskView{Todo: todo, Schedule: job, ReminderWarnings: reminderWarnings}
+			liveJobs, err := loadEntities[heartbeat.Task](ctx, tx, "job")
+			if err != nil {
+				return err
+			}
+			attachReminderJobs(&result, liveJobs)
 			return nil
 		}
 		return fmt.Errorf("todo %q not found", in.ID)
@@ -117,6 +138,7 @@ func (s Tasks) List(ctx context.Context, closed bool) ([]TaskView, error) {
 				continue
 			}
 			view := TaskView{Todo: todo}
+			attachReminderJobs(&view, jobs)
 			for i := range jobs {
 				if jobs[i].ID == todo.JobID {
 					view.Schedule = &jobs[i]
@@ -131,6 +153,15 @@ func (s Tasks) List(ctx context.Context, closed bool) ([]TaskView, error) {
 }
 
 func (s Tasks) create(ctx context.Context, in TaskRequest) (TaskView, error) {
+	v, e := s.newTaskView(ctx, in)
+	if e != nil {
+		return v, e
+	}
+	e = s.saveNewTask(ctx, &v)
+	return v, e
+}
+
+func (s Tasks) newTaskView(ctx context.Context, in TaskRequest) (TaskView, error) {
 	in.Title = strings.TrimSpace(in.Title)
 	in.Body = strings.TrimSpace(in.Body)
 	if in.Title == "" || len(in.Title) > 512 || len(in.Body) > 16000 {
@@ -160,6 +191,10 @@ func (s Tasks) create(ctx context.Context, in TaskRequest) (TaskView, error) {
 	}
 	now := s.clock().UTC()
 	todo := Todo{PlannedFor: in.PlannedFor, DueAt: in.DueAt, ID: id, Revision: 1, Title: in.Title, Body: in.Body, Kind: in.Kind, Status: "open", CreatedAt: now, UpdatedAt: now}
+	if in.DeadlineReminders != nil {
+		todo.DeadlineReminders = *in.DeadlineReminders
+		todo.ReminderRevision = 1
+	}
 	view := TaskView{Todo: todo}
 	if in.Kind != "todo" {
 		job, err := s.makeJob(id, in, now)
@@ -171,15 +206,14 @@ func (s Tasks) create(ctx context.Context, in TaskRequest) (TaskView, error) {
 	} else if in.At != "" || in.Interval != "" {
 		return TaskView{}, errors.New("use reminder or automation when specifying a schedule")
 	}
-	err = s.saveNewTask(ctx, &view)
-	return view, err
+	return view, nil
 }
 
 func equivalentSchedule(a, b *heartbeat.Task) bool {
 	if a == nil || b == nil {
 		return a == nil && b == nil
 	}
-	return a.At == b.At && a.Interval == b.Interval && a.EndsAt == b.EndsAt && a.Timezone == b.Timezone
+	return a.At == b.At && a.Interval == b.Interval && a.EndsAt == b.EndsAt && a.Timezone == b.Timezone && sameNotification(a.Notification, b.Notification)
 }
 
 func (s Tasks) makeJob(id string, in TaskRequest, now time.Time) (heartbeat.Task, error) {
@@ -190,11 +224,29 @@ func (s Tasks) makeJob(id string, in TaskRequest, now time.Time) (heartbeat.Task
 	if zone == "" {
 		zone = "Asia/Shanghai"
 	}
+	if err := validateReminderVoice(in.Body, in.Notification); err != nil && in.Kind != "automation" {
+		return heartbeat.Task{}, err
+	}
 	body := in.Body
 	if body == "" {
 		body = in.Title
 	}
+	if err := validateReminderVoice(body, in.Notification); err != nil && in.Kind != "automation" {
+		return heartbeat.Task{}, err
+	}
 	job := heartbeat.Task{ID: "todo-" + id, Title: in.Title, Prompt: body, At: in.At, Interval: in.Interval, Timezone: zone, EndsAt: in.EndsAt, Enabled: true, WorkspaceRoot: s.Options.Workspace, Model: s.Options.Model, ApprovalMode: "read-only", Kind: "message", NewConversationEachRun: true, CreatedAt: now.UnixMilli(), Target: s.Options.Target}
+	job.Notification = in.Notification
+	if in.Notification != nil && in.Notification.Mode == "time_aware" && in.At != "" {
+		at, e := timestamp(in.At)
+		if e != nil {
+			return job, e
+		}
+		limit := at.Add(10 * time.Minute)
+		end, _ := timestamp(job.EndsAt)
+		if end.IsZero() || end.After(limit) {
+			job.EndsAt = limit.Format(time.RFC3339)
+		}
+	}
 	if in.Kind == "automation" {
 		job.Kind = "agent"
 		job.DecideNotification = true
@@ -224,50 +276,62 @@ func checkFutureSchedule(job heartbeat.Task, now time.Time) error {
 }
 
 func (s Tasks) saveNewTask(ctx context.Context, view *TaskView) error {
-	return s.Repository.transact(ctx, func(tx *sql.Tx) error {
-		todos, err := loadEntities[Todo](ctx, tx, "todo")
-		if err != nil {
+	return s.Repository.transact(ctx, func(tx *sql.Tx) error { return s.saveNewTaskTx(ctx, tx, view) })
+}
+func (s Tasks) saveNewTaskTx(ctx context.Context, tx *sql.Tx, view *TaskView) error {
+	todos, err := loadEntities[Todo](ctx, tx, "todo")
+	if err != nil {
+		return err
+	}
+	activeSize := len(view.Title) + len(view.Body)
+	for _, v := range todos {
+		if v.Status != "done" && v.Status != "cancelled" {
+			activeSize += len(v.Title) + len(v.Body)
+		}
+	}
+	if activeSize > 96000 {
+		return errors.New("active tasks exceed 96 KB; complete or consolidate old obligations")
+	}
+	if len(todos) >= 2000 {
+		return errors.New("personal todo capacity reached")
+	}
+	jobs, err := loadEntities[heartbeat.Task](ctx, tx, "job")
+	if err != nil {
+		return err
+	}
+	// Stable active-content deduplication handles repeated model tool calls.
+	for _, old := range todos {
+		if old.Status == "done" || old.Status == "cancelled" || old.Title != view.Title || old.Body != view.Body || old.Kind != view.Kind || old.DueAt != view.DueAt || old.PlannedFor != view.PlannedFor || old.DeadlineReminders != view.DeadlineReminders {
+			continue
+		}
+		var oldJob *heartbeat.Task
+		for i := range jobs {
+			if jobs[i].ID == old.JobID {
+				oldJob = &jobs[i]
+				break
+			}
+		}
+		if equivalentSchedule(oldJob, view.Schedule) {
+			*view = TaskView{Todo: old, Schedule: oldJob}
+			attachReminderJobs(view, jobs)
+			return nil
+		}
+	}
+	if err = s.deadlineJobs(ctx, tx, view, s.clock()); err != nil {
+		return err
+	}
+	if err = saveEntity(ctx, tx, "todo", view.ID, view.Todo); err != nil {
+		return err
+	}
+	if view.Schedule != nil {
+		if err = saveEntity(ctx, tx, "job", view.Schedule.ID, *view.Schedule); err != nil {
 			return err
 		}
-		activeSize := len(view.Title) + len(view.Body)
-		for _, v := range todos {
-			if v.Status != "done" && v.Status != "cancelled" {
-				activeSize += len(v.Title) + len(v.Body)
-			}
-		}
-		if activeSize > 96000 {
-			return errors.New("active tasks exceed 96 KB; complete or consolidate old obligations")
-		}
-		if len(todos) >= 2000 {
-			return errors.New("personal todo capacity reached")
-		}
-		jobs, err := loadEntities[heartbeat.Task](ctx, tx, "job")
-		if err != nil {
+	}
+	for _, r := range view.Reminders {
+		if err = saveEntity(ctx, tx, "job", r.ID, r); err != nil {
 			return err
 		}
-		// Stable active-content deduplication handles repeated model tool calls.
-		for _, old := range todos {
-			if old.Status == "done" || old.Status == "cancelled" || old.Title != view.Title || old.Body != view.Body || old.Kind != view.Kind || old.DueAt != view.DueAt || old.PlannedFor != view.PlannedFor {
-				continue
-			}
-			var oldJob *heartbeat.Task
-			for i := range jobs {
-				if jobs[i].ID == old.JobID {
-					oldJob = &jobs[i]
-					break
-				}
-			}
-			if equivalentSchedule(oldJob, view.Schedule) {
-				*view = TaskView{Todo: old, Schedule: oldJob}
-				return nil
-			}
-		}
-		if err = saveEntity(ctx, tx, "todo", view.ID, view.Todo); err != nil {
-			return err
-		}
-		if view.Schedule != nil {
-			return saveEntity(ctx, tx, "job", view.Schedule.ID, *view.Schedule)
-		}
-		return nil
-	})
+	}
+	return nil
 }

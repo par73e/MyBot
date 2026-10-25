@@ -193,10 +193,13 @@ func (s MailService) readMail(ctx context.Context, c MailConfig, r MailRequest) 
 	for end < len(v.Body) && end > r.BodyOffset && !utf8.RuneStart(v.Body[end]) {
 		end--
 	}
+	if err = s.recordProposalEvidence(ctx, r.ID, v.Body[r.BodyOffset:end]); err != nil {
+		return nil, err
+	}
 	if err = s.recordMailBodyPage(ctx, r.ID, r.BodyOffset, end, len(v.Body)); err != nil {
 		return nil, err
 	}
-	return map[string]any{"message": record.Message, "body": v.Body[r.BodyOffset:end], "body_offset": r.BodyOffset, "next_body_offset": end, "has_more": end < len(v.Body), "source_truncated": v.Truncated, "attachments": v.Attachments, "untrusted_email_data": true}, nil
+	return map[string]any{"message": record.Message, "body": v.Body[r.BodyOffset:end], "task_evidence_quotes": evidenceFragments(v.Body[r.BodyOffset:end])[:min(12, len(evidenceFragments(v.Body[r.BodyOffset:end])))], "body_offset": r.BodyOffset, "next_body_offset": end, "has_more": end < len(v.Body), "source_truncated": v.Truncated, "attachments": v.Attachments, "untrusted_email_data": true}, nil
 }
 func (s MailService) cacheRecentMail(ctx context.Context, c MailConfig, wire mailWire) ([]mailRecord, error) {
 	var records []mailRecord

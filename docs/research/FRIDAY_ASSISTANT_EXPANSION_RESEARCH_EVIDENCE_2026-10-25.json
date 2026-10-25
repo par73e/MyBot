@@ -1,0 +1,183 @@
+{
+  "research_date": "2026-10-25",
+  "timezone": "Asia/Shanghai",
+  "scope": "Read-only source/config/public HTTP investigation; documentation only",
+  "production_baseline": {
+    "version": "v1.39.10-assistant.33-editorial-style",
+    "service_active": true,
+    "heartbeat_revision": 25,
+    "date_override_count": 0,
+    "active_trigger_ids": [
+      "morning",
+      "daytime_mail",
+      "course_classes"
+    ],
+    "requested_routine_change_applied": false
+  },
+  "source_baseline": {
+    "git_head": "b574332a490a830af673fbe91e42b9dce4c89a0d",
+    "assistant_33_changes_already_uncommitted": true
+  },
+  "local_public_source_observations": [
+    {
+      "key": "shanghai_warning",
+      "requested_url": "https://wx.soweather.com/wxapp/warn.jsp",
+      "error": "<urlopen error EOF occurred in violation of protocol (_ssl.c:1129)>"
+    },
+    {
+      "key": "shanghai_cma",
+      "requested_url": "https://sh.cma.gov.cn/",
+      "final_url": "http://sh.cma.gov.cn/",
+      "status": 200,
+      "bytes": 127082,
+      "content_type": "text/html",
+      "etag": null,
+      "last_modified": null
+    },
+    {
+      "key": "nmc_alarm",
+      "requested_url": "https://www.nmc.cn/publish/alarm.html",
+      "final_url": "https://www.nmc.cn/publish/alarm.html",
+      "status": 200,
+      "bytes": 60703,
+      "content_type": "text/html",
+      "etag": "\"6addcb2c-ed1e\"",
+      "last_modified": "Sun, 25 Oct 2026 09:26:04 GMT"
+    },
+    {
+      "key": "weathercn_warning",
+      "requested_url": "https://e.weather.com.cn/warning/warning.shtml",
+      "final_url": "https://e.weather.com.cn/warning/warning.shtml",
+      "status": 200,
+      "bytes": 16269,
+      "content_type": "text/html",
+      "etag": null,
+      "last_modified": null
+    },
+    {
+      "key": "shanghai_weather",
+      "requested_url": "https://www.soweather.com/",
+      "error": "<urlopen error EOF occurred in violation of protocol (_ssl.c:1129)>"
+    },
+    {
+      "key": "shanghai_alert_page",
+      "url": "http://sh.cma.gov.cn/sh/tqyb/zhyj/",
+      "status": 200,
+      "bytes": 24308
+    },
+    {
+      "key": "shanghai_config_js",
+      "url": "http://sh.cma.gov.cn/material/Static/js/IndexPublic.js?20201110",
+      "status": 200,
+      "bytes": 3816
+    },
+    {
+      "key": "shanghai_top_js",
+      "url": "http://sh.cma.gov.cn/material/Static/js/Top.js?20150716",
+      "status": 200,
+      "bytes": 6344
+    },
+    {
+      "key": "shanghai_index_js",
+      "url": "http://sh.cma.gov.cn/material/Static/js/Index.js?20150716",
+      "status": 200,
+      "bytes": 2392
+    },
+    {
+      "key": "weathercn_js",
+      "url": "https://i.tq121.com.cn/j/wap2019/warning.js?2016",
+      "status": 200,
+      "bytes": 4865
+    },
+    {
+      "key": "shanghai_smb_js",
+      "url": "http://sh.cma.gov.cn/material/Static/js/Smb.js?20190726",
+      "status": 200,
+      "bytes": 360,
+      "content_type": "application/javascript",
+      "etag": "\"6896b88e-168\"",
+      "last_modified": "Sat, 09 Aug 2025 02:55:10 GMT"
+    },
+    {
+      "key": "weathercn_public_list",
+      "url": "https://product.weather.com.cn/alarm/grepalarm.php?areaid=%5B0-9%5D%7B5%2C7%7D",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "key": "shanghai_robots",
+      "url": "http://sh.cma.gov.cn/",
+      "status": 200,
+      "bytes": 127082,
+      "content_type": "text/html",
+      "etag": null,
+      "last_modified": null
+    },
+    {
+      "key": "weathercn_robots",
+      "url": "https://product.weather.com.cn/robots.txt",
+      "error": "HTTP Error 403: Forbidden"
+    }
+  ],
+  "production_host_public_source_observations": [
+    {
+      "url": "https://sh.cma.gov.cn/sh/tqyb/zhyj/",
+      "final_url": "http://sh.cma.gov.cn/sh/tqyb/zhyj/",
+      "status": 200,
+      "bytes": 24308,
+      "content_type": "text/html"
+    },
+    {
+      "url": "http://smb.shweather.cn:5678/smb/Home/GetAlertListByType?type=sh",
+      "error": "timed out (12 second timeout)"
+    },
+    {
+      "url": "https://wx.soweather.com/wxapp/warn.jsp",
+      "error": "DNS resolution failed"
+    },
+    {
+      "url": "https://product.weather.com.cn/alarm/grepalarm.php?areaid=%5B0-9%5D%7B5%2C7%7D",
+      "status": 403,
+      "error": "Forbidden"
+    }
+  ],
+  "discovered_from_official_page": {
+    "source": "https://sh.cma.gov.cn/material/Static/js/Smb.js?20190726",
+    "base_url": "http://smb.shweather.cn:5678/smb/Home/",
+    "operation": "GetAlertListByType?type=sh",
+    "public_api_contract_verified": false
+  },
+  "quota_assumptions": {
+    "monthly_limit_user_reported": 5000,
+    "account_plan_or_usage_verified": false,
+    "new_weekly_routine_minutes": 5820,
+    "ten_minute_single_endpoint_30_day_average": 2494.29,
+    "thirty_minute_single_endpoint_30_day_average": 831.43,
+    "thirty_minute_single_endpoint_31_day_conservative_bound": 961,
+    "existing_calls_manual_calls_and_retries_additional": true
+  },
+  "not_performed": [
+    "application code changes",
+    "production config or state changes",
+    "task creation",
+    "service restart",
+    "credential access or changes",
+    "real model calls",
+    "Weixin messages",
+    "sustained availability or load test",
+    "free weather provider integration"
+  ],
+  "limitations": [
+    "HTTP observations are point-in-time, not sustained availability guarantees",
+    "robots.txt request redirecting to HTML is not a successful robots policy retrieval",
+    "200 HTML does not prove alert data loaded or zero active alerts",
+    "5000 monthly quota is user-provided, not control-panel verified"
+  ],
+  "design_revision": {
+    "date": "2026-10-25",
+    "requirement_count": 9,
+    "added_requirement": "R9: AI writes natural reminder text at creation; native scheduled delivery with no model call",
+    "calendar_sync_deferred": true,
+    "revision_scope": "Design documentation only; no application code or production changes in this revision",
+    "historical_note": "A separate explicitly authorized memory removal occurred after the initial research; this is not implementation of the nine requirements."
+  }
+}

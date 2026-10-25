@@ -81,18 +81,11 @@ func (c HeartbeatConfig) validateDateOverride(date string, o HeartbeatOverride) 
 }
 
 func validateTriggerMode(t ModuleTrigger) error {
-	if t.Mode != "daily" && t.Mode != "interval" && t.Mode != "once" && t.Mode != "course" {
-		return errors.New("trigger mode must be daily, interval, once or course")
+	if t.Mode != "daily" && t.Mode != "interval" && t.Mode != "once" && t.Mode != "course" && t.Mode != "subscription" {
+		return errors.New("trigger mode must be daily, interval, once, course or subscription")
 	}
-	if t.Mode == "course" {
-		if len(t.Modules) != 1 || t.Modules[0] != "course_reminder" || t.Clock != "" || t.At != "" || t.LeadMinutes < 1 || t.LeadMinutes > 180 || t.CatchUpSeconds < 60 || t.CatchUpSeconds > 600 {
-			return errors.New("course trigger requires only course_reminder, lead_minutes 1..180, catch_up_seconds 60..600 and no clock/at")
-		}
-	} else if t.LeadMinutes != 0 {
-		return errors.New("lead_minutes requires course mode")
-	}
-	if t.Mode != "course" && slices.Contains(t.Modules, "course_reminder") {
-		return errors.New("course_reminder requires course mode")
+	if e := validateDerivedTrigger(t); e != nil {
+		return e
 	}
 	if t.Mode == "interval" && (t.IntervalSeconds < 60 || t.IntervalSeconds > 86400) {
 		return errors.New("interval_seconds must be 60..86400")
@@ -119,6 +112,12 @@ func validateTriggerMode(t ModuleTrigger) error {
 }
 
 func validateTriggerModules(t ModuleTrigger, mods []string) error {
+	if t.Mode == "subscription" && (len(mods) != 1 || mods[0] != "subscription_reminder") {
+		return errors.New("subscription trigger requires subscription_reminder")
+	}
+	if t.Mode != "subscription" && slices.Contains(mods, "subscription_reminder") {
+		return errors.New("subscription mode required")
+	}
 	if err := validateModuleList(mods); err != nil {
 		return err
 	}
@@ -127,6 +126,28 @@ func validateTriggerModules(t ModuleTrigger, mods []string) error {
 			return errors.New("course trigger can only select course_reminder")
 		}
 	} else if slices.Contains(mods, "course_reminder") {
+		return errors.New("course_reminder requires course mode")
+	}
+	return nil
+}
+
+func validateDerivedTrigger(t ModuleTrigger) error {
+	if t.Mode == "subscription" {
+		if len(t.Modules) != 1 || t.Modules[0] != "subscription_reminder" || t.Clock != "" || t.At != "" || t.LeadMinutes != 0 {
+			return errors.New("subscription mode derives expiry reminders at routine start")
+		}
+	}
+	if t.Mode != "subscription" && slices.Contains(t.Modules, "subscription_reminder") {
+		return errors.New("subscription reminders require subscription mode")
+	}
+	if t.Mode == "course" {
+		if len(t.Modules) != 1 || t.Modules[0] != "course_reminder" || t.Clock != "" || t.At != "" || t.LeadMinutes < 1 || t.LeadMinutes > 180 || t.CatchUpSeconds < 60 || t.CatchUpSeconds > 600 {
+			return errors.New("course trigger requires only course_reminder, lead_minutes 1..180, catch_up_seconds 60..600 and no clock/at")
+		}
+	} else if t.LeadMinutes != 0 {
+		return errors.New("lead_minutes requires course mode")
+	}
+	if t.Mode != "course" && slices.Contains(t.Modules, "course_reminder") {
 		return errors.New("course_reminder requires course mode")
 	}
 	return nil

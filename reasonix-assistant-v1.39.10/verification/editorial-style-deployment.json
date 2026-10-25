@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.33-editorial-style",
+  "previous_version": "v1.39.10-assistant.32-url-chunks",
+  "binary_sha256": "41c7441b6d980ad82fe7ad3bc016f4ea3f129b8798d234694d74a7f2f7d06a5f",
+  "prompt_sha256": "4f611de751996e590d8d29a86bdf7f5aa2b52818aa89f991f436d81201ff798e",
+  "source_file_count": 9325,
+  "changed_go_files": [
+    "internal/assistant/hot_news_prompt.go",
+    "internal/assistant/morning_prompt.go"
+  ],
+  "service_active": true,
+  "weixin_ready": true,
+  "protected_configuration_and_memories_verified_before_activation": true,
+  "heartbeat_configuration_unchanged": true,
+  "production_state_migrations": false,
+  "explicit_test_messages_sent": 0,
+  "backup": "/var/lib/mybot/backups/editorial-style-20261025T072016Z"
+}

@@ -55,6 +55,12 @@ func (s HeartbeatService) Prepare(ctx context.Context, now time.Time) error {
 			return nil
 		}
 		for _, tr := range c.Triggers {
+			if tr.Mode == "subscription" {
+				if err := s.prepareSubscriptions(ctx, tx, c, tr, now); err != nil {
+					return err
+				}
+				continue
+			}
 			if tr.Mode == "course" {
 				if err := s.prepareCourseTrigger(ctx, tx, c, tr, now); err != nil {
 					return err
@@ -79,7 +85,10 @@ func (s HeartbeatService) Allows(ctx context.Context, t heartbeat.Task, now time
 		return allowed, err
 	}
 	if t.ModuleID == "" && t.Capability != "mail" && t.Capability != "weather" {
-		return true, nil
+		return personalTaskAdmission(ctx, s.repo(), t)
+	}
+	if t.ModuleID == "subscription_reminder" {
+		return s.subscriptionAdmission(ctx, c, t, now)
 	}
 	if t.ModuleID == "course_reminder" {
 		return s.courseAdmission(ctx, t, now)

@@ -28,7 +28,7 @@ func applyHeartbeatDate(c *HeartbeatConfig, r HeartbeatRequest, now time.Time) e
 			return errors.New("per-trigger end override is not supported; set the routine end separately")
 		}
 		if r.Start != "" {
-			if c.Triggers[r.TriggerID].Mode == "course" {
+			if c.Triggers[r.TriggerID].Mode == "course" || c.Triggers[r.TriggerID].Mode == "subscription" {
 				return errors.New("course trigger derives time from actual classes; change the course occurrence or lead_minutes")
 			}
 			if o.TriggerClocks == nil {

@@ -26,8 +26,12 @@ type Options struct {
 
 // Todo is a personal obligation, independent from its reminder delivery status.
 type Todo struct {
-	PlannedFor string `json:"planned_for,omitempty"`
-	DueAt      string `json:"due_at,omitempty"`
+	DeadlineReminders bool     `json:"deadline_reminders,omitempty"`
+	ReminderJobIDs    []string `json:"reminder_job_ids,omitempty"`
+	ReminderRevision  int      `json:"reminder_revision,omitempty"`
+	SourceProposal    string   `json:"source_proposal,omitempty"`
+	PlannedFor        string   `json:"planned_for,omitempty"`
+	DueAt             string   `json:"due_at,omitempty"`
 
 	ID          string      `json:"id"`
 	Revision    int         `json:"revision"`
@@ -43,8 +47,10 @@ type Todo struct {
 
 // TaskRequest is validated input shared by the CLI, tools and tests.
 type TaskRequest struct {
-	PlannedFor string `json:"planned_for,omitempty"`
-	DueAt      string `json:"due_at,omitempty"`
+	DeadlineReminders *bool                           `json:"deadline_reminders,omitempty"`
+	Notification      *heartbeat.ReminderNotification `json:"notification,omitempty"`
+	PlannedFor        string                          `json:"planned_for,omitempty"`
+	DueAt             string                          `json:"due_at,omitempty"`
 
 	Action         string `json:"action"`
 	ID             string `json:"id,omitempty"`
@@ -63,7 +69,9 @@ type TaskRequest struct {
 // TaskView joins the user-facing obligation with its independently tracked job.
 type TaskView struct {
 	Todo
-	Schedule *heartbeat.Task `json:"schedule,omitempty"`
+	Schedule         *heartbeat.Task  `json:"schedule,omitempty"`
+	Reminders        []heartbeat.Task `json:"reminders,omitempty"`
+	ReminderWarnings []string         `json:"reminder_warnings,omitempty"`
 }
 
 func newID() (string, error) {

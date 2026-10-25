@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"reasonix/internal/agent"
@@ -205,6 +206,7 @@ func (o *turnOrchestrator) runOrchestratedTurn(ctx context.Context, turn orchest
 	if c.executor != nil {
 		ctx = agent.WithUserMessageIdentity(ctx, c.executor.Session(), userMessageID)
 	}
+	ctx = tool.WithForegroundAuthorization(ctx, c.foregroundAuthorization(turn, userMessageID))
 	var input string
 	if turn.goalRound != nil {
 		input = c.ComposeSynthetic(turn.input)
@@ -401,4 +403,22 @@ func (o *turnOrchestrator) runEditedGoalLoopWithFrozenImagesRawDisplay(ctx conte
 	}
 	ctx = agent.WithSubagentImageCandidates(ctx, turn.imageCandidates)
 	return o.runOrchestratedTurn(ctx, turn)
+}
+
+func (c *Controller) foregroundAuthorization(turn orchestratedTurn, userMessageID string) tool.ForegroundAuthorization {
+	proof := tool.ForegroundAuthorization{}
+	if !turn.synthetic {
+		proof.MessageID = userMessageID
+		proof.Text = turn.raw
+		if c.executor != nil {
+			messages := c.executor.Session().Snapshot()
+			for i := range slices.Backward(messages) {
+				if messages[i].Role == provider.RoleAssistant && messages[i].Content != "" {
+					proof.PreviousAssistant = messages[i].Content
+					break
+				}
+			}
+		}
+	}
+	return proof
 }
