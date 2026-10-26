@@ -1,0 +1,115 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.36-github-pr-tracking",
+  "previous_version": "v1.39.10-assistant.35-morning-reliability",
+  "binary_sha256": "d60dd294d00e5ba7b96d45499358f1c98703f53942378d50c6fe4a8ce757c72c",
+  "source_archive_sha256": "7877a9fb3bba652ca0625a850be638844e1cddf79ed04d66d9bb5ed296dee375",
+  "source_file_count": 9388,
+  "changed_go_files": [
+    "internal/assistant/github_cadence.go",
+    "internal/assistant/github_cadence_test.go",
+    "internal/assistant/github_ci.go",
+    "internal/assistant/github_ci_test.go",
+    "internal/assistant/github_config.go",
+    "internal/assistant/github_discovery.go",
+    "internal/assistant/github_events.go",
+    "internal/assistant/github_fixture_test.go",
+    "internal/assistant/github_http.go",
+    "internal/assistant/github_native_test.go",
+    "internal/assistant/github_outbox.go",
+    "internal/assistant/github_poll.go",
+    "internal/assistant/github_sources.go",
+    "internal/assistant/github_store.go",
+    "internal/assistant/github_test.go",
+    "internal/assistant/github_tool.go",
+    "internal/assistant/github_types.go",
+    "internal/assistant/heartbeat_config.go",
+    "internal/assistant/heartbeat_prepare.go",
+    "internal/assistant/heartbeat_runtime.go",
+    "internal/boot/assistant.go",
+    "internal/cli/assistant.go",
+    "internal/cli/assistant_memory_command.go",
+    "internal/cli/native_heartbeat.go",
+    "internal/cli/unified_heartbeat.go",
+    "internal/heartbeat/admission.go",
+    "internal/heartbeat/engine.go",
+    "internal/heartbeat/lanes.go",
+    "internal/heartbeat/task.go"
+  ],
+  "service_active": true,
+  "weixin_ready": true,
+  "running_process_hash_verified": true,
+  "persona_configuration_accounts_and_memory_files_unchanged": true,
+  "routine_and_existing_triggers_unchanged": true,
+  "github_trigger_enabled": true,
+  "github_poll_seconds": 60,
+  "github_discovery_seconds": 300,
+  "github_scope": "all open public PRs authored by par73e; later new PRs auto-discovered",
+  "production_state_migrations": "new GitHub entities and one Heartbeat trigger only",
+  "unrelated_personal_entities_preserved_at_activation": true,
+  "database_integrity": "ok",
+  "workspace_source_follows_current_release": true,
+  "explicit_test_messages_sent": 0,
+  "backup": "/var/lib/mybot/backups/github-pr-tracking-20261026T070631Z",
+  "independent_post_deployment_verification": {
+    "verified_at": "2026-10-26T07:07:30.438674+00:00",
+    "version": "reasonix v1.39.10-assistant.36-github-pr-tracking",
+    "active": true,
+    "pid": "1849979",
+    "running_sha256": "d60dd294d00e5ba7b96d45499358f1c98703f53942378d50c6fe4a8ce757c72c",
+    "weixin_ready": true,
+    "github_config": {
+      "revision": 1,
+      "enabled": true,
+      "login": "par73e",
+      "auto_discover": true,
+      "poll_seconds": 60,
+      "discovery_seconds": 300,
+      "discovery_at": "2026-10-26T15:11:00+08:00",
+      "discovery_ok_at": "2026-10-26T15:06:33.409671655+08:00"
+    },
+    "github_trigger": {
+      "routine_bound": true,
+      "id": "github_prs",
+      "title": "GitHub PR进度检查",
+      "enabled": true,
+      "mode": "interval",
+      "modules": [
+        "github_pr_check"
+      ],
+      "interval_seconds": 60
+    },
+    "watch_count": 0,
+    "notification_job_count": 0,
+    "native_checks": [
+      {
+        "module_id": "github_pr_check",
+        "kind": "module_check",
+        "status": null,
+        "scheduled_at": null,
+        "history": [
+          {
+            "module_id": "github_pr_check",
+            "trigger_revision": 29,
+            "scheduled_at": "2026-10-26T15:06:00+08:00",
+            "startedAt": 1792998392570,
+            "endedAt": 1792998393413,
+            "status": "completed"
+          },
+          {
+            "module_id": "github_pr_check",
+            "trigger_revision": 29,
+            "scheduled_at": "2026-10-26T15:07:00+08:00",
+            "startedAt": 1792998420576,
+            "endedAt": 1792998420606,
+            "status": "completed"
+          }
+        ]
+      }
+    ],
+    "source_manifest_matches": true,
+    "source_file_count": 9388,
+    "database_integrity": "ok",
+    "current_process_error_log_count": 0
+  }
+}

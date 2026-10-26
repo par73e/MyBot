@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "verified_at": "2026-10-26T12:25:23.356868+00:00",
+  "version": "reasonix v1.39.10-assistant.39-github-chinese-summary",
+  "binary_sha256": "c4499853e787e3dd051a7e125293b6d1e8f19ade7e59af9db5dc897ab93889a1",
+  "service_active": true,
+  "weixin_ready_since_latest_start": true,
+  "source_manifest_files_verified": 9421,
+  "local_and_deployed_go_file_count": 5450,
+  "all_go_sources_match": true,
+  "source_sync_boundary": "Go source only; post-release closeout documents and verification artifacts are not claimed byte-identical",
+  "model": "ali-medium/qwen3.8-flash",
+  "bot_permission_mode": "workspace-write",
+  "github_poll_seconds": 60,
+  "github_discovery_seconds": 300,
+  "alerts_poll_seconds": 300,
+  "alerts_sources": [
+    {
+      "source": "nmc",
+      "failures": 0,
+      "last_success": "2026-10-26T20:25:01.198321881+08:00"
+    },
+    {
+      "source": "shanghai",
+      "failures": 0,
+      "last_success": "2026-10-26T20:25:01.102974309+08:00"
+    },
+    {
+      "source": "weathercn",
+      "failures": 0,
+      "last_success": "2026-10-26T20:25:01.178557652+08:00"
+    }
+  ],
+  "active_subscription_count": 3,
+  "subscription_reminder_enabled": true,
+  "production_changes_in_this_closeout": false,
+  "real_messages_sent_in_this_closeout": 0
+}

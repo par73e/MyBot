@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "verified_at": "2026-10-26T12:29:40.711838+00:00",
+  "baseline_commit": "e0a62785b0ca5cdb13907900045b63abb6664910",
+  "code_version": "v1.39.10-assistant.39-github-chinese-summary",
+  "verification_strategy": "Reuse matching passed snapshots; no Go source, dependency or tested Python scenario input changed since .39 verification. New work in this closeout is documentation and read-only runtime verification.",
+  "go_file_count": 5450,
+  "go_tree_sha256": "6df27c4a7c77f718dd7b69a53411d6e47c2a850b17c4336fd8d09025353e2d7f",
+  "go_mod_sha256": "f3146cb5b3528bac92810e9bc1f7c073cc8a1c38c23d9e08d51a470969486814",
+  "go_sum_sha256": "ec444ccf888de36c17c16a32a5ed28a2ba4fdec73b4e31534f5a347d8b1774e6",
+  "reused_checks": {
+    "final_39_package_tests": [
+      "assistant",
+      "heartbeat",
+      "cli",
+      "boot",
+      "bot"
+    ],
+    "unchanged_package_evidence_from_37": [
+      "bot/weixin",
+      "config",
+      "tool"
+    ],
+    "final_39_race_scope": "assistant GitHub tests; heartbeat invocation had no matching GitHub tests",
+    "earlier_38_race_scope": "complete assistant and heartbeat suites before the .39 summary extension",
+    "static": "golangci-lint 0 issues; repolint 1150 existing baseline findings, no baseline edit",
+    "binary_e2e": "actual .39 Darwin and Linux binaries; mock model and Weixin; valid Chinese, English-only fallback, invalid JSON fallback and restart deduplication",
+    "historical_morning_e2e": ".35/.36 normal, repair and fallback; .38 fallback; retained as version-scoped evidence, not a new .39 full morning end-to-end run"
+  },
+  "new_checks": [
+    "whole Git-visible snapshot reviewed and sensitive-pattern scanned",
+    "all 10 pending Python files syntax compiled without executing",
+    "complete local Git-visible Go tree and dependencies matched .39 source manifest",
+    "current process hash, 9421 release files, service and Weixin readiness independently verified",
+    "git diff --check"
+  ],
+  "intentionally_not_run": [
+    "entire upstream root-module test suite",
+    "complete control package suite",
+    "new real model generation or real Weixin test delivery",
+    "production deployment, restart, data migration or reminder replay"
+  ],
+  "production_changed_in_closeout": false
+}

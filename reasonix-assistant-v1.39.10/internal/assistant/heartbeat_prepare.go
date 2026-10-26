@@ -155,6 +155,12 @@ func retryableModuleJob(tr ModuleTrigger, j heartbeat.Task, last heartbeat.Run, 
 func (s HeartbeatService) moduleTask(c HeartbeatConfig, tr ModuleTrigger, id, occurrenceID, date string, start, end, at, now time.Time) heartbeat.Task {
 	job := heartbeat.Task{ID: occurrenceID + "-" + id, Title: tr.Title + " / " + id, Prompt: "Host module invocation", At: at.Format(time.RFC3339), Timezone: c.Timezone, EndsAt: end.Format(time.RFC3339), Enabled: true, WorkspaceRoot: s.Options.Workspace, Model: s.Options.Model, ApprovalMode: "read-only", NewConversationEachRun: true, Target: s.Options.Target, CreatedAt: now.UnixMilli(), ModuleID: id, TriggerID: tr.ID, OccurrenceID: occurrenceID, TriggerRevision: c.Revision}
 	switch id {
+	case "weather_alert_check":
+		job.Kind = "weather_check"
+		job.Prompt = "Read official Shanghai alert sources with native independent-source reconciliation"
+	case "github_pr_check":
+		job.Kind = "module_check"
+		job.Prompt = "Read public GitHub PR deltas using the host-owned native client"
 	case "evening_briefing":
 		job.Kind = "agent"
 		job.Capability = "evening"

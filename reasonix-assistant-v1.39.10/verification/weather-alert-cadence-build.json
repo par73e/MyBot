@@ -1,0 +1,110 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.38-weather-alert-cadence",
+  "status": "verified_candidate_pending_linux_staging_and_deployment",
+  "verified_at": "2026-10-26T08:24:19.024593+00:00",
+  "previous_production_version": "v1.39.10-assistant.37-official-weather-alerts",
+  "previous_production_sha256": "e92b65acd42705f8e243b17f3a567a14057b3256693803fae68cff879baa92e7",
+  "confirmed_scope": "official Shanghai municipality, central-city and district warnings, routine-bound every 300 seconds, independent source positives; no source quorum",
+  "binaries": {
+    "darwin_arm64": {
+      "path": "/private/tmp/mybot-alert-darwin",
+      "sha256": "8dcf869f2b7ccd282e179a6b17d741d0b807b62efbabe04e29669b58596934c5"
+    },
+    "linux_amd64": {
+      "path": "/private/tmp/mybot-alert-linux-amd64",
+      "sha256": "dad62e25254b60466c917ed581201112ac814a65f13089a0bc04ccae865089f6"
+    }
+  },
+  "go_changes_from_deployed_37": {
+    "internal/assistant/alert_poll.go": "8886b09401204300924c495de44efe752f112b66e402fc3f9e1182488cae91d2",
+    "internal/assistant/alert_test.go": "0100afb7250f20570560dc98c118aa326e89b4e48dd8344a5d3bbf47f3fa04a4"
+  },
+  "alert_scenario_count": 15,
+  "related_package_tests": [
+    "ok  \treasonix/internal/assistant\t7.646s",
+    "ok  \treasonix/internal/heartbeat\t4.605s",
+    "ok  \treasonix/internal/cli\t47.813s",
+    "ok  \treasonix/internal/boot\t51.480s",
+    "ok  \treasonix/internal/bot\t6.588s",
+    "ok  \treasonix/internal/bot/weixin\t1.007s",
+    "ok  \treasonix/internal/config\t16.602s",
+    "ok  \treasonix/internal/tool\t0.402s"
+  ],
+  "race_tests": [
+    "ok  \treasonix/internal/assistant\t19.498s",
+    "ok  \treasonix/internal/heartbeat\t5.484s"
+  ],
+  "golangci_lint": "0 issues.",
+  "repolint": "repolint: clean (1150 baselined findings)",
+  "actual_binary_public_read": {
+    "passed": true,
+    "actual_binary": true,
+    "actual_official_public_gets": true,
+    "source_health": [
+      {
+        "checked_at": "2026-10-26T16:23:23.311385+08:00",
+        "count": 0,
+        "detail_errors": 0,
+        "failures": 0,
+        "last_success": "2026-10-26T16:23:23.311385+08:00",
+        "next_attempt": "2026-10-26T16:25:00+08:00",
+        "source": "nmc"
+      },
+      {
+        "checked_at": "2026-10-26T16:23:24.021687+08:00",
+        "count": 0,
+        "detail_errors": 0,
+        "failures": 0,
+        "last_success": "2026-10-26T16:23:24.021687+08:00",
+        "next_attempt": "2026-10-26T16:25:00+08:00",
+        "source": "shanghai"
+      },
+      {
+        "checked_at": "2026-10-26T16:23:24.027928+08:00",
+        "count": 0,
+        "detail_errors": 0,
+        "failures": 0,
+        "last_success": "2026-10-26T16:23:24.027928+08:00",
+        "next_attempt": "2026-10-26T16:25:00+08:00",
+        "source": "weathercn"
+      }
+    ],
+    "observed_records": 0,
+    "five_minute_cadence_persisted": true,
+    "notifications_queued": 0,
+    "real_model_calls": 0,
+    "paid_weather_calls": 0,
+    "real_weixin_messages": 0,
+    "production_state_changed": false
+  },
+  "actual_binary_morning_fallback_regression": {
+    "passed": true,
+    "scenario": "fallback",
+    "final_drafts": 2,
+    "full_draft_checks": 2,
+    "fallback": true,
+    "actual_binary": true,
+    "proactive_morning_messages": 1,
+    "fake_weixin_messages": 3,
+    "active_long_and_short_memory_verified_in_provider_request": true,
+    "expired_memory_body_absent": true,
+    "background_tool_scope_verified": true,
+    "greeting_plus_five_lines_without_headings": true,
+    "native_shared_collector_snapshot_to_top_three": true,
+    "follow_up_original_source": true,
+    "restart_duplicate_count": 0,
+    "mock_model_requests": 7,
+    "real_model_requests": 0,
+    "real_weixin_messages": 0,
+    "sources": "synthetic shared seven-candidate news cache; native morning prepare selects/reads top three; mock model and Weixin, no real services"
+  },
+  "model_calls_for_alert_checks_and_delivery": 0,
+  "paid_weather_calls_for_alert_module": 0,
+  "production_changed": false,
+  "regression_evidence_scope": "related_package_tests and morning fallback are from the .37 full module release; unchanged integration paths are reused. Complete assistant/heartbeat race suite and lint verify final two-Go-file cadence correction",
+  "limitations": [
+    "No live Shanghai warning present during acceptance; first real warning and Weixin receipt remain to be observed",
+    "Official webpage endpoints have no observed published third-party rate allowance or SLA; backoff can extend effective cadence"
+  ]
+}

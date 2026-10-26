@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "actual_binary": true,
+  "actual_public_github_gets": true,
+  "discovered_open_public_prs": 0,
+  "baseline_count": 0,
+  "poll_seconds": 60,
+  "discovery_seconds": 300,
+  "additional_closed_public_pr_read": true,
+  "sample_ci_state": "success",
+  "sample_ci_error": null,
+  "ci_unknown_count": 0,
+  "historical_events_replayed": 0,
+  "notifications_queued": 0,
+  "github_write_requests": 0,
+  "real_model_requests": 0,
+  "real_weixin_messages": 0,
+  "production_state_changed": false
+}

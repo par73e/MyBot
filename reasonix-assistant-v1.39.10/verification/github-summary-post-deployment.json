@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "verified_at": "2026-10-26T10:50:31.414764+00:00",
+  "version": "v1.39.10-assistant.39-github-chinese-summary",
+  "service_active": true,
+  "actual_process_sha256": "c4499853e787e3dd051a7e125293b6d1e8f19ade7e59af9db5dc897ab93889a1",
+  "all_source_hashes_verified": 9421,
+  "heartbeat_configuration_unchanged": true,
+  "previously_delivered_event_receipts_unchanged": true,
+  "pending_github_events_before_activation": 0,
+  "github_poll_seconds": 60,
+  "github_discovery_seconds": 300,
+  "active_watch_count": 1,
+  "watch_error_count": 0,
+  "latest_native_checks": [
+    {
+      "started_at": 1793011800877,
+      "status": "completed",
+      "has_error": false
+    }
+  ],
+  "database_integrity": "ok"
+}

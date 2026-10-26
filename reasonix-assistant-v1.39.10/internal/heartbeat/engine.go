@@ -77,7 +77,7 @@ func (e Engine) Tick(ctx context.Context, now time.Time) error {
 	if e.Prepare != nil {
 		failures = append(failures, e.Prepare(ctx, now))
 	}
-	for _, kind := range []string{"message", "agent", "mail_check", "weather_check"} {
+	for _, kind := range []string{"message", "agent", "mail_check", "weather_check", "module_check"} {
 		lane := e
 		lane.kindFilter = kind
 		failures = append(failures, lane.Tick(ctx, now))
@@ -178,7 +178,7 @@ func (e Engine) dispatchTask(ctx context.Context, task Task, now time.Time, manu
 	}
 	out := Execution{Text: task.MessageText(now)}
 	var err error
-	if task.Kind == "agent" || task.Kind == "mail_check" || task.Kind == "weather_check" {
+	if task.Kind == "agent" || task.Kind == "mail_check" || task.Kind == "weather_check" || task.Kind == "module_check" {
 		err = task.validateWorkspace()
 		if err == nil {
 			out, err = e.runAdmitted(ctx, task)
@@ -228,7 +228,7 @@ func (e Engine) finish(id string, out Execution, runErr error) error {
 		if runErr != nil {
 			r.Status, r.Error = "failed", runErr.Error()
 		}
-		if skipped(*t, time.Now()) {
+		if skipped(*t, e.now()) {
 			r.Status = "skipped"
 			return
 		}
@@ -242,8 +242,9 @@ func (e Engine) finish(id string, out Execution, runErr error) error {
 }
 
 func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
+	checkedAt := e.now()
 	if e.Clock != nil {
-		now = e.Clock()
+		now = checkedAt
 	}
 	tasks, err := e.Store.List(ctx)
 	if err != nil {
@@ -254,7 +255,7 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 			continue
 		}
 		r := lastRun(&task)
-		if r == nil || r.Status != "delivery_pending" || !task.Enabled || skipped(task, time.Now()) {
+		if r == nil || r.Status != "delivery_pending" || !task.Enabled || skipped(task, checkedAt) {
 			return nil
 		}
 		if r.NextDeliveryAt > now.UnixMilli() {
@@ -263,7 +264,7 @@ func (e Engine) deliver(ctx context.Context, id string, now time.Time) error {
 		if task.Target == nil {
 			return errors.New("pending notification has no target")
 		}
-		if task.Expired(time.Now()) {
+		if task.Expired(checkedAt) {
 			return e.updateRun(id, func(t *Task, r *Run) { r.Status = "delivery_expired"; t.Enabled = false })
 		}
 		allowed, gateErr := e.Admitted(ctx, task, now)

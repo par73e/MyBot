@@ -1,0 +1,124 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.39-github-chinese-summary",
+  "status": "approved_and_verified_pending_activation",
+  "verified_at": "2026-10-26T10:37:58.250855+00:00",
+  "previous_production_version": "v1.39.10-assistant.38-weather-alert-cadence",
+  "previous_production_sha256": "dad62e25254b60466c917ed581201112ac814a65f13089a0bc04ccae865089f6",
+  "binaries": {
+    "darwin_arm64": {
+      "path": "/private/tmp/mybot-github-summary-darwin",
+      "sha256": "869e3be4603dbd88ba2b8bae9e3b6f9c94ad10feaafa3df599d2e04687e49011"
+    },
+    "linux_amd64": {
+      "path": "/private/tmp/mybot-github-summary-linux-amd64",
+      "sha256": "c4499853e787e3dd051a7e125293b6d1e8f19ade7e59af9db5dc897ab93889a1"
+    }
+  },
+  "go_changes_from_38": {
+    "internal/assistant/github_ci_test.go": "4bde09c3a3e5736ada4192ba84ca830e479795fd885910dfe1e705f15a7fb628",
+    "internal/assistant/github_events.go": "65f164aac89cab308060d8152c4aae4d82ee62d630f1b68f709e3b8920504361",
+    "internal/assistant/github_native_test.go": "2141e6c0b6095e7d9ff895fd16fa54bc743ab6f0a7b5262e49687e861638fe55",
+    "internal/assistant/github_outbox.go": "be39a13429c26324a34232663bf3841834c3f01af548e0f1a919fcabe9fbed26",
+    "internal/assistant/github_sources.go": "53ffb297441fe1740c4d786d8d38cc16cc4624b9cd59066539cc70e7aacfa912",
+    "internal/assistant/github_summary.go": "b0857917a2a503d5258e358757a05de1f70a650e2a001fe998043e4ff7f56871",
+    "internal/assistant/github_summary_test.go": "e0f61bd69681ea602f02966bc2791ea97b66502a7db7954f54f2c2965d474a6f",
+    "internal/assistant/github_summary_tool.go": "e1fb747b5492e7eb5916d425b519139e4df59e1998b20306c7088ff90cb8426d",
+    "internal/assistant/github_test.go": "b177b7f42550a3346e7c6d886c2e19c7b457d88c08bd7ecc4ae6b7fe7445a93d",
+    "internal/assistant/github_types.go": "781fda66b5e6847c430839747821b3609b5b29c95bf6a8ef69ab6ac2886b96d8",
+    "internal/boot/assistant.go": "da6926cbc166ce0ad574ae965eb5f9094902a7ee55402ee5db23877b96070975",
+    "internal/boot/github_summary_test.go": "3a8b612f5de727b5fd6d4c014520f8133be0aa8242d4a0f36f85fdc6e9d0ba4a",
+    "internal/cli/github_execution.go": "d5ca5e5d6a987ec372322cf90f33a944b0351e047bd4a7a2b8c4c05e1d8855b2",
+    "internal/cli/heartbeat_runner.go": "c501589190f8b1f6a93f42b9edfd186d45ce726add8cd760d21ec708ed7e8b5f",
+    "internal/heartbeat/task.go": "225cf59669206149715b6be4817adb1c58263ea20c9de4a229e7c4f53ffbcc6c"
+  },
+  "related_package_tests": [
+    "assistant: passed",
+    "heartbeat: passed",
+    "cli: passed",
+    "boot: passed",
+    "bot: passed"
+  ],
+  "github_race_tests": [
+    "assistant: passed",
+    "heartbeat: passed, no matching GitHub tests in this package"
+  ],
+  "golangci_lint": "0 issues.",
+  "repolint": "repolint: clean (1150 baselined findings)",
+  "actual_binary_acceptance": {
+    "passed": true,
+    "actual_binary": true,
+    "synthetic_events": true,
+    "real_model_requests": 0,
+    "real_github_requests": 0,
+    "real_weixin_messages": 0,
+    "scenarios": [
+      {
+        "mode": "valid",
+        "passed": true,
+        "mock_model_requests": 2,
+        "mock_weixin_messages": 1,
+        "restart_duplicates": 0
+      },
+      {
+        "mode": "english_only",
+        "passed": true,
+        "mock_model_requests": 2,
+        "mock_weixin_messages": 1,
+        "restart_duplicates": 0
+      },
+      {
+        "mode": "bad_json",
+        "passed": true,
+        "mock_model_requests": 2,
+        "mock_weixin_messages": 1,
+        "restart_duplicates": 0
+      }
+    ]
+  },
+  "poll_seconds": 60,
+  "discovery_seconds": 300,
+  "model_calls_for_unchanged_checks": 0,
+  "model_calls_for_state_or_ci_only_notifications": 0,
+  "reply_notification_generation": "one bounded agent execution per batch of at most five events; tool read and final answer may require multiple provider requests",
+  "summary_generation_timeout_seconds": 60,
+  "production_changed": false,
+  "production_notifications_sent": 0,
+  "limitations": [
+    "Real model translation quality and actual Weixin receipt not exercised; acceptance uses synthetic events and mocked services",
+    "Generation shares the existing agent lane and adds queueing/generation latency",
+    "Retained source bodies and tool result size are bounded; partial source coverage is explicitly marked"
+  ],
+  "deployment_explicitly_authorized": true,
+  "linux_runtime_acceptance": {
+    "passed": true,
+    "actual_binary": true,
+    "synthetic_events": true,
+    "real_model_requests": 0,
+    "real_github_requests": 0,
+    "real_weixin_messages": 0,
+    "scenarios": [
+      {
+        "mode": "valid",
+        "passed": true,
+        "mock_model_requests": 2,
+        "mock_weixin_messages": 1,
+        "restart_duplicates": 0
+      },
+      {
+        "mode": "english_only",
+        "passed": true,
+        "mock_model_requests": 2,
+        "mock_weixin_messages": 1,
+        "restart_duplicates": 0
+      },
+      {
+        "mode": "bad_json",
+        "passed": true,
+        "mock_model_requests": 2,
+        "mock_weixin_messages": 1,
+        "restart_duplicates": 0
+      }
+    ]
+  }
+}

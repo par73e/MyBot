@@ -102,6 +102,15 @@ func (s HeartbeatService) Allows(ctx context.Context, t heartbeat.Task, now time
 }
 func (s HeartbeatService) allowsModule(ctx context.Context, c HeartbeatConfig, t heartbeat.Task, now time.Time) (bool, error) {
 	module := t.ModuleID
+	if module == "weather_alert_notification" || module == "weather_alert_health" {
+		return s.allowsAlertNotification(ctx, c, t, now)
+	}
+	if module == "github_pr_notification" {
+		if !githubWindow(c, now) || t.Expired(now) {
+			return false, nil
+		}
+		return (GitHubService{Home: s.Home}).Admission(ctx, t)
+	}
 	if module == "mail_analysis" || (t.Capability == "mail" && module != "mail_digest") {
 		module = "mail_check"
 	}
@@ -232,4 +241,15 @@ func (s HeartbeatService) checkUntrackedNotification(ctx context.Context, now ti
 		return heartbeat.ErrDeferred
 	}
 	return nil
+}
+
+func (s HeartbeatService) allowsAlertNotification(ctx context.Context, c HeartbeatConfig, t heartbeat.Task, now time.Time) (bool, error) {
+	if !alertWindow(c, now) || t.Expired(now) {
+		return false, nil
+	}
+	alerts := AlertService{Home: s.Home, Clock: func() time.Time { return now }}
+	if t.ModuleID == "weather_alert_health" {
+		return alerts.HealthAdmission(ctx)
+	}
+	return alerts.Admission(ctx, t)
 }

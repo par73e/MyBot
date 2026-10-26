@@ -761,7 +761,7 @@ func runAgent(args []string, version string) int {
 		}
 	}
 	if resultOutput != nil {
-		sessionID := runOutputSessionID(format, agent.BranchID(ctrl.SessionPath()), machineIdentityKey)
+		sessionID := runOutputSessionID(format, runControllerSessionID(ctrl), machineIdentityKey)
 		if err := resultOutput.Finalize(sessionID, started, runErr); err != nil {
 			fmt.Fprintln(os.Stderr, i18n.M.ErrorPrefix, err)
 			return 1

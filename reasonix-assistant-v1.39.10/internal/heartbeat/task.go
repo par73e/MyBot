@@ -38,7 +38,10 @@ type Run struct {
 
 // Task is a persisted headless job. Calendar rules use the desktop interval syntax.
 type Task struct {
-	Notification *ReminderNotification `json:"notification,omitempty"`
+	AlertEventID   string                `json:"alert_event_id,omitempty"`
+	GitHubWatchID  string                `json:"github_watch_id,omitempty"`
+	GitHubEventIDs []string              `json:"github_event_ids,omitempty"`
+	Notification   *ReminderNotification `json:"notification,omitempty"`
 	// Capability and MailIDs are host-created execution scope, never mail/model arguments.
 	CourseID        string   `json:"course_id,omitempty"`
 	CourseDate      string   `json:"course_date,omitempty"`
@@ -83,10 +86,10 @@ func (t Task) Validate() error {
 	if err := validateReminderNotification(t); err != nil {
 		return err
 	}
-	if t.Capability != "" && t.Capability != "mail" && t.Capability != "weather" && t.Capability != "course" && t.Capability != "morning" && t.Capability != "news" && t.Capability != "evening" {
+	if t.Capability != "" && t.Capability != "mail" && t.Capability != "weather" && t.Capability != "course" && t.Capability != "morning" && t.Capability != "news" && t.Capability != "evening" && t.Capability != "github" {
 		return errors.New("unknown host capability")
 	}
-	if (t.Capability == "mail" || t.Capability == "weather" || t.Capability == "course" || t.Capability == "morning" || t.Capability == "news" || t.Capability == "evening") && (t.Kind != "agent" || !t.DecideNotification || t.ApprovalMode != "read-only") {
+	if t.Capability != "" && (t.Kind != "agent" || !t.DecideNotification || t.ApprovalMode != "read-only") {
 		return errors.New("scoped analysis requires a read-only notification agent")
 	}
 	if t.ID == "" || strings.TrimSpace(t.Title) == "" || strings.TrimSpace(t.Prompt) == "" {
@@ -98,8 +101,8 @@ func (t Task) Validate() error {
 	if _, err := time.LoadLocation(t.Timezone); err != nil {
 		return fmt.Errorf("timezone: %w", err)
 	}
-	if t.Kind != "agent" && t.Kind != "message" && t.Kind != "mail_check" && t.Kind != "weather_check" {
-		return errors.New("kind must be agent, message or mail_check")
+	if err := validateNativeTaskKind(t); err != nil {
+		return err
 	}
 	if t.ApprovalMode != "read-only" && t.ApprovalMode != "workspace-write" {
 		return errors.New("approvalMode must be read-only or workspace-write")
@@ -108,6 +111,16 @@ func (t Task) Validate() error {
 		return errors.New("workspaceRoot must be an absolute path")
 	}
 	return t.validateSchedule()
+}
+
+func validateNativeTaskKind(t Task) error {
+	if t.Kind != "agent" && t.Kind != "message" && t.Kind != "mail_check" && t.Kind != "weather_check" && t.Kind != "module_check" {
+		return errors.New("kind must be agent, message, mail_check, weather_check or module_check")
+	}
+	if t.Kind == "module_check" && (t.ModuleID != "github_pr_check" || t.Capability != "" || t.ApprovalMode != "read-only") {
+		return errors.New("native module_check requires a supported host-owned read-only module")
+	}
+	return nil
 }
 
 func (t Task) validateWorkspace() error {

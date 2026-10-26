@@ -6,12 +6,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('binary'); a = ap.parse_args()
+    ap = argparse.ArgumentParser(); ap.add_argument('binary'); ap.add_argument('--scenario', choices=['normal', 'repair', 'fallback'], default='normal'); a = ap.parse_args()
     binary = str(Path(a.binary).resolve())
     with tempfile.TemporaryDirectory(prefix='mybot-morning-acceptance-') as tmp:
         home, work = Path(tmp) / 'home', Path(tmp) / 'work'
         home.mkdir(); work.mkdir()
-        incoming = queue.Queue(); sent = []; requests = []; errors = []; source_calls = 0
+        incoming = queue.Queue(); sent = []; requests = []; errors = []; source_calls = 0; final_drafts = 0; full_checks = 0
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *args): pass
@@ -22,7 +22,7 @@ def main():
                 try: self.wfile.write(data)
                 except (BrokenPipeError, ConnectionResetError): pass
             def do_POST(self):
-                nonlocal source_calls
+                nonlocal source_calls, final_drafts, full_checks
                 body = json.loads(self.rfile.read(int(self.headers.get('Content-Length', 0))) or b'{}')
                 if self.path.endswith('/getupdates'):
                     try: messages = [incoming.get(timeout=.15)]
@@ -44,11 +44,22 @@ def main():
                     if not any(m.get('role') == 'tool' and 'mail_ids' in str(m.get('content', '')) for m in messages):
                         source_calls += 1
                         delta = {'tool_calls': [{'index': 0, 'id': 'snapshot', 'type': 'function', 'function': {'name': 'assistant_morning', 'arguments': '{"action":"snapshot"}'}}]}; finish = 'tool_calls'
-                    elif not any(m.get('role') == 'tool' and 'summary_lengths' in str(m.get('content', '')) for m in messages):
-                        delta = {'tool_calls': [{'index': 0, 'id': 'check', 'type': 'function', 'function': {'name': 'assistant_morning', 'arguments': json.dumps({'action': 'check', 'news': [{'id': 'n1', 'summary': '模型A更新'}, {'id': 'n2', 'summary': '工具B开源'}, {'id': 'n3', 'summary': '芯片C发布'}]})}}]}; finish = 'tool_calls'
                     else:
+                        repairing = 'validation_error' in rendered
                         output = {'weather': '暂未获取', 'mail_decisions': [], 'news': [{'id': 'n1', 'summary': '模型A更新'}, {'id': 'n2', 'summary': '工具B开源'}, {'id': 'n3', 'summary': '芯片C发布'}]}
-                        delta = {'content': json.dumps(output, ensure_ascii=False)}; finish = 'stop'
+                        if a.scenario == 'fallback' or a.scenario == 'repair' and not repairing:
+                            output['weather'] = '长' * 101
+                        last_user = max(i for i, m in enumerate(messages) if m.get('role') == 'user')
+                        tail = messages[last_user + 1:]
+                        checked = any(m.get('role') == 'tool' and 'summary_lengths' in str(m.get('content', '')) for m in tail)
+                        if not checked:
+                            full_checks += 1
+                            delta = {'tool_calls': [{'index': 0, 'id': 'check-' + str(full_checks), 'type': 'function', 'function': {'name': 'assistant_morning', 'arguments': json.dumps({'action': 'check', 'draft': output})}}]}; finish = 'tool_calls'
+                        else:
+                            # Deliberately ignore rejection in failure scenarios to
+                            # exercise host repair and last-resort native delivery.
+                            final_drafts += 1
+                            delta = {'content': json.dumps(output, ensure_ascii=False)}; finish = 'stop'
                 elif not any(m.get('role') == 'tool' and 'displayed_mail_ids' in str(m.get('content', '')) for m in messages):
                     delta = {'tool_calls': [{'index': 0, 'id': 'latest', 'type': 'function', 'function': {'name': 'assistant_morning', 'arguments': '{"action":"latest"}'}}]}; finish = 'tool_calls'
                 else:
@@ -97,8 +108,7 @@ api_base = "{base}"
             if p.returncode: raise RuntimeError(p.stderr[-1000:])
             return json.loads(p.stdout)
         zone = dt.timezone(dt.timedelta(hours=8)); now = dt.datetime.now(zone)
-        trigger = (now + dt.timedelta(minutes=1)).replace(second=0, microsecond=0)
-        if (trigger - now).total_seconds() < 8: trigger += dt.timedelta(minutes=1)
+        trigger = (now + dt.timedelta(seconds=8)).replace(microsecond=0)
         if trigger.date() != now.date(): raise RuntimeError('run acceptance away from midnight')
         stamp = lambda x: x.isoformat(timespec='seconds')
         cli('memory', json.dumps({'action': 'create', 'kind': 'long', 'subject': 'pref', 'body': 'LONG_PREF_MARKER'}))
@@ -127,9 +137,15 @@ api_base = "{base}"
                 if durable: break
                 if process.poll() is not None: raise RuntimeError('Bot exited')
                 time.sleep(.2)
-            assert durable and len(sent) == 1 and source_calls == 1, 'not exactly one delivered morning'
+            assert durable and len(sent) == 1 and source_calls == 1, 'not exactly one delivered morning: ' + json.dumps({'sent': len(sent), 'source_calls': source_calls, 'saved': saved}, ensure_ascii=False)
             text = json.dumps(sent, ensure_ascii=False)
             assert 'Sir，早上好。' in text and '芯片C发布' in text
+            assert final_drafts == (1 if a.scenario == 'normal' else 2), 'unexpected generation/repair count: ' + json.dumps({'drafts': final_drafts, 'checks': full_checks, 'requests': len(requests), 'repair_requests': sum('validation_error' in json.dumps(r) for r in requests), 'history': saved.get('history')}, ensure_ascii=False)
+            with sqlite3.connect(database) as db:
+                delivered = json.loads(db.execute("SELECT payload FROM assistant_entities WHERE kind='morning_delivered' AND id=?", (job_id,)).fetchone()[0])
+            assert bool(delivered.get('fallback')) == (a.scenario == 'fallback'), 'wrong fallback status'
+            if a.scenario == 'fallback':
+                assert ('邮件还没整理好' in text or '邮件自动检查还暂停着' in text) and delivered['displayed_mail_ids'] == []
             assert all(label not in text for label in ['天气：', '课程：', '邮件：', '待办：', 'AI News：'])
             lines = sent[0]['msg']['item_list'][0]['text_item']['text'].split('\n')
             assert len(lines) == 6 and lines[0] == '# **Sir，早上好。**' and all(line.count('。') == 1 for line in lines), 'expected greeting and five single-sentence lines'
@@ -143,7 +159,7 @@ api_base = "{base}"
             time.sleep(3); os.killpg(process.pid, signal.SIGTERM); process.wait(timeout=15)
             assert len(sent) == count and len(requests) == model_count, 'restart duplicated morning'
             assert not errors, errors
-            print(json.dumps({'passed': True, 'actual_binary': True, 'proactive_morning_messages': 1, 'fake_weixin_messages': len(sent), 'active_long_and_short_memory_verified_in_provider_request': True, 'expired_memory_body_absent': True, 'background_tool_scope_verified': True, 'greeting_plus_five_lines_without_headings': True, 'native_shared_collector_snapshot_to_top_three': True, 'follow_up_original_source': True, 'restart_duplicate_count': 0, 'mock_model_requests': len(requests), 'real_model_requests': 0, 'real_weixin_messages': 0, 'sources': 'synthetic shared seven-candidate news cache; native morning prepare selects/reads top three; mock model and Weixin, no real services'}, indent=2))
+            print(json.dumps({'passed': True, 'scenario': a.scenario, 'final_drafts': final_drafts, 'full_draft_checks': full_checks, 'fallback': a.scenario == 'fallback', 'actual_binary': True, 'proactive_morning_messages': 1, 'fake_weixin_messages': len(sent), 'active_long_and_short_memory_verified_in_provider_request': True, 'expired_memory_body_absent': True, 'background_tool_scope_verified': True, 'greeting_plus_five_lines_without_headings': True, 'native_shared_collector_snapshot_to_top_three': True, 'follow_up_original_source': True, 'restart_duplicate_count': 0, 'mock_model_requests': len(requests), 'real_model_requests': 0, 'real_weixin_messages': 0, 'sources': 'synthetic shared seven-candidate news cache; native morning prepare selects/reads top three; mock model and Weixin, no real services'}, indent=2))
         except Exception:
             log.flush(); log.seek(0); print(log.read()[-7000:]); raise
         finally:

@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -12,8 +11,6 @@ import (
 	"reasonix/internal/assistant"
 	"reasonix/internal/config"
 	"reasonix/internal/heartbeat"
-	"reasonix/internal/proc"
-	"reasonix/internal/secrets"
 )
 
 type heartbeatProcessRunner struct {
@@ -22,6 +19,12 @@ type heartbeatProcessRunner struct {
 }
 
 func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (heartbeat.Execution, error) {
+	if t.ModuleID == "morning_briefing" {
+		return r.runMorning(ctx, t)
+	}
+	if t.ModuleID == "github_pr_notification" && t.Capability == "github" {
+		return r.runGitHubNotification(ctx, t)
+	}
 	var prepareErr error
 	t, prepareErr = prepareHeartbeatSources(ctx, t)
 	if prepareErr != nil {
@@ -29,40 +32,12 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 	}
 	ctx, cancel := context.WithTimeout(ctx, heartbeatModelTimeout(t))
 	defer cancel()
-	args := heartbeatAgentArgs(t, r.DefaultModel)
-	cmd := proc.CommandContext(ctx, r.Executable, args...)
-	cmd.WaitDelay = 5 * time.Second
-	cmd.Env = heartbeatAgentEnv(t)
-	stdout, stderr := &heartbeatOutput{}, &heartbeatOutput{}
-	cmd.Stdout, cmd.Stderr = stdout, stderr
-	_, err := proc.RunCommand(ctx, cmd, proc.RunOptions{Source: "heartbeat"})
+	result, err := r.runAgent(ctx, t)
 	if err != nil {
 		if t.ModuleID == "evening_briefing" {
 			return eveningFallback(context.Background(), t)
 		}
-		return heartbeat.Execution{}, fmt.Errorf("Agent execution: %w: %s", err, secrets.Redact(string(stderr.data)))
-	}
-	if stdout.overflow {
-		return heartbeat.Execution{}, errors.New("Agent result exceeds 1 MiB")
-	}
-	var result struct {
-		Type          string `json:"type"`
-		IsError       bool   `json:"is_error"`
-		Result        string `json:"result"`
-		SessionID     string `json:"session_id"`
-		FromReasoning bool   `json:"result_from_reasoning"`
-	}
-	if err := json.Unmarshal(stdout.data, &result); err != nil {
-		if t.ModuleID == "evening_briefing" {
-			return eveningFallback(context.Background(), t)
-		}
-		return heartbeat.Execution{}, fmt.Errorf("invalid Agent JSON result: %w", err)
-	}
-	if result.Type != "result" || result.IsError || result.FromReasoning {
-		if t.ModuleID == "evening_briefing" {
-			return eveningFallback(context.Background(), t)
-		}
-		return heartbeat.Execution{}, errors.New("Agent did not produce a successful final answer")
+		return heartbeat.Execution{}, err
 	}
 	if t.ModuleID == "evening_briefing" {
 		text, e := (assistant.EveningService{Home: config.MemoryUserDir()}).Finalize(ctx, t, result.Result, false)
@@ -80,13 +55,6 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 			return heartbeat.Execution{}, err
 		}
 		return heartbeat.Execution{Text: text, SessionID: result.SessionID, DecisionReason: "AI News七条事件摘要"}, nil
-	}
-	if t.ModuleID == "morning_briefing" {
-		text, err := (assistant.MorningService{Home: config.MemoryUserDir()}).Finalize(ctx, t, result.Result)
-		if err != nil {
-			return heartbeat.Execution{}, err
-		}
-		return heartbeat.Execution{Text: text, SessionID: result.SessionID, DecisionReason: "早安Friday"}, nil
 	}
 	text := strings.TrimSpace(result.Result)
 	if text == "HEARTBEAT_OK" {
@@ -141,7 +109,7 @@ func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
 			args = append(args, "--resume", session)
 		}
 	}
-	if t.Capability == "mail" || t.Capability == "weather" || t.Capability == "course" || t.Capability == "morning" || t.Capability == "news" || t.Capability == "evening" {
+	if t.Capability != "" {
 		steps := "24"
 		if t.ModuleID == "mail_digest" || t.ModuleID == "morning_briefing" || t.ModuleID == "ai_news_briefing" {
 			steps = "64"
@@ -152,6 +120,7 @@ func heartbeatAgentArgs(t heartbeat.Task, defaultModel string) []string {
 	if t.DecideNotification {
 		switch {
 		case t.ModuleID == "evening_briefing":
+		case t.ModuleID == "github_pr_notification":
 		case t.ModuleID == "ai_news_briefing":
 			prompt += assistant.NewsBriefingContract
 		case t.ModuleID == "morning_briefing":
@@ -201,6 +170,9 @@ func heartbeatAgentEnv(t heartbeat.Task) []string {
 	}
 	if t.ModuleID == "evening_briefing" {
 		env = append(env, "REASONIX_ASSISTANT_EVENING_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_EVENING_ATTEMPT=%d", t.RunStartedAt))
+	}
+	if t.Capability == "github" && t.ModuleID == "github_pr_notification" {
+		env = append(env, "REASONIX_ASSISTANT_GITHUB_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_GITHUB_ATTEMPT=%d", t.RunStartedAt))
 	}
 	if t.Capability == "mail" {
 		env = append(env, "REASONIX_ASSISTANT_MAIL_BACKGROUND=1", fmt.Sprintf("REASONIX_ASSISTANT_MAIL_ATTEMPT=%d", t.RunStartedAt))

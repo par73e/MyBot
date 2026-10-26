@@ -20,6 +20,10 @@ func assistantCommand(args []string) int {
 	var err error
 	home := config.MemoryUserDir()
 	switch args[0] {
+	case "weather-alerts", "weather-alerts-check":
+		result, err = assistantAlertCommand(home, args)
+	case "github", "github-check":
+		result, err = assistantGitHubCommand(home, args)
 	case "courses", "courses-import":
 		result, err = assistantCourseCommand(home, args)
 	case "news":
@@ -41,15 +45,7 @@ func assistantCommand(args []string) int {
 			err = json.Unmarshal([]byte(raw), &result)
 		}
 	case "memory":
-		var request assistant.MemoryRequest
-		if len(args) != 2 {
-			err = errors.New("memory requires one JSON request")
-		} else {
-			err = json.Unmarshal([]byte(args[1]), &request)
-		}
-		if err == nil {
-			result, err = (assistant.Memories{Home: home}).Apply(context.Background(), request)
-		}
+		result, err = assistantMemoryCommand(home, args)
 	case "weather":
 		request := assistant.WeatherRequest{Action: "status"}
 		if len(args) > 1 {

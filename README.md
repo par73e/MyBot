@@ -2,7 +2,7 @@
 
 基于 Reasonix `v1.39.10` 的云端私人助理，通过微信对话管理待办、定时提醒及长期/短期记忆，由常驻 Heartbeat 调度主动任务。
 
-当前服务版本为 `v1.39.10-assistant.34-six-features`，模型配置为 `qwen3.8-flash`，提供 Low、Medium、XHigh 档位。日常上下文不自动加载部署环境与工作目录，技术工具通过按需入口使用。微信日常会话每天北京时间 06:00 切换、按日期命名；主动通知进入同一天会话，历史可以按需查询。和风天气查询与每日晨报已接入，支持按问题查询天气、空气质量和官方预警；AI News公开新闻源已接入初版，日历尚未接入。统一模块化 Heartbeat 已部署，支持通过 Agent 配置触发时间、选择天气／邮箱模块、修改指定日期的安排，以及独立的每周或单次模块调用；当前邮件每周重复：周一/三/四 09:50、周二/五 08:00、周六/日 11:00 开启，每天 23:30 关闭（北京时间）。起床时间仅触发一份“早安Friday”，按天气、课程、邮件、待办、AI News五段极简播报；旧天气更名为详细天气播报，天气与邮箱均不在起床时单独推送。天气工作日学校、周末家仅作为地点候选，Agent结合长期／短期记忆及本次问题决定实际查询地点；未来安排写入后即进入上下文，按行程日期使用。白天邮件增量检查保持原有时间和筛选规则。已支持从明确的自然表达保存长期偏好或有期限的短期安排；静默邮件汇总模块支持手动查看及自行配置定期运行，默认不额外添加汇总时间。微信已启用程序级最终答复过滤，详见[验证说明](reasonix-assistant-v1.39.10/verification/FINAL_ONLY.md)。
+当前服务版本为 `v1.39.10-assistant.39-github-chinese-summary`，模型配置为 `qwen3.8-flash`，提供 Low、Medium、XHigh 档位。日常上下文不自动加载部署环境与工作目录，技术工具通过按需入口使用。微信日常会话每天北京时间 06:00 切换、按日期命名；主动通知进入同一天会话，历史可以按需查询。和风天气查询与每日晨报已接入，支持按问题查询天气、空气质量和官方预警；AI News公开新闻源已接入初版，日历尚未接入。统一模块化 Heartbeat 已部署，支持通过 Agent 配置触发时间、选择天气／邮箱模块、修改指定日期的安排，以及独立的每周或单次模块调用；当前邮件每周重复：周一/三/四 09:50、周二/五 08:00、周六/日 11:00 开启，每天 23:30 关闭（北京时间）。起床时间仅触发一份“早安Friday”，按天气、课程、邮件、待办、AI News五段极简播报；旧天气更名为详细天气播报，天气与邮箱均不在起床时单独推送。天气工作日学校、周末家仅作为地点候选，Agent结合长期／短期记忆及本次问题决定实际查询地点；未来安排写入后即进入上下文，按行程日期使用。白天邮件增量检查保持原有时间和筛选规则。已支持从明确的自然表达保存长期偏好或有期限的短期安排；静默邮件汇总模块支持手动查看及自行配置定期运行，默认不额外添加汇总时间。微信已启用程序级最终答复过滤，详见[验证说明](reasonix-assistant-v1.39.10/verification/FINAL_ONLY.md)。
 
 已发布统一作息门控、课表/教室与课前10分钟提醒，以及五段极简“早安Friday”。见[实现与验收](reasonix-assistant-v1.39.10/verification/GOOD_MORNING_FRIDAY.md)。
 
@@ -36,7 +36,7 @@ Friday 的通用表达规则已更新：按内容判断标题、段落与重点�
 
 ```sh
 cd reasonix-assistant-v1.39.10
-go build -ldflags '-X main.version=v1.39.10-assistant.34-six-features' -o bin/reasonix ./cmd/reasonix
+go build -ldflags '-X main.version=v1.39.10-assistant.39-github-chinese-summary' -o bin/reasonix ./cmd/reasonix
 ```
 
 配置应使用独立的 `REASONIX_HOME`，启用 `REASONIX_ASSISTANT=1`。Friday 提示词放到该目录的 `prompts/friday.md`，配置参考上述模板。不要直接将模板覆盖到已配对的服务器配置。
@@ -54,3 +54,11 @@ go build -ldflags '-X main.version=v1.39.10-assistant.34-six-features' -o bin/re
 Git 仓库不包含 API Key、微信登录凭据、生产会话、实际个人记忆数据库、编译产物或本地归档包。已有归档及 `BUILD.json`、`SHA256SUMS` 是对应交付版本的历史快照；Friday 更新的验证记录见上方链接。
 
 根目录保留仓库原有的 Apache-2.0 许可证；Reasonix 源码沿用各源码目录中的 MIT 许可证及第三方许可说明。
+
+晨报可靠性修复：完整草稿预检查并反馈具体错误，校验失败在同一次执行中恢复原会话修改；到达内部预算仍未成功时发送事实简版，未处理邮件交回白天检查。原作息、字数规则与投递去重保留，见[修复与验证](reasonix-assistant-v1.39.10/verification/MORNING_RELIABILITY.md)。
+
+GitHub PR进度跟踪已接入：自动发现本人新开的公开PR，首次不回放历史；在作息内检查评论、审核、合并/关闭和当前提交CI失败/恢复，变化通知去重并保留原文链接。只读GitHub，不代发评论或操作CI。见[实现与验证](reasonix-assistant-v1.39.10/verification/GITHUB_PR_TRACKING.md)。
+
+GitHub回复中文摘要改进（assistant.39）：只在新回复需要通知时调用模型，概括主要内容及具体修改要求并保留原文链接；轮询继续由程序完成，摘要失败仍发送中文进展提示。见[改进与验证](reasonix-assistant-v1.39.10/verification/GITHUB_PR_CHINESE_SUMMARY.md)，生产状态以[部署记录](reasonix-assistant-v1.39.10/verification/github-summary-deployment.json)为准。
+
+上海官方天气预警模块已接入：作息内每5分钟原生检查中央气象台、中国天气网上海和全国预警数据。任一可信源发现有效新预警或升级即可通知，不等待多源共识；旧记录不覆盖新记录，空列表/失败不触发解除。程序持久化去重与投递回执，检查和预警通知不调用模型或和风付费接口。详细边界、故障与评测记录见[官方预警模块](reasonix-assistant-v1.39.10/verification/WEATHER_ALERTS.md)。

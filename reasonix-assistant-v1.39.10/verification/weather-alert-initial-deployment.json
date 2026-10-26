@@ -1,0 +1,124 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.37-official-weather-alerts",
+  "previous_version": "v1.39.10-assistant.36-github-pr-tracking",
+  "binary_sha256": "e92b65acd42705f8e243b17f3a567a14057b3256693803fae68cff879baa92e7",
+  "source_archive_sha256": "e862ead549f0b1c92c230410ef9e3aff9d80bdeaec3e8d48f2a7e2925741c80c",
+  "source_file_count": 9407,
+  "changed_go_files": [
+    "internal/assistant/alert_config.go",
+    "internal/assistant/alert_fixture_test.go",
+    "internal/assistant/alert_http.go",
+    "internal/assistant/alert_outbox.go",
+    "internal/assistant/alert_parse.go",
+    "internal/assistant/alert_poll.go",
+    "internal/assistant/alert_sources.go",
+    "internal/assistant/alert_state.go",
+    "internal/assistant/alert_status.go",
+    "internal/assistant/alert_test.go",
+    "internal/assistant/alert_tool.go",
+    "internal/assistant/alert_types.go",
+    "internal/assistant/heartbeat_config.go",
+    "internal/assistant/heartbeat_prepare.go",
+    "internal/assistant/heartbeat_runtime.go",
+    "internal/boot/assistant.go",
+    "internal/cli/alert_command.go",
+    "internal/cli/assistant.go",
+    "internal/cli/native_heartbeat.go",
+    "internal/cli/unified_heartbeat.go",
+    "internal/cli/weather_heartbeat.go",
+    "internal/heartbeat/task.go"
+  ],
+  "service_active": true,
+  "weixin_ready": true,
+  "running_process_hash_verified": true,
+  "persona_configuration_accounts_and_memory_files_unchanged": true,
+  "paid_weather_credentials_and_locations_unchanged": true,
+  "routine_and_existing_triggers_unchanged": true,
+  "weather_alert_trigger_enabled": true,
+  "weather_alert_poll_seconds": 300,
+  "weather_alert_scope": "all official Shanghai municipality, central-city and district warnings",
+  "production_state_migrations": "new alert entities and one Heartbeat trigger only",
+  "unrelated_personal_entities_preserved_at_activation": true,
+  "database_integrity": "ok",
+  "workspace_source_follows_current_release": true,
+  "explicit_test_messages_sent": 0,
+  "backup": "/var/lib/mybot/backups/official-weather-alerts-20261026T081701Z",
+  "independent_post_deployment_verification": {
+    "verified_at": "2026-10-26T08:17:31.383145+00:00",
+    "version": "reasonix v1.39.10-assistant.37-official-weather-alerts",
+    "active": true,
+    "pid": "1872099",
+    "running_sha256": "e92b65acd42705f8e243b17f3a567a14057b3256693803fae68cff879baa92e7",
+    "weixin_ready": true,
+    "alert_config": {
+      "revision": 1,
+      "enabled": true,
+      "region": "上海市",
+      "poll_seconds": 300
+    },
+    "alert_trigger": {
+      "routine_bound": true,
+      "id": "weather_alerts",
+      "title": "上海官方天气预警",
+      "enabled": true,
+      "mode": "interval",
+      "modules": [
+        "weather_alert_check"
+      ],
+      "interval_seconds": 300
+    },
+    "source_health": [
+      {
+        "source": "nmc",
+        "checked_at": "2026-10-26T16:17:01.757557818+08:00",
+        "last_success": "2026-10-26T16:17:01.757557907+08:00",
+        "next_attempt": "2026-10-26T16:22:00+08:00",
+        "failures": 0,
+        "count": 0,
+        "detail_errors": 0
+      },
+      {
+        "source": "shanghai",
+        "checked_at": "2026-10-26T16:17:01.684043324+08:00",
+        "last_success": "2026-10-26T16:17:01.684043454+08:00",
+        "next_attempt": "2026-10-26T16:22:00+08:00",
+        "failures": 0,
+        "count": 0,
+        "detail_errors": 0
+      },
+      {
+        "source": "weathercn",
+        "checked_at": "2026-10-26T16:17:01.726933911+08:00",
+        "last_success": "2026-10-26T16:17:01.726934051+08:00",
+        "next_attempt": "2026-10-26T16:22:00+08:00",
+        "failures": 0,
+        "count": 0,
+        "detail_errors": 0
+      }
+    ],
+    "record_count": 0,
+    "event_count": 0,
+    "native_checks": [
+      {
+        "id": "hb-1dd9367f06b24f25ea042acf4fdc89db-weather_alert_check",
+        "kind": "weather_check",
+        "module_id": "weather_alert_check",
+        "history": [
+          {
+            "module_id": "weather_alert_check",
+            "trigger_revision": 31,
+            "scheduled_at": "2026-10-26T16:15:00+08:00",
+            "startedAt": 1793002621625,
+            "endedAt": 1793002621760,
+            "status": "completed"
+          }
+        ]
+      }
+    ],
+    "source_manifest_matches": true,
+    "source_file_count": 9407,
+    "database_integrity": "ok",
+    "current_process_error_log_count": 0
+  }
+}

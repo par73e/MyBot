@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "changed_at": "2026-10-26T11:55:32.076704+00:00",
+  "previous_mode": "read-only",
+  "current_mode": "workspace-write",
+  "scope": "bot foreground default; current controllers re-created after restart",
+  "only_config_key_changed": "bot.tool_approval_mode",
+  "service_active": true,
+  "weixin_ready": true,
+  "heartbeat_and_monitor_configuration_preserved": true,
+  "credentials_and_persona_unchanged": true,
+  "configuration_ownership_and_permissions_preserved": true,
+  "backup": "/var/lib/mybot/backups/permission-workspace-write-20261026T115510Z",
+  "explicit_test_messages_sent": 0,
+  "version": "reasonix v1.39.10-assistant.39-github-chinese-summary"
+}

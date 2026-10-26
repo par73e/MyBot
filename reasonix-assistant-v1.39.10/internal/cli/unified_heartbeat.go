@@ -18,6 +18,12 @@ func configureUnifiedHeartbeat(ctx context.Context, e *heartbeat.Engine, model, 
 	}
 	e.Prepare = service.Prepare
 	e.AfterDelivery = func(ctx context.Context, t heartbeat.Task, r heartbeat.Run) error {
+		if err := (assistant.AlertService{Home: config.MemoryUserDir()}).Acknowledge(ctx, t, r); err != nil {
+			return err
+		}
+		if err := (assistant.GitHubService{Home: config.MemoryUserDir()}).Acknowledge(ctx, t, r); err != nil {
+			return err
+		}
 		if err := (assistant.EveningService{Home: config.MemoryUserDir()}).Acknowledge(ctx, t, r); err != nil {
 			return err
 		}
@@ -30,6 +36,6 @@ func configureUnifiedHeartbeat(ctx context.Context, e *heartbeat.Engine, model, 
 		return assistant.NewMailService(config.MemoryUserDir()).AcknowledgeDigest(ctx, t, r)
 	}
 	e.Gate = service.Allows
-	e.Checker = mailboxHeartbeatRunner{service: assistant.NewMailService(config.MemoryUserDir()), options: o}
+	e.Checker = nativeHeartbeatRunner{mail: mailboxHeartbeatRunner{service: assistant.NewMailService(config.MemoryUserDir()), options: o}, github: assistant.GitHubService{Home: config.MemoryUserDir()}, alerts: assistant.AlertService{Home: config.MemoryUserDir()}, options: o}
 	return nil
 }

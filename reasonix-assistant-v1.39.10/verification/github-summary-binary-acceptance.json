@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "actual_binary": true,
+  "synthetic_events": true,
+  "real_model_requests": 0,
+  "real_github_requests": 0,
+  "real_weixin_messages": 0,
+  "scenarios": [
+    {
+      "mode": "valid",
+      "passed": true,
+      "mock_model_requests": 2,
+      "mock_weixin_messages": 1,
+      "restart_duplicates": 0
+    },
+    {
+      "mode": "english_only",
+      "passed": true,
+      "mock_model_requests": 2,
+      "mock_weixin_messages": 1,
+      "restart_duplicates": 0
+    },
+    {
+      "mode": "bad_json",
+      "passed": true,
+      "mock_model_requests": 2,
+      "mock_weixin_messages": 1,
+      "restart_duplicates": 0
+    }
+  ]
+}

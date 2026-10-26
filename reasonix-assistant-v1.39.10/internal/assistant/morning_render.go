@@ -63,8 +63,8 @@ func (s MorningService) Finalize(ctx context.Context, t heartbeat.Task, raw stri
 	return message, e
 }
 func (s MorningService) verify(ctx context.Context, t heartbeat.Task, snap MorningSnapshot, v MorningOutput) error {
-	if strings.TrimSpace(v.Weather) == "" || utf8.RuneCountInString(v.Weather) > 100 || strings.ContainsAny(v.Weather, "\r\n") || strings.Count(v.Weather, "。") > 1 {
-		return errors.New("morning weather must be one concise sentence")
+	if e := validateMorningWeather(v.Weather); e != nil {
+		return e
 	}
 	if v.MailDecisions == nil || v.News == nil || len(v.MailDecisions) != len(snap.MailIDs) || len(v.News) != len(snap.News.Items) {
 		return errors.New("morning result omitted source items")
@@ -91,13 +91,36 @@ func (s MorningService) verify(ctx context.Context, t heartbeat.Task, snap Morni
 	for _, id := range snap.MailIDs {
 		allowed[id] = true
 	}
-	for _, d := range v.MailDecisions {
-		if !allowed[d.ID] || d.Notify == nil || utf8.RuneCountInString(d.Summary) > 40 || strings.ContainsAny(d.Summary, "\r\n") {
-			return errors.New("invalid or verbose morning mail decision")
+	for i, d := range v.MailDecisions {
+		if !allowed[d.ID] || d.Notify == nil {
+			return fmt.Errorf("mail_decisions[%d] has an invalid/duplicate id or missing notify", i)
+		}
+		if strings.TrimSpace(d.Summary) == "" || utf8.RuneCountInString(d.Summary) > 40 || strings.ContainsAny(d.Summary, "\r\n") {
+			return fmt.Errorf("mail_decisions[%d].summary has %d characters; use 1..40 characters without newlines", i, utf8.RuneCountInString(d.Summary))
+		}
+		if strings.TrimSpace(d.Reason) == "" || len(d.Reason) > 2000 {
+			return fmt.Errorf("mail_decisions[%d].reason must be nonempty and at most 2000 bytes", i)
 		}
 		delete(allowed, d.ID)
 	}
-	return validateMorningNews(snap, v.News)
+	if e := validateMorningNews(snap, v.News); e != nil {
+		return e
+	}
+	return NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
+		for i, d := range v.MailDecisions {
+			if e := validateTaskCandidates(ctx, tx, t, d); e != nil {
+				return fmt.Errorf("mail_decisions[%d]: %w", i, e)
+			}
+		}
+		return nil
+	})
+}
+
+func validateMorningWeather(text string) error {
+	if strings.TrimSpace(text) == "" || utf8.RuneCountInString(text) > 100 || strings.ContainsAny(text, "\r\n") || strings.Count(text, "。") > 1 {
+		return errors.New("morning weather must be one concise sentence of at most 100 characters")
+	}
+	return nil
 }
 func validateMorningNews(snap MorningSnapshot, news []MorningNews) error {
 	if news == nil || len(news) != len(snap.News.Items) {

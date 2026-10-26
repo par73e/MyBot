@@ -1,0 +1,895 @@
+{
+  "researched_at": "2026-10-26T07:31:26.684587+00:00",
+  "scope": "one-off public GET research only; no deployment, scheduler, model calls, notifications or production state writes",
+  "conclusion": "three official website data endpoints accessible without credentials in three local and three server rounds spanning five minutes; no documented frequency allowance/SLA, no Shanghai live lifecycle validation",
+  "rounds": {
+    "local-round1": {
+      "results": [
+        {
+          "name": "shanghai_jsonp",
+          "url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "checked_at": "2026-10-26T07:23:08.265688+00:00",
+          "status": 200,
+          "bytes": 18,
+          "seconds": 3.376,
+          "final_url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:11 GMT",
+            "Content-Type": "application/json",
+            "Last-Modified": "Mon, 26 Oct 2026 07:21:01 GMT",
+            "ETag": "\"6adeff5d-12\""
+          },
+          "sha256": "bf37a0ff11012debdf4a983d321272af9251fe9e6a4269cf1b83e6725e4495a0",
+          "valid_data": true,
+          "data_type": "array",
+          "count": 0,
+          "sample": []
+        },
+        {
+          "name": "national_map",
+          "url": "https://forecast.weather.com.cn/api/v1/traffic/alarm/alarmMap?callback=getAlarm",
+          "checked_at": "2026-10-26T07:23:08.265911+00:00",
+          "status": 200,
+          "bytes": 1500001,
+          "seconds": 4.654,
+          "final_url": "https://forecast.weather.com.cn/api/v1/traffic/alarm/alarmMap?callback=getAlarm",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:12 GMT",
+            "Content-Type": "text/html;charset=utf-8",
+            "Age": "12"
+          },
+          "sha256": "623aab95e2f81e33328dbac89b88ad9dc7db475a6c45ce7704a72a487fb6f4ca",
+          "error": "body exceeds probe limit"
+        },
+        {
+          "name": "national_fallback",
+          "url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "checked_at": "2026-10-26T07:23:08.266019+00:00",
+          "status": 200,
+          "bytes": 159533,
+          "seconds": 3.473,
+          "final_url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:11 GMT",
+            "Content-Type": "text/html; charset=UTF-8",
+            "Age": "1"
+          },
+          "sha256": "2e83a8857c8d09b1474231d4b8fdfc158c00581ad63815388cac2d4a9137c977",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "count",
+            "data"
+          ],
+          "sample": {
+            "count": "745"
+          },
+          "count": "745",
+          "sample_items": [
+            [
+              "黑龙江省齐齐哈尔市",
+              "1010502-20261026152000-0501.html",
+              "123.96",
+              "47.34",
+              "23020041600000_20261026151548",
+              "23020041600000_20261026151548",
+              "黑龙江省齐齐哈尔市发布大风蓝色预警信号"
+            ],
+            [
+              "内蒙古自治区鄂尔多斯市准格尔旗",
+              "101080704-20261026151720-0501.html",
+              "111.24",
+              "39.87",
+              "15062241600000_20261026151720",
+              "15062241600000_20261026151720",
+              "内蒙古自治区鄂尔多斯市准格尔旗发布大风蓝色预警信号"
+            ]
+          ],
+          "shanghai_items": []
+        },
+        {
+          "name": "nmc_all",
+          "url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20",
+          "checked_at": "2026-10-26T07:23:08.266095+00:00",
+          "status": 200,
+          "bytes": 6668,
+          "seconds": 4.334,
+          "final_url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:07 GMT",
+            "Content-Type": "application/json;charset=UTF-8"
+          },
+          "sha256": "d8e5837a5c3b9a245150b6935b730629fcebe79b8c6b71a9a26216a8a261491a",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "msg",
+            "code",
+            "data"
+          ],
+          "sample": {
+            "msg": "success",
+            "code": 0
+          },
+          "count": 704,
+          "page": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "count": 704,
+            "prev": 1,
+            "next": 2,
+            "totalPage": 36
+          },
+          "sample_items": [
+            {
+              "alertid": "15062241600000_20261026151720",
+              "issuetime": "2026/10/26 15:17",
+              "title": "内蒙古自治区鄂尔多斯市准格尔旗气象台发布大风蓝色预警信号",
+              "url": "/publish/alarm/15062241600000_20261026151720.html",
+              "pic": "https://image.nmc.cn/assets/img/alarm/p0007004.png"
+            },
+            {
+              "alertid": "21132141600000_20261026151500",
+              "issuetime": "2026/10/26 15:16",
+              "title": "辽宁省朝阳市朝阳县气象台发布大风蓝色预警信号",
+              "url": "/publish/alarm/21132141600000_20261026151500.html",
+              "pic": "https://image.nmc.cn/assets/img/alarm/p0007004.png"
+            }
+          ]
+        },
+        {
+          "name": "nmc_shanghai",
+          "url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "checked_at": "2026-10-26T07:23:11.648728+00:00",
+          "status": 200,
+          "bytes": 255,
+          "seconds": 3.252,
+          "final_url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:14 GMT",
+            "Content-Type": "application/json;charset=UTF-8"
+          },
+          "sha256": "dd951bef30ce36cdcedd6af192b4e8c3c30e1b033c899c72f01e0f6763dcd617",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "msg",
+            "code",
+            "data"
+          ],
+          "sample": {
+            "msg": "success",
+            "code": 0
+          },
+          "count": 0,
+          "page": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "count": 0,
+            "prev": 1,
+            "next": 1,
+            "totalPage": 1
+          },
+          "sample_items": []
+        },
+        {
+          "name": "shanghai_cma",
+          "url": "http://smb.shweather.cn:5678/smb/Home/GetAlertListByType?type=sh",
+          "checked_at": "2026-10-26T07:23:11.750938+00:00",
+          "error": "timed out",
+          "seconds": 12.327
+        },
+        {
+          "name": "national_12379",
+          "url": "https://www.12379.cn/",
+          "checked_at": "2026-10-26T07:23:12.601534+00:00",
+          "error": "<urlopen error EOF occurred in violation of protocol (_ssl.c:1129)>",
+          "seconds": 5.675
+        }
+      ]
+    },
+    "local-round2": {
+      "results": [
+        {
+          "name": "shanghai_jsonp",
+          "url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "checked_at": "2026-10-26T07:25:23.456101+00:00",
+          "status": 200,
+          "bytes": 18,
+          "seconds": 0.516,
+          "final_url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:25:23 GMT",
+            "Content-Type": "application/json",
+            "Last-Modified": "Mon, 26 Oct 2026 07:21:01 GMT",
+            "ETag": "\"6adeff5d-12\""
+          },
+          "sha256": "bf37a0ff11012debdf4a983d321272af9251fe9e6a4269cf1b83e6725e4495a0",
+          "valid_data": true,
+          "data_type": "array",
+          "count": 0,
+          "sample": []
+        },
+        {
+          "name": "national_fallback",
+          "url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "checked_at": "2026-10-26T07:25:23.456334+00:00",
+          "status": 200,
+          "bytes": 159533,
+          "seconds": 0.773,
+          "final_url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:25:24 GMT",
+            "Content-Type": "text/html; charset=UTF-8",
+            "Age": "24"
+          },
+          "sha256": "2e83a8857c8d09b1474231d4b8fdfc158c00581ad63815388cac2d4a9137c977",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "count",
+            "data"
+          ],
+          "sample": {
+            "count": "745"
+          },
+          "count": "745",
+          "sample_items": [
+            [
+              "黑龙江省齐齐哈尔市",
+              "1010502-20261026152000-0501.html",
+              "123.96",
+              "47.34",
+              "23020041600000_20261026151548",
+              "23020041600000_20261026151548",
+              "黑龙江省齐齐哈尔市发布大风蓝色预警信号"
+            ],
+            [
+              "内蒙古自治区鄂尔多斯市准格尔旗",
+              "101080704-20261026151720-0501.html",
+              "111.24",
+              "39.87",
+              "15062241600000_20261026151720",
+              "15062241600000_20261026151720",
+              "内蒙古自治区鄂尔多斯市准格尔旗发布大风蓝色预警信号"
+            ]
+          ],
+          "shanghai_items": []
+        },
+        {
+          "name": "nmc_shanghai",
+          "url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "checked_at": "2026-10-26T07:25:23.456462+00:00",
+          "status": 200,
+          "bytes": 255,
+          "seconds": 0.228,
+          "final_url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:25:23 GMT",
+            "Content-Type": "application/json;charset=UTF-8"
+          },
+          "sha256": "dd951bef30ce36cdcedd6af192b4e8c3c30e1b033c899c72f01e0f6763dcd617",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "msg",
+            "code",
+            "data"
+          ],
+          "sample": {
+            "msg": "success",
+            "code": 0
+          },
+          "count": 0,
+          "page": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "count": 0,
+            "prev": 1,
+            "next": 1,
+            "totalPage": 1
+          },
+          "sample_items": []
+        }
+      ]
+    },
+    "local-round3": {
+      "results": [
+        {
+          "name": "shanghai_jsonp",
+          "url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "checked_at": "2026-10-26T07:28:24.135548+00:00",
+          "status": 200,
+          "bytes": 18,
+          "seconds": 0.114,
+          "final_url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:28:24 GMT",
+            "Content-Type": "application/json",
+            "Last-Modified": "Mon, 26 Oct 2026 07:21:01 GMT",
+            "ETag": "\"6adeff5d-12\""
+          },
+          "sha256": "bf37a0ff11012debdf4a983d321272af9251fe9e6a4269cf1b83e6725e4495a0",
+          "valid_data": true,
+          "data_type": "array",
+          "count": 0,
+          "sample": []
+        },
+        {
+          "name": "national_fallback",
+          "url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "checked_at": "2026-10-26T07:28:24.135822+00:00",
+          "status": 200,
+          "bytes": 159308,
+          "seconds": 0.626,
+          "final_url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:28:24 GMT",
+            "Content-Type": "text/html; charset=UTF-8",
+            "Age": "11"
+          },
+          "sha256": "64451f8fbabc68462aa2db9dc38163c25b1605882c8f0eef0187fd0bf3752c01",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "count",
+            "data"
+          ],
+          "sample": {
+            "count": "744"
+          },
+          "count": "744",
+          "sample_items": [
+            [
+              "辽宁省阜新市彰武县",
+              "101070902-20261026152027-0501.html",
+              "122.54",
+              "42.38",
+              "21092241600000_20261026151000",
+              "21092241600000_20261026151000",
+              "辽宁省阜新市彰武县发布大风蓝色预警信号"
+            ],
+            [
+              "黑龙江省齐齐哈尔市",
+              "1010502-20261026152000-0501.html",
+              "123.96",
+              "47.34",
+              "23020041600000_20261026151548",
+              "23020041600000_20261026151548",
+              "黑龙江省齐齐哈尔市发布大风蓝色预警信号"
+            ]
+          ],
+          "shanghai_items": []
+        },
+        {
+          "name": "nmc_shanghai",
+          "url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "checked_at": "2026-10-26T07:28:24.135925+00:00",
+          "status": 200,
+          "bytes": 255,
+          "seconds": 0.18,
+          "final_url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:28:24 GMT",
+            "Content-Type": "application/json;charset=UTF-8"
+          },
+          "sha256": "dd951bef30ce36cdcedd6af192b4e8c3c30e1b033c899c72f01e0f6763dcd617",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "msg",
+            "code",
+            "data"
+          ],
+          "sample": {
+            "msg": "success",
+            "code": 0
+          },
+          "count": 0,
+          "page": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "count": 0,
+            "prev": 1,
+            "next": 1,
+            "totalPage": 1
+          },
+          "sample_items": []
+        }
+      ]
+    },
+    "server-round1": {
+      "results": [
+        {
+          "name": "shanghai_jsonp",
+          "url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "checked_at": "2026-10-26T07:23:12.147268+00:00",
+          "status": 200,
+          "bytes": 18,
+          "seconds": 0.068,
+          "final_url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:12 GMT",
+            "Content-Type": "application/json",
+            "Last-Modified": "Mon, 26 Oct 2026 07:21:01 GMT",
+            "ETag": "\"6adeff5d-12\""
+          },
+          "sha256": "bf37a0ff11012debdf4a983d321272af9251fe9e6a4269cf1b83e6725e4495a0",
+          "valid_data": true,
+          "data_type": "array",
+          "count": 0,
+          "sample": []
+        },
+        {
+          "name": "national_map",
+          "url": "https://forecast.weather.com.cn/api/v1/traffic/alarm/alarmMap?callback=getAlarm",
+          "checked_at": "2026-10-26T07:23:12.147920+00:00",
+          "status": 200,
+          "bytes": 1500001,
+          "seconds": 0.29,
+          "final_url": "https://forecast.weather.com.cn/api/v1/traffic/alarm/alarmMap?callback=getAlarm",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:12 GMT",
+            "Content-Type": "text/html;charset=utf-8",
+            "Age": "131"
+          },
+          "sha256": "623aab95e2f81e33328dbac89b88ad9dc7db475a6c45ce7704a72a487fb6f4ca",
+          "error": "body exceeds probe limit"
+        },
+        {
+          "name": "national_fallback",
+          "url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "checked_at": "2026-10-26T07:23:12.148537+00:00",
+          "status": 200,
+          "bytes": 159533,
+          "seconds": 0.186,
+          "final_url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:12 GMT",
+            "Content-Type": "text/html; charset=UTF-8",
+            "Age": "12"
+          },
+          "sha256": "2e83a8857c8d09b1474231d4b8fdfc158c00581ad63815388cac2d4a9137c977",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "count",
+            "data"
+          ],
+          "sample": {
+            "count": "745"
+          },
+          "count": "745",
+          "sample_items": [
+            [
+              "黑龙江省齐齐哈尔市",
+              "1010502-20261026152000-0501.html",
+              "123.96",
+              "47.34",
+              "23020041600000_20261026151548",
+              "23020041600000_20261026151548",
+              "黑龙江省齐齐哈尔市发布大风蓝色预警信号"
+            ],
+            [
+              "内蒙古自治区鄂尔多斯市准格尔旗",
+              "101080704-20261026151720-0501.html",
+              "111.24",
+              "39.87",
+              "15062241600000_20261026151720",
+              "15062241600000_20261026151720",
+              "内蒙古自治区鄂尔多斯市准格尔旗发布大风蓝色预警信号"
+            ]
+          ],
+          "shanghai_items": []
+        },
+        {
+          "name": "nmc_all",
+          "url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20",
+          "checked_at": "2026-10-26T07:23:12.149137+00:00",
+          "status": 200,
+          "bytes": 6668,
+          "seconds": 0.203,
+          "final_url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:12 GMT",
+            "Content-Type": "application/json;charset=UTF-8"
+          },
+          "sha256": "d8e5837a5c3b9a245150b6935b730629fcebe79b8c6b71a9a26216a8a261491a",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "msg",
+            "code",
+            "data"
+          ],
+          "sample": {
+            "msg": "success",
+            "code": 0
+          },
+          "count": 704,
+          "page": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "count": 704,
+            "prev": 1,
+            "next": 2,
+            "totalPage": 36
+          },
+          "sample_items": [
+            {
+              "alertid": "15062241600000_20261026151720",
+              "issuetime": "2026/10/26 15:17",
+              "title": "内蒙古自治区鄂尔多斯市准格尔旗气象台发布大风蓝色预警信号",
+              "url": "/publish/alarm/15062241600000_20261026151720.html",
+              "pic": "https://image.nmc.cn/assets/img/alarm/p0007004.png"
+            },
+            {
+              "alertid": "21132141600000_20261026151500",
+              "issuetime": "2026/10/26 15:16",
+              "title": "辽宁省朝阳市朝阳县气象台发布大风蓝色预警信号",
+              "url": "/publish/alarm/21132141600000_20261026151500.html",
+              "pic": "https://image.nmc.cn/assets/img/alarm/p0007004.png"
+            }
+          ]
+        },
+        {
+          "name": "nmc_shanghai",
+          "url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "checked_at": "2026-10-26T07:23:12.217088+00:00",
+          "status": 200,
+          "bytes": 255,
+          "seconds": 0.106,
+          "final_url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:23:12 GMT",
+            "Content-Type": "application/json;charset=UTF-8"
+          },
+          "sha256": "dd951bef30ce36cdcedd6af192b4e8c3c30e1b033c899c72f01e0f6763dcd617",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "msg",
+            "code",
+            "data"
+          ],
+          "sample": {
+            "msg": "success",
+            "code": 0
+          },
+          "count": 0,
+          "page": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "count": 0,
+            "prev": 1,
+            "next": 1,
+            "totalPage": 1
+          },
+          "sample_items": []
+        },
+        {
+          "name": "shanghai_cma",
+          "url": "http://smb.shweather.cn:5678/smb/Home/GetAlertListByType?type=sh",
+          "checked_at": "2026-10-26T07:23:12.323047+00:00",
+          "error": "timed out",
+          "seconds": 12.03
+        },
+        {
+          "name": "national_12379",
+          "url": "https://www.12379.cn/",
+          "checked_at": "2026-10-26T07:23:12.339904+00:00",
+          "error": "<urlopen error timed out>",
+          "seconds": 24.563
+        }
+      ]
+    },
+    "server-round2": {
+      "results": [
+        {
+          "name": "shanghai_jsonp",
+          "url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "checked_at": "2026-10-26T07:25:24.973452+00:00",
+          "status": 200,
+          "bytes": 18,
+          "seconds": 0.087,
+          "final_url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:25:25 GMT",
+            "Content-Type": "application/json",
+            "Last-Modified": "Mon, 26 Oct 2026 07:21:01 GMT",
+            "ETag": "\"6adeff5d-12\""
+          },
+          "sha256": "bf37a0ff11012debdf4a983d321272af9251fe9e6a4269cf1b83e6725e4495a0",
+          "valid_data": true,
+          "data_type": "array",
+          "count": 0,
+          "sample": []
+        },
+        {
+          "name": "national_fallback",
+          "url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "checked_at": "2026-10-26T07:25:24.974190+00:00",
+          "status": 200,
+          "bytes": 159533,
+          "seconds": 0.162,
+          "final_url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:25:25 GMT",
+            "Content-Type": "text/html; charset=UTF-8",
+            "Age": "25"
+          },
+          "sha256": "2e83a8857c8d09b1474231d4b8fdfc158c00581ad63815388cac2d4a9137c977",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "count",
+            "data"
+          ],
+          "sample": {
+            "count": "745"
+          },
+          "count": "745",
+          "sample_items": [
+            [
+              "黑龙江省齐齐哈尔市",
+              "1010502-20261026152000-0501.html",
+              "123.96",
+              "47.34",
+              "23020041600000_20261026151548",
+              "23020041600000_20261026151548",
+              "黑龙江省齐齐哈尔市发布大风蓝色预警信号"
+            ],
+            [
+              "内蒙古自治区鄂尔多斯市准格尔旗",
+              "101080704-20261026151720-0501.html",
+              "111.24",
+              "39.87",
+              "15062241600000_20261026151720",
+              "15062241600000_20261026151720",
+              "内蒙古自治区鄂尔多斯市准格尔旗发布大风蓝色预警信号"
+            ]
+          ],
+          "shanghai_items": []
+        },
+        {
+          "name": "nmc_shanghai",
+          "url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "checked_at": "2026-10-26T07:25:24.974886+00:00",
+          "status": 200,
+          "bytes": 255,
+          "seconds": 0.138,
+          "final_url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:25:20 GMT",
+            "Content-Type": "application/json;charset=UTF-8"
+          },
+          "sha256": "dd951bef30ce36cdcedd6af192b4e8c3c30e1b033c899c72f01e0f6763dcd617",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "msg",
+            "code",
+            "data"
+          ],
+          "sample": {
+            "msg": "success",
+            "code": 0
+          },
+          "count": 0,
+          "page": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "count": 0,
+            "prev": 1,
+            "next": 1,
+            "totalPage": 1
+          },
+          "sample_items": []
+        }
+      ]
+    },
+    "server-round3": {
+      "results": [
+        {
+          "name": "shanghai_jsonp",
+          "url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "checked_at": "2026-10-26T07:28:25.557013+00:00",
+          "status": 200,
+          "bytes": 18,
+          "seconds": 0.07,
+          "final_url": "https://d1.weather.com.cn/shweather/alarm.json",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:28:25 GMT",
+            "Content-Type": "application/json",
+            "Last-Modified": "Mon, 26 Oct 2026 07:21:01 GMT",
+            "ETag": "\"6adeff5d-12\""
+          },
+          "sha256": "bf37a0ff11012debdf4a983d321272af9251fe9e6a4269cf1b83e6725e4495a0",
+          "valid_data": true,
+          "data_type": "array",
+          "count": 0,
+          "sample": []
+        },
+        {
+          "name": "national_fallback",
+          "url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "checked_at": "2026-10-26T07:28:25.558895+00:00",
+          "status": 200,
+          "bytes": 159308,
+          "seconds": 0.17,
+          "final_url": "https://product.weather.com.cn/alarm/grepalarm_cn.php",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:28:25 GMT",
+            "Content-Type": "text/html; charset=UTF-8",
+            "Age": "25"
+          },
+          "sha256": "64451f8fbabc68462aa2db9dc38163c25b1605882c8f0eef0187fd0bf3752c01",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "count",
+            "data"
+          ],
+          "sample": {
+            "count": "744"
+          },
+          "count": "744",
+          "sample_items": [
+            [
+              "辽宁省阜新市彰武县",
+              "101070902-20261026152027-0501.html",
+              "122.54",
+              "42.38",
+              "21092241600000_20261026151000",
+              "21092241600000_20261026151000",
+              "辽宁省阜新市彰武县发布大风蓝色预警信号"
+            ],
+            [
+              "黑龙江省齐齐哈尔市",
+              "1010502-20261026152000-0501.html",
+              "123.96",
+              "47.34",
+              "23020041600000_20261026151548",
+              "23020041600000_20261026151548",
+              "黑龙江省齐齐哈尔市发布大风蓝色预警信号"
+            ]
+          ],
+          "shanghai_items": []
+        },
+        {
+          "name": "nmc_shanghai",
+          "url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "checked_at": "2026-10-26T07:28:25.560798+00:00",
+          "status": 200,
+          "bytes": 255,
+          "seconds": 0.183,
+          "final_url": "https://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=%E4%B8%8A%E6%B5%B7%E5%B8%82",
+          "headers": {
+            "Date": "Mon, 26 Oct 2026 07:28:25 GMT",
+            "Content-Type": "application/json;charset=UTF-8"
+          },
+          "sha256": "dd951bef30ce36cdcedd6af192b4e8c3c30e1b033c899c72f01e0f6763dcd617",
+          "valid_data": true,
+          "data_type": "object",
+          "keys": [
+            "msg",
+            "code",
+            "data"
+          ],
+          "sample": {
+            "msg": "success",
+            "code": 0
+          },
+          "count": 0,
+          "page": {
+            "pageNo": 1,
+            "pageSize": 20,
+            "count": 0,
+            "prev": 1,
+            "next": 1,
+            "totalPage": 1
+          },
+          "sample_items": []
+        }
+      ]
+    }
+  },
+  "server_detail_and_conditional_probe": {
+    "results": [
+      {
+        "name": "national_detail",
+        "url": "https://product.weather.com.cn/alarm/webdata/1010502-20261026152000-0501.html",
+        "checked_at": "2026-10-26T07:29:12.081020+00:00",
+        "status": 200,
+        "bytes": 922,
+        "content_type": "text/html",
+        "valid_data": true,
+        "keys": [
+          "head",
+          "ALERTID",
+          "PROVINCE",
+          "CITY",
+          "STATIONNAME",
+          "SIGNALTYPE",
+          "SIGNALLEVEL",
+          "TYPECODE",
+          "LEVELCODE",
+          "ISSUETIME",
+          "ISSUECONTENT",
+          "UNDERWRITER",
+          "RELIEVETIME",
+          "NAMEEN",
+          "YJTYPE_EN",
+          "YJYC_EN",
+          "TIME",
+          "EFFECT",
+          "msgType",
+          "identifier",
+          "references"
+        ],
+        "sample": {
+          "SIGNALTYPE": "大风",
+          "SIGNALLEVEL": "蓝色",
+          "ISSUETIME": "2026-10-26 15:20:00",
+          "RELIEVETIME": "2026-10-27 15:20:00",
+          "msgType": "Alert",
+          "identifier": "23020041600000_20261026151548",
+          "references": "23020041600000_20261026151548",
+          "EFFECT": "101050201"
+        },
+        "body_nonempty": true,
+        "seconds": 0.198
+      },
+      {
+        "name": "sh_conditional",
+        "url": "https://d1.weather.com.cn/shweather/alarm.json",
+        "checked_at": "2026-10-26T07:29:12.081903+00:00",
+        "status": 304,
+        "error": null,
+        "not_modified": true,
+        "seconds": 0.09
+      },
+      {
+        "name": "shanghai_city",
+        "url": "https://d1.weather.com.cn/dingzhi/101020100.html",
+        "checked_at": "2026-10-26T07:29:12.082663+00:00",
+        "status": 200,
+        "bytes": 248,
+        "content_type": "text/html",
+        "preview": "var cityDZ101020100 ={\"weatherinfo\":{\"city\":\"101020100\",\"cityname\":\"上海\",\"fctime\":\"202610261100\",\"temp\":\"23℃\",\"tempn\":\"15℃\",\"weather\":\"多云\",\"weathercode\":\"d1\",\"weathercoden\":\"n1\",\"wd\":\"北风\",\"ws\":\"<3级\"}};var alarmDZ101020100 ={\"w\":[]}",
+        "seconds": 0.089
+      },
+      {
+        "name": "cap_rss",
+        "url": "http://www.12379.cn/rss/china_rss.xml",
+        "checked_at": "2026-10-26T07:29:12.084900+00:00",
+        "status": 404,
+        "error": "HTTP Error 404: Not Found",
+        "not_modified": false,
+        "seconds": 0.424
+      }
+    ]
+  },
+  "provenance": [
+    {
+      "page": "https://sh.weather.com.cn/zhyj/",
+      "local_source_sha256": "4b421273be86814ce57ab2b3bbbb0cc3782173fda6cc62c0605df63fbb1272de",
+      "evidence": "inline loadAlarm uses d1.weather.com.cn/shweather/alarm.json, JSONP alarm_callback; template page alone not proof of no warnings"
+    },
+    {
+      "page": "https://www.nmc.cn/f/alarm.html",
+      "local_source_sha256": "630f0a8fc21e9781caf87264ef2810e68372ad3082c9a4adcadac8f8c097dcb9",
+      "evidence": "inline findAlarm calls /rest/findAlarm with pageNo/pageSize/signaltype/signallevel/province; province option 上海市"
+    },
+    {
+      "page": "https://www.weather.com.cn/alarm/",
+      "asset": "https://j.i8tq.com/newAlarm/index.js?2022061937",
+      "asset_sha256": "3f7e3386b33431d03eb327a5a1732c3733bd0d36594c01f7b49d8545d715761b",
+      "evidence": "primary alarmMap JSONP; fallback grepalarm_cn.php; details /alarm/webdata/<html filename>"
+    }
+  ],
+  "actual_shanghai_active_alert_samples": 0,
+  "actual_early_cancellation_samples": 0,
+  "production_changed": false,
+  "new_paid_weather_requests": 0
+}

@@ -17,7 +17,7 @@ type weatherHeartbeatRunner struct {
 }
 
 func (r weatherHeartbeatRunner) Run(ctx context.Context, t heartbeat.Task) (heartbeat.Execution, error) {
-	if t.Kind == "weather_check" {
+	if t.Kind == "weather_check" && t.ModuleID != "weather_alert_check" {
 		return heartbeat.Execution{}, r.service.MorningTick(ctx, r.options)
 	}
 	if r.other == nil {

@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"reasonix/internal/agent"
 	"reasonix/internal/billing"
 	"reasonix/internal/control"
 	"reasonix/internal/event"
@@ -44,6 +45,15 @@ func runOutputSessionID(format runOutputFormat, rawSessionID string, identityKey
 		return machineSessionIDWithKey(rawSessionID, identityKey)
 	}
 	return rawSessionID
+}
+
+// Canonical sessions have an immutable identity and no legacy transcript path.
+// Returning that identity lets the host resume a failed draft in the same run.
+func runControllerSessionID(ctrl *control.Controller) string {
+	if ref, bound := ctrl.SessionRef(); bound {
+		return ref.SessionID
+	}
+	return agent.BranchID(ctrl.SessionPath())
 }
 
 type runResultUsage struct {

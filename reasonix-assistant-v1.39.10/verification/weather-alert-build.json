@@ -1,0 +1,129 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.37-official-weather-alerts",
+  "status": "verified_candidate_pending_linux_staging_and_deployment",
+  "verified_at": "2026-10-26T08:12:03.139717+00:00",
+  "previous_production_version": "v1.39.10-assistant.36-github-pr-tracking",
+  "previous_production_sha256": "d60dd294d00e5ba7b96d45499358f1c98703f53942378d50c6fe4a8ce757c72c",
+  "confirmed_scope": "official Shanghai municipality, central-city and district warnings, routine-bound every 300 seconds, independent source positives; no source quorum",
+  "binaries": {
+    "darwin_arm64": {
+      "path": "/private/tmp/mybot-alert-darwin",
+      "sha256": "06e7aa8b7d63507d6d5cd4f3948d5e5fdde39bb1af2df46838272d475ec85440"
+    },
+    "linux_amd64": {
+      "path": "/private/tmp/mybot-alert-linux-amd64",
+      "sha256": "e92b65acd42705f8e243b17f3a567a14057b3256693803fae68cff879baa92e7"
+    }
+  },
+  "go_changes_from_deployed_36": {
+    "internal/assistant/alert_config.go": "a4c9ca87c44e83d97a1df6ee3037095dba50b743a61eec2e0372c38a3f3109b0",
+    "internal/assistant/alert_fixture_test.go": "343b9e6245c97d929d3f6e5cf7706ffaf95f3bea51c28935cc90d30d8ca9542d",
+    "internal/assistant/alert_http.go": "4528754218bc0f90490693abdf726e2eab48e96d82343b15f357b73c4224bcd5",
+    "internal/assistant/alert_outbox.go": "e05d51dd025fb97d4d11672286e486a5fa4c7f400f14eed8691d2bcbc9a43103",
+    "internal/assistant/alert_parse.go": "e507a57fff45f29242eb9192bf7151870654e7a15cfc85775798ebd211bcea0e",
+    "internal/assistant/alert_poll.go": "3353927b96a97190beb32f0e08d998cf35970542679a91449e166ef2379efff3",
+    "internal/assistant/alert_sources.go": "db6b5a1380899c0f280b35490b348e6ed0fb8310e73b83d1e0b98fc1bda5f045",
+    "internal/assistant/alert_state.go": "ed76d25141e74ee370d8671bb25f7ddd2b3e60042b528c7e7ebcfa58012a3909",
+    "internal/assistant/alert_status.go": "da8650085b8ffa4407c714339f1d622036190c4eede0708208a251d79e366889",
+    "internal/assistant/alert_test.go": "99e4e0c5385c27d90d18f3e32feb19b94a3ab91567610fd769fc0a50cd81ea9d",
+    "internal/assistant/alert_tool.go": "19b6d1969283ef2f8e24904ee7a4e19c4e7c8350c9fd33c979e64fbe0837642f",
+    "internal/assistant/alert_types.go": "8f9c2f2ccf9574234f5e720c97cd08f5271e5eaaa538a11e54f2de6c8da5ce79",
+    "internal/assistant/heartbeat_config.go": "7683bce5335711f21f9b94c8dd627058b20c5dada2f4d0351e5149423608c6e8",
+    "internal/assistant/heartbeat_prepare.go": "b8f49db8a0bb42af476455a9b017fe0d2ae91d6ebea1dd33cfc7b8735dda88cf",
+    "internal/assistant/heartbeat_runtime.go": "760f76b2fbfd860aa1e22595f8a4e2e549f031c195f7fcc98f5caafd4919d7a6",
+    "internal/boot/assistant.go": "e372eb8f576b464c3bf70371c1caeee728fcfd8533645a7682ef9c40fbc2443a",
+    "internal/cli/alert_command.go": "1f509b397edbef7ce57fc8bbc5405f10fcd0d434b50d9d996857b3ae6ba56ae9",
+    "internal/cli/assistant.go": "3ba7fc687f3ffe1e0db5087a6eb50b6e5b9463eafd58884d5bf44764e2651390",
+    "internal/cli/native_heartbeat.go": "69de4f22e786ec02e83e06a828d0a4d0055222196fbdcccf3a3cb7196129d47b",
+    "internal/cli/unified_heartbeat.go": "b9e6f6eb6137409a5f85fd1f6970589e166933c43cdb9eb03f7a7c748bd10864",
+    "internal/cli/weather_heartbeat.go": "b075305b9c9aaebf704a69aed0b66f5d3be07d22359c4a19e2b51952d3f21ae6",
+    "internal/heartbeat/task.go": "bf3faba41f7d55fb3ddc0206e8f79a97bf5992284b9026c338adcc3d20366b96"
+  },
+  "alert_scenario_count": 14,
+  "related_package_tests": [
+    "ok  \treasonix/internal/assistant\t7.646s",
+    "ok  \treasonix/internal/heartbeat\t4.605s",
+    "ok  \treasonix/internal/cli\t47.813s",
+    "ok  \treasonix/internal/boot\t51.480s",
+    "ok  \treasonix/internal/bot\t6.588s",
+    "ok  \treasonix/internal/bot/weixin\t1.007s",
+    "ok  \treasonix/internal/config\t16.602s",
+    "ok  \treasonix/internal/tool\t0.402s"
+  ],
+  "race_tests": [
+    "ok  \treasonix/internal/assistant\t33.276s",
+    "ok  \treasonix/internal/heartbeat\t5.681s"
+  ],
+  "golangci_lint": "0 issues.",
+  "repolint": "repolint: clean (1150 baselined findings)",
+  "actual_binary_public_read": {
+    "passed": true,
+    "actual_binary": true,
+    "actual_official_public_gets": true,
+    "source_health": [
+      {
+        "checked_at": "2026-10-26T16:08:48.915009+08:00",
+        "count": 0,
+        "detail_errors": 0,
+        "failures": 0,
+        "last_success": "2026-10-26T16:08:48.915009+08:00",
+        "next_attempt": "2026-10-26T16:13:00+08:00",
+        "source": "nmc"
+      },
+      {
+        "checked_at": "2026-10-26T16:08:50.070493+08:00",
+        "count": 0,
+        "detail_errors": 0,
+        "failures": 0,
+        "last_success": "2026-10-26T16:08:50.070493+08:00",
+        "next_attempt": "2026-10-26T16:13:00+08:00",
+        "source": "shanghai"
+      },
+      {
+        "checked_at": "2026-10-26T16:08:50.242407+08:00",
+        "count": 0,
+        "detail_errors": 0,
+        "failures": 0,
+        "last_success": "2026-10-26T16:08:50.242408+08:00",
+        "next_attempt": "2026-10-26T16:13:00+08:00",
+        "source": "weathercn"
+      }
+    ],
+    "observed_records": 0,
+    "five_minute_cadence_persisted": true,
+    "notifications_queued": 0,
+    "real_model_calls": 0,
+    "paid_weather_calls": 0,
+    "real_weixin_messages": 0,
+    "production_state_changed": false
+  },
+  "actual_binary_morning_fallback_regression": {
+    "passed": true,
+    "scenario": "fallback",
+    "final_drafts": 2,
+    "full_draft_checks": 2,
+    "fallback": true,
+    "actual_binary": true,
+    "proactive_morning_messages": 1,
+    "fake_weixin_messages": 3,
+    "active_long_and_short_memory_verified_in_provider_request": true,
+    "expired_memory_body_absent": true,
+    "background_tool_scope_verified": true,
+    "greeting_plus_five_lines_without_headings": true,
+    "native_shared_collector_snapshot_to_top_three": true,
+    "follow_up_original_source": true,
+    "restart_duplicate_count": 0,
+    "mock_model_requests": 7,
+    "real_model_requests": 0,
+    "real_weixin_messages": 0,
+    "sources": "synthetic shared seven-candidate news cache; native morning prepare selects/reads top three; mock model and Weixin, no real services"
+  },
+  "model_calls_for_alert_checks_and_delivery": 0,
+  "paid_weather_calls_for_alert_module": 0,
+  "production_changed": false,
+  "limitations": [
+    "No live Shanghai warning present during acceptance; first real warning and Weixin receipt remain to be observed",
+    "Official webpage endpoints have no observed published third-party rate allowance or SLA; backoff can extend effective cadence"
+  ]
+}

@@ -15,6 +15,13 @@ var ErrOutsideRoutine = errors.New("scheduled occurrence is outside the effectiv
 // ErrOccurrenceChanged rejects a stale course snapshot before delivery.
 var ErrOccurrenceChanged = errors.New("scheduled occurrence changed or was cancelled")
 
+func (e Engine) now() time.Time {
+	if e.Clock != nil {
+		return e.Clock()
+	}
+	return time.Now()
+}
+
 // Admitted checks the latest policy at execution and again at delivery.
 func (e Engine) Admitted(ctx context.Context, task Task, now time.Time) (bool, error) {
 	if e.Gate == nil {
@@ -25,7 +32,7 @@ func (e Engine) Admitted(ctx context.Context, task Task, now time.Time) (bool, e
 
 func (e Engine) runAdmitted(ctx context.Context, task Task) (Execution, error) {
 	runner := e.Runner
-	if task.Kind == "mail_check" || task.Kind == "weather_check" {
+	if task.Kind == "mail_check" || task.Kind == "weather_check" || task.Kind == "module_check" {
 		runner = e.Checker
 	}
 	if runner == nil {
@@ -46,10 +53,7 @@ func (e Engine) runAdmitted(ctx context.Context, task Task) (Execution, error) {
 			case <-runCtx.Done():
 				return
 			case <-ticker.C:
-				now := time.Now()
-				if e.Clock != nil {
-					now = e.Clock()
-				}
+				now := e.now()
 				allowed, err := e.Admitted(runCtx, task, now)
 				if err != nil || !allowed {
 					cancel()

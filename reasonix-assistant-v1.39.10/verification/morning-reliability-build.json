@@ -1,0 +1,132 @@
+{
+  "passed": true,
+  "status": "local_verified_deployment_pending",
+  "version": "v1.39.10-assistant.35-morning-reliability",
+  "verified_at": "2026-10-26T10:57:42+08:00",
+  "production_unchanged": true,
+  "production_base_version": "v1.39.10-assistant.34-six-features",
+  "production_base_sha256": "1018f91531ffd4aa8b58ee2246a2a9d82246b70012b230e05f12fc10a35623f0",
+  "binaries": {
+    "darwin_arm64": {
+      "path": "/private/tmp/mybot-morning-reliability-darwin",
+      "sha256": "2b6d3f3a039066812a730d8955a0e77091eebfee5ea965d6e01b1fb786c916e4"
+    },
+    "linux_amd64": {
+      "path": "/private/tmp/mybot-morning-reliability-linux-amd64",
+      "sha256": "3dfababf593ca5567ff452d96ff357a3eb60c128ddab8b0bc740b45e6b0d253b"
+    }
+  },
+  "related_packages": [
+    "ok  \treasonix/internal/assistant\t14.671s",
+    "ok  \treasonix/internal/heartbeat\t6.811s",
+    "ok  \treasonix/internal/cli\t47.348s",
+    "ok  \treasonix/internal/boot\t50.682s",
+    "ok  \treasonix/internal/bot\t6.647s",
+    "ok  \treasonix/internal/bot/weixin\t0.703s",
+    "ok  \treasonix/internal/config\t17.321s",
+    "ok  \treasonix/internal/tool\t0.603s"
+  ],
+  "race": [
+    "ok  \treasonix/internal/assistant\t12.830s",
+    "ok  \treasonix/internal/heartbeat\t5.596s"
+  ],
+  "final_morning_targeted_tests": [
+    "ok  \treasonix/internal/assistant\t0.814s",
+    "ok  \treasonix/internal/cli\t2.028s"
+  ],
+  "cli_output_resume_regression": [
+    "ok  \treasonix/internal/cli\t12.502s"
+  ],
+  "golangci_lint": "0 issues",
+  "repolint": "clean; baseline unchanged",
+  "e2e": {
+    "normal": {
+      "passed": true,
+      "scenario": "normal",
+      "final_drafts": 1,
+      "full_draft_checks": 1,
+      "fallback": false,
+      "actual_binary": true,
+      "proactive_morning_messages": 1,
+      "fake_weixin_messages": 3,
+      "active_long_and_short_memory_verified_in_provider_request": true,
+      "expired_memory_body_absent": true,
+      "background_tool_scope_verified": true,
+      "greeting_plus_five_lines_without_headings": true,
+      "native_shared_collector_snapshot_to_top_three": true,
+      "follow_up_original_source": true,
+      "restart_duplicate_count": 0,
+      "mock_model_requests": 5,
+      "real_model_requests": 0,
+      "real_weixin_messages": 0,
+      "sources": "synthetic shared seven-candidate news cache; native morning prepare selects/reads top three; mock model and Weixin, no real services"
+    },
+    "repair": {
+      "passed": true,
+      "scenario": "repair",
+      "final_drafts": 2,
+      "full_draft_checks": 2,
+      "fallback": false,
+      "actual_binary": true,
+      "proactive_morning_messages": 1,
+      "fake_weixin_messages": 3,
+      "active_long_and_short_memory_verified_in_provider_request": true,
+      "expired_memory_body_absent": true,
+      "background_tool_scope_verified": true,
+      "greeting_plus_five_lines_without_headings": true,
+      "native_shared_collector_snapshot_to_top_three": true,
+      "follow_up_original_source": true,
+      "restart_duplicate_count": 0,
+      "mock_model_requests": 7,
+      "real_model_requests": 0,
+      "real_weixin_messages": 0,
+      "sources": "synthetic shared seven-candidate news cache; native morning prepare selects/reads top three; mock model and Weixin, no real services"
+    },
+    "fallback": {
+      "passed": true,
+      "scenario": "fallback",
+      "final_drafts": 2,
+      "full_draft_checks": 2,
+      "fallback": true,
+      "actual_binary": true,
+      "proactive_morning_messages": 1,
+      "fake_weixin_messages": 3,
+      "active_long_and_short_memory_verified_in_provider_request": true,
+      "expired_memory_body_absent": true,
+      "background_tool_scope_verified": true,
+      "greeting_plus_five_lines_without_headings": true,
+      "native_shared_collector_snapshot_to_top_three": true,
+      "follow_up_original_source": true,
+      "restart_duplicate_count": 0,
+      "mock_model_requests": 7,
+      "real_model_requests": 0,
+      "real_weixin_messages": 0,
+      "sources": "synthetic shared seven-candidate news cache; native morning prepare selects/reads top three; mock model and Weixin, no real services"
+    }
+  },
+  "changed_go_sha256": {
+    "internal/assistant/morning_fallback.go": "f2226d3320302db9e14e0394fb833f3095a55941047c184d4afae4418e4c47b0",
+    "internal/assistant/morning_reliability_test.go": "c884196581506b4737c8fefe9d1196126f1ec1eb7d32983545a5fda5e1d62155",
+    "internal/assistant/proposals_validation.go": "27971ceaee0fa361479259a0e8cc3e142c928258edbb709225077654e3c6a69e",
+    "internal/cli/heartbeat_agent_process.go": "988d2dd4a07aefed211349b156d3f9b7783a32fae60c863f1339c1881701e09f",
+    "internal/cli/morning_execution.go": "3c9e21af7f058454890944dc4a80d1bd95c7895473f297ccf53d9e31f286199d",
+    "internal/cli/morning_execution_test.go": "a1ed3af50640afd802ec5e3da4ee93e8281cfc21b4a28b6cf9e311cab95bea21",
+    "internal/assistant/morning_prompt.go": "9dfda9d07d5a44f980387dc74aff671ec781fbfe1ce4f3583ee0ba138442155c",
+    "internal/assistant/morning_render.go": "d62c7eadd212c45797070fa02ce3e750206b4f9b12d9b78991cf68ed459e1e55",
+    "internal/assistant/morning_tool.go": "da284f75b54ef77246bc33c37ea98a85ee760bb755129142ae161ef91c168831",
+    "internal/assistant/proposals.go": "3997d1c332ee014015ebfa23d53ad0f5f911b8efa40bb722c35d74dce94599d7",
+    "internal/cli/cli.go": "f28273f9f67e40c08ad871b321d4ac98c2ad0db520d19f2ac146e05decd1161d",
+    "internal/cli/heartbeat_runner.go": "6ffbd9b8f1f5c28668187b34d118ae7573739a724bf357c6944d3993537ce333",
+    "internal/cli/run_output.go": "abbde3ebad24a11edbb281f290fc4afc9a2d2289fb18b44fbef59e816c0eb9c6",
+    "internal/heartbeat/admission.go": "b011945df9c1739746cb0c1e643cc32a2872b12cf791f134f6a9d34bbf8ec2f9",
+    "internal/heartbeat/engine.go": "b505c655a681745fd96e7e98e7a971327fc9c36f2a6765b1c22d6fd5102a692d"
+  },
+  "real_model_calls": 0,
+  "real_weixin_messages": 0,
+  "deployed": false,
+  "limitations": [
+    "Linux binary cross-built, not executed on Linux",
+    "No production update/restart/test send",
+    "Next real scheduled morning delivery remains to be observed"
+  ]
+}

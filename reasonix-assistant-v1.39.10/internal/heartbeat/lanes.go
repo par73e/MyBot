@@ -19,7 +19,7 @@ func (e Engine) StartLanes(ctx context.Context, interval time.Duration, report f
 	}
 	var wg sync.WaitGroup
 	signals := []chan time.Time{}
-	for _, kind := range []string{"message", "agent", "mail_check", "weather_check"} {
+	for _, kind := range []string{"message", "agent", "mail_check", "weather_check", "module_check"} {
 		lane := e
 		lane.kindFilter = kind
 		lane.Prepare = nil

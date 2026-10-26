@@ -54,24 +54,13 @@ func (s Proposals) now() time.Time {
 }
 
 func (s MailService) recordTaskCandidates(ctx context.Context, tx *sql.Tx, t heartbeat.Task, d MailDecision) error {
-	if len(d.TaskCandidates) > 2 {
-		return errors.New("at most two task candidates per mail")
+	if err := validateTaskCandidates(ctx, tx, t, d); err != nil {
+		return err
 	}
 	if len(d.TaskCandidates) == 0 || d.Notify == nil || !*d.Notify {
 		return nil
 	}
-	key := mailHash(t.ID + "\x00" + fmt.Sprint(t.RunStartedAt) + "\x00" + d.ID)
 	var raw string
-	if e := tx.QueryRowContext(ctx, "SELECT payload FROM assistant_entities WHERE kind='mail_read_receipt' AND id=?", key).Scan(&raw); e != nil || raw != "true" {
-		return errors.New("mail task proposals require complete body reads")
-	}
-	if e := tx.QueryRowContext(ctx, "SELECT payload FROM assistant_entities WHERE kind='mail_proposal_evidence' AND id=?", key).Scan(&raw); e != nil {
-		return errors.New("mail task proposals require evidence from the actual read pages")
-	}
-	var hashes map[string]bool
-	if e := json.Unmarshal([]byte(raw), &hashes); e != nil {
-		return e
-	}
 	var record mailRecord
 	if e := tx.QueryRowContext(ctx, "SELECT payload FROM assistant_entities WHERE kind='mail_message' AND id=?", d.ID).Scan(&raw); e != nil {
 		return e
@@ -82,22 +71,6 @@ func (s MailService) recordTaskCandidates(ctx context.Context, tx *sql.Tx, t hea
 	for _, c := range d.TaskCandidates {
 		c.Title = strings.TrimSpace(c.Title)
 		c.EvidenceQuote = strings.TrimSpace(c.EvidenceQuote)
-		if c.Title == "" || utf8.RuneCountInString(c.Title) > 24 || strings.ContainsAny(c.Title, "\r\n") || !hashes[mailHash(c.EvidenceQuote)] {
-			return errors.New("task candidate must quote an exact task_evidence_quote returned by mail read")
-		}
-		if c.DueAt != "" {
-			if _, e := timestamp(c.DueAt); e != nil {
-				return e
-			}
-		}
-		if c.DueDate != "" {
-			if _, e := courseDate(c.DueDate); e != nil {
-				return e
-			}
-		}
-		if c.DueAt != "" && c.DueDate != "" {
-			return errors.New("candidate date precision must be explicit")
-		}
 		id := "proposal-" + mailHash(record.Dedup+"\x00"+c.Title+"\x00"+c.DueAt+"\x00"+c.DueDate)
 		var existing string
 		if tx.QueryRowContext(ctx, "SELECT payload FROM assistant_entities WHERE kind='task_proposal' AND id=?", id).Scan(&existing) == nil {
