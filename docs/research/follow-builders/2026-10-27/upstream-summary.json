@@ -1,0 +1,19 @@
+{
+  "label": "upstream",
+  "exit": 0,
+  "elapsed_seconds": 103.35,
+  "is_error": false,
+  "error_code": null,
+  "session_id": "bf70f3479a5cd255ab9c7749598d4bf1",
+  "turns": 1,
+  "usage": {
+    "input_tokens": 254620,
+    "output_tokens": 5427,
+    "cache_read_input_tokens": 218368,
+    "cache_creation_input_tokens": 36252
+  },
+  "response_chars": 3672,
+  "output": "/var/lib/mybot/follow-builders-evaluation-20261027/upstream-response.md",
+  "production_personal_state_used": false,
+  "external_messages_sent": 0
+}

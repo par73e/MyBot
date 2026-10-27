@@ -1,0 +1,28 @@
+{
+  "source": "https://github.com/zarazhangrui/follow-builders",
+  "commit": "3b2cf91f0a01a8dece4b4d9ebb29c4c8beb298a6",
+  "files": {
+    "state-feed.json": "60eca3917428c2b3c59af0e7154a65f3803bb630bcd05aaa4b5a9e1a7d1f67b0",
+    "feed-podcasts.json": "e974bbffad8c966f6dc0a16d8b5ef3ec6d57d42ac63a1423d6ccca3127512b0d",
+    "README.md": "ed622ec7b1c36417b3b5d684cb995611ce55c2f1987d8a7a6815c314f4447db7",
+    ".gitignore": "4152b3a2aaf933e1e71e3d0bbb6c184ae340f6e851e6877149aa4c3711552c75",
+    "SKILL.md": "c0e801510917befd8efe89b190993472673bad1b79c5c81b95203f0a58c185fa",
+    "README.zh-CN.md": "7e7c77c5a55fac1b55a04808ae48453ed5bfbf87cfcaa3cf525ed1ac0fcf526c",
+    "feed-x.json": "392988c0c83ecfa3c33a2349ee7df18b9b59bae3f12a636c2dbfa1527eb49389",
+    "feed-blogs.json": "734cddeb6a04ef9d6a1a4b6db42bde874b5110a8e6427a63734c39af0f5301b3",
+    "config/default-sources.json": "a46400000a70721499e7d36f8ce97bea8f87416e912c14226b78a38999ff4c49",
+    "config/config-schema.json": "6af7c2afaf95dd216b0970397342b50e4577257b115c2f0cdc05e994e0487ea2",
+    "examples/sample-digest.md": "dd535e2505c548b71fc09cddd4bbccebc96808ebd85bc7d4dd563fad98bf93bc",
+    "scripts/generate-feed.js": "6abc96807862ef4181a4e7c481c0b71ebdb78b8a7aae8749ad7bd1ece14f838f",
+    "scripts/package-lock.json": "a194852b73e4b2cd060176c353dfe0251f58f948c2190edbf18e6e51c004df2c",
+    "scripts/package.json": "e06010b593051752f71c432318aee9f99e78d0b04254f6ae5d4e32a03bca16bd",
+    "scripts/deliver.js": "bbf7216436f4359780f3fe41c841a2300509f3ae03b1870727ff21da0389459d",
+    "scripts/prepare-digest.js": "bdc10f3be67e235c4a86aed6132bbb1f12a8d580f4715d2db5f4a7f78b5bf81f",
+    ".github/workflows/generate-feed.yml": "c042767a807054b9740a477d5515705703e255dc4641ea8f50d4c951e1773203",
+    "prompts/summarize-tweets.md": "e30e9f172a5673ccb9a6220d5379cdb69b42e1eb67194f9ebc493c88a5b18578",
+    "prompts/digest-intro.md": "5d25f2184b8bbacd910fcbe4547f02b83af76eb03f57f3b0bef02c8d2e1b91c5",
+    "prompts/summarize-blogs.md": "58bfb1da427305b118ffcceabe8830f54566a142896e3c8605e556b98a5d2424",
+    "prompts/summarize-podcast.md": "e9d6267b4b6b92b55aa813d22a91ecfe9e09bcb44586f030ce6f64477e11180a",
+    "prompts/translate.md": "96bd5896fa1792d95c0df189fbe92433f1bc50e5d7d49b71323a3afccf5f72ed"
+  }
+}

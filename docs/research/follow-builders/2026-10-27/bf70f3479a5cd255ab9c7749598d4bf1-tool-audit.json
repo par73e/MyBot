@@ -1,0 +1,181 @@
+{
+  "session": "bf70f3479a5cd255ab9c7749598d4bf1",
+  "tool_results": [
+    {
+      "id": "call_959333ffcc914e43b0c665b1",
+      "name": "use_capability",
+      "resolvedName": "",
+      "capabilityId": "skill:follow-builders",
+      "error": "",
+      "durationMs": 2,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": "inspect",
+      "capability_id": "skill:follow-builders",
+      "arguments_keys": [],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_88dc95ac435743718f4db145",
+      "name": "use_capability",
+      "resolvedName": "run_skill",
+      "capabilityId": "skill:follow-builders",
+      "error": "",
+      "durationMs": 45,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": "call",
+      "capability_id": "skill:follow-builders",
+      "arguments_keys": [
+        "arguments"
+      ],
+      "returned_skill": true,
+      "returned_feed": false
+    },
+    {
+      "id": "call_3f9988f742214675b833ac71",
+      "name": "use_capability",
+      "resolvedName": "",
+      "capabilityId": "",
+      "error": "",
+      "durationMs": 8,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": "search",
+      "capability_id": null,
+      "arguments_keys": [],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_01e87d41926e46f2aa1c2f0c",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "",
+      "durationMs": 3645,
+      "truncated": true,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_67a7c546b70f481ca4565bf2",
+      "name": "use_capability",
+      "resolvedName": "session_tool_result",
+      "capabilityId": "session:tool_result",
+      "error": "",
+      "durationMs": 55,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": "call",
+      "capability_id": "session:tool_result",
+      "arguments_keys": [
+        "tool_call_id",
+        "result_ref",
+        "offset"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_a8990032e0144df8aabeec10",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "blocked: this directory is outside the writable roots (/tmp). Restart with --add-dir /tmp, add it to [sandbox].allow_write in reasonix.toml, or use an interactive session to approve the directory.",
+      "durationMs": 0,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms",
+        "additional_write_dirs",
+        "justification"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_e2c8910afca341d2ab020cb5",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "",
+      "durationMs": 1592,
+      "truncated": false,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_ecb2bf6551474e4b9990dc8f",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "",
+      "durationMs": 119,
+      "truncated": false,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": true
+    },
+    {
+      "id": "call_60de2fd3f82b40ec85738d07",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "",
+      "durationMs": 137,
+      "truncated": false,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_eada024fe14d42efa1a1308f",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "",
+      "durationMs": 121,
+      "truncated": false,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    }
+  ]
+}

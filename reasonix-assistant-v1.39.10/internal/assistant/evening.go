@@ -13,7 +13,7 @@ import (
 	"reasonix/internal/heartbeat"
 )
 
-const EveningInstructions = `为Sir生成23:00睡前小结。必须实际调用assistant_evening action=snapshot读取本次真实快照；宿主负责把剩余事项与明日最早安排渲染成简短正文，你只写一句自然、温和的睡前关照。结合宿主当前有效长短期记忆与会话，语气像熟悉Sir的助理，避免机械复述前次结尾。不要在care中增加任何行程、时间、完成情况、地点、健康或已经睡着等未经提供的事实；不要调天气、邮箱、新闻，不修改任何个人状态。没有待办也照常关照，数据缺失不能假装无事。最终严格只返回一个JSON对象，唯一字段care为40字符以内无换行的自然关照句。`
+const EveningInstructions = `为Sir生成23:00睡前小结。必须实际调用assistant_evening action=snapshot读取本次真实快照；宿主负责把剩余事项与明日最早安排渲染成简短正文，直接从有用的提醒说起，没有待办就省略待办一行，不加固定标题或开场晚安。你只写末尾一句简短、自然的关照，像平时晚上聊天时顺口说的话。每次根据当前有效长短期记忆、会话与当晚真实安排自行组织表达，自然选择措辞和句式。没有固定范文或句库，也不额外查询历史结尾来凑差异；不要为了求变化编造事情。语气克制，不说教、不命令用户放下手头的事，不自称Friday或承诺接着盯、替用户操心等额外服务。可以在结尾自然说晚安，不必每次用同样的句式，也不必凑“夜深了”“今天辛苦了”等开场。不要在care中增加任何行程、时间、完成情况、地点、健康、正在忙或已经睡着等未经提供的事实。宿主已称呼Sir，care无需重复称呼。不要调天气、邮箱、新闻，不修改任何个人状态。数据缺失不能假装无事。最终严格只返回一个JSON对象，唯一字段care为40字符以内无换行的自然关照句。`
 
 type EveningSnapshot struct {
 	ID                 string           `json:"id"`
@@ -98,7 +98,7 @@ func (s EveningService) Finalize(ctx context.Context, t heartbeat.Task, raw stri
 		if !fallback {
 			return "", errors.New("evening care must be a short, factual-neutral sentence")
 		}
-		care = "早点休息，别熬太晚，晚安。"
+		care = "早点休息吧，晚安。"
 	}
 	if !fallback {
 		e = NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
@@ -126,7 +126,7 @@ func (s EveningService) Finalize(ctx context.Context, t heartbeat.Task, raw stri
 	return message, e
 }
 func renderEvening(v EveningSnapshot, care string) string {
-	remaining := "今天没有还要处理的待办。"
+	lines := []string{}
 	if len(v.Tasks) > 0 {
 		names := []string{}
 		for _, t := range v.Tasks[:min(3, len(v.Tasks))] {
@@ -136,11 +136,12 @@ func renderEvening(v EveningSnapshot, care string) string {
 			}
 			names = append(names, name)
 		}
-		remaining = "今天还有" + strings.Join(names, "、") + "没处理"
+		remaining := "今天还有" + strings.Join(names, "、") + "没处理"
 		if len(v.Tasks) > 3 {
 			remaining += fmt.Sprintf("，另有%d项", len(v.Tasks)-3)
 		}
 		remaining += "。"
+		lines = append(lines, remaining)
 	}
 	tomorrow := "明天的课表暂时没查到。"
 	if v.CourseStatus == "ok" {
@@ -153,7 +154,9 @@ func renderEvening(v EveningSnapshot, care string) string {
 	if !v.TomorrowReminderAt.IsZero() && (len(v.Courses) == 0 || v.TomorrowReminderAt.Before(v.Courses[0].StartsAt)) {
 		tomorrow = fmt.Sprintf("明天最早%s记得%s。", v.TomorrowReminderAt.In(mustShanghai()).Format("15:04"), eveningLabel(v.TomorrowReminder, 24))
 	}
-	return strings.Join([]string{"# **Sir，晚安。**", remaining, tomorrow, care}, "\n")
+	lines = append(lines, tomorrow, care)
+	lines[0] = "Sir，" + lines[0]
+	return strings.Join(lines, "\n")
 }
 func (s EveningService) Acknowledge(ctx context.Context, t heartbeat.Task, r heartbeat.Run) error {
 	if t.ModuleID != "evening_briefing" {

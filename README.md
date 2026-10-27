@@ -16,6 +16,8 @@ Friday 的通用表达规则已更新：按内容判断标题、段落与重点�
 
 当前源码在 [`reasonix-assistant-v1.39.10/`](reasonix-assistant-v1.39.10/)。
 
+2026-10-27 源码增量包含晨报已校验草稿恢复、个人记忆的当前用户原话校验，以及更自然的睡前表达；这些修改尚未部署，云端程序仍为下述 assistant.39。Follow Builders 已另外安装到云端 Friday 和本机 Codex，完成按需隔离试用；独立内容板块仍处于方案阶段，见[安装、实际输出与边界](docs/research/follow-builders/2026-10-27/README.md)。
+
 - [私人助理使用说明与架构](reasonix-assistant-v1.39.10/ASSISTANT.md)
 - [Friday 系统提示词](reasonix-assistant-v1.39.10/deploy/tencent/friday.md)
 - [配置模板](reasonix-assistant-v1.39.10/deploy/tencent/assistant.example.toml)

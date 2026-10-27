@@ -41,7 +41,7 @@ func readyMorningDraft(t *testing.T) (HeartbeatService, MorningService, heartbea
 	return hs, s, job, out
 }
 
-func TestMorningFullPreflightChecksMailAndEvidenceWithoutSaving(t *testing.T) {
+func TestMorningFullPreflightChecksMailAndEvidenceWithoutPublishing(t *testing.T) {
 	hs, s, job, out := readyMorningDraft(t)
 	check := func(want string) {
 		t.Helper()

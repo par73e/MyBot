@@ -37,3 +37,17 @@ func TestForegroundProposalAuthorizationUsesActualTurnOrigin(t *testing.T) {
 		t.Fatal("synthetic continuation carried human approval", runner.proof)
 	}
 }
+
+func TestHeadlessForegroundAuthorizationUsesSubmittedUserText(t *testing.T) {
+	sess := agent.NewSession("sys")
+	sess.Add(provider.Message{Role: provider.RoleAssistant, Content: "旧回复只作为上下文"})
+	exec := agent.New(&scriptedTurns{}, tool.NewRegistry(), sess, agent.Options{}, event.Discard)
+	runner := &authorizationRunner{}
+	c := newOwnedTestController(t, Options{Runner: runner, Executor: exec, Label: "test"})
+	if err := c.Run(t.Context(), "以后回答先给结论"); err != nil {
+		t.Fatal(err)
+	}
+	if !runner.present || runner.proof.Text != "以后回答先给结论" || runner.proof.MessageID == "" || runner.proof.PreviousAssistant != "旧回复只作为上下文" {
+		t.Fatal(runner.proof, runner.present)
+	}
+}

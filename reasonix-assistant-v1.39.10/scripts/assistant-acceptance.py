@@ -15,9 +15,19 @@ def main():
   def snapshot(body):
    # Current session-context snapshots replace previous snapshots. Inspect the
    # last explicit host marker, not stale prose/tool results in conversation.
-   text=json.dumps(body,ensure_ascii=False)
    marker="<personal_assistant_current_state>"
-   return text[text.rfind(marker):] if marker in text else ""
+   current=""
+   for message in body.get("messages",[]):
+    content=message.get("content","")
+    parts=[content] if isinstance(content,str) else [p.get("text","") for p in (content or []) if isinstance(p,dict)]
+    for text in parts:
+     if marker not in text:continue
+     block=text[text.rfind(marker):].split("</personal_assistant_current_state>",1)[0]
+     for line in block.splitlines():
+      if line.startswith("{"):
+       state=json.loads(line)
+       current=json.dumps({k:state.get(k,[]) for k in ["active_memories","known_future_memories"]},ensure_ascii=False)
+   return current
   class Handler(BaseHTTPRequestHandler):
    def log_message(self,*a):pass
    def reply(self,obj):
@@ -56,8 +66,8 @@ def main():
     elif not created:
      if not {"assistant_tasks","assistant_memory"}.issubset(tools):errors.append("personal tools not visible in actual model request")
      calls=[
-      ("assistant_memory",{"action":"create","kind":"long","subject":"语言","body":"中文长期标记"}),
-      ("assistant_memory",{"action":"create","kind":"short","subject":"短期旅行","body":"旅行临时标记","expires_at":stamp(9)}),
+      ("assistant_memory",{"action":"create","kind":"long","category":"preference","source_quote":"中文长期标记","subject":"语言","body":"中文长期标记"}),
+      ("assistant_memory",{"action":"create","kind":"short","category":"temporary_plan","source_quote":"旅行临时标记","subject":"短期旅行","body":"旅行临时标记","starts_at":stamp(0),"expires_at":stamp(9)}),
       ("assistant_tasks",{"action":"create","title":"固定提醒验收","body":"ACCEPTANCE_FIXED_NOTICE","at":stamp(7)}),
       ("assistant_tasks",{"action":"create","title":"静默分析验收","kind":"automation","body":"CASE_SILENT","at":stamp(12)}),
       ("assistant_tasks",{"action":"create","title":"主动分析验收","kind":"automation","body":"CASE_NOTIFY","at":stamp(16)}),
@@ -109,7 +119,7 @@ api_base = "{base}"
   (home/"config.toml").write_text(config)
   env=dict(os.environ,REASONIX_HOME=str(home),HOME=str(home),REASONIX_ASSISTANT="1",TZ="Asia/Shanghai",MYBOT_FIXTURE_KEY="fixture-key",MYBOT_FIXTURE_WEIXIN="fixture-token",REASONIX_TELEMETRY="off")
   epoch=time.time()
-  incoming.put({"message_id":"fixture-inbound-1","from_user_id":"fixture-owner","to_user_id":"fixture","msg_type":1,"context_token":"fixture-context","item_list":[{"type":1,"text_item":{"text":"请保存我说的长期和短期偏好，并创建提醒和自动分析任务。CASE_CREATE"}}]})
+  incoming.put({"message_id":"fixture-inbound-1","from_user_id":"fixture-owner","to_user_id":"fixture","msg_type":1,"context_token":"fixture-context","item_list":[{"type":1,"text_item":{"text":f"请保存这些明确的个人偏好和安排：中文长期标记。旅行临时标记。旅行适用区间从{stamp(0)}到{stamp(9)}，结束即失效。再创建提醒和自动分析任务。CASE_CREATE"}}]})
   log=open(Path(tmp)/"bot.log","w+")
   command=[str(Path(args.binary).resolve()),"bot","start","--channels","weixin","--dir",str(work),"--heartbeat","--heartbeat-poll","1s"]
   process=subprocess.Popen(command,cwd=work,env=env,stdout=log,stderr=log,start_new_session=True)

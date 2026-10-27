@@ -34,7 +34,8 @@ def main():
   path.write_text(config)
   end=(dt.datetime.now(dt.timezone(dt.timedelta(hours=8)))+dt.timedelta(seconds=30)).isoformat(timespec="seconds")
   base=["sudo","-n","-u","mybot","env","HOME="+str(home),"REASONIX_HOME="+str(home),"REASONIX_ASSISTANT=1","TZ=Asia/Shanghai","REASONIX_TELEMETRY=off",str(binary),"run","--output-format","json","--permission-mode","read-only","--dir",str(work),"--max-steps","12"]
-  prompt=f"这是隔离环境的功能验收，请实际调用 assistant_tasks 和 assistant_memory 完成三项持久保存：1. 创建 kind=todo 普通待办，title='验收_整理学习计划'，不安排提醒。2. 创建 kind=long 长期记忆，subject='验收_长期偏好'，body='验收时用简短中文回复'。3. 创建 kind=short 短期记忆，subject='验收_旅行'，body='验收时正在日本旅行'，expires_at='{end}'。三个都要实际保存成功，不要使用 shell 或其他写工具。完成后简单确认。"
+  start=dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).isoformat(timespec="seconds")
+  prompt=f"这是隔离环境的功能验收。请保存我下面明确要求保存的个人信息：\n验收时用简短中文回复。\n验收时正在日本旅行。\n第一条作为kind=long、category=preference，主题为验收_长期偏好；第二条作为kind=short、category=temporary_plan，主题为验收_旅行，实际适用区间从{start}到{end}。两条都必须逐字引用上述原话作为source_quote和body，不添加推断。再创建一个kind=todo、title=验收_整理学习计划的普通待办，不安排提醒。实际调用assistant_memory和assistant_tasks，禁止shell或其他写工具。完成后简单确认。"
   started=time.time();result=subprocess.run(base+["--",prompt],capture_output=True,text=True,timeout=240,cwd=work)
   if result.returncode:raise RuntimeError("real provider run failed; exit="+str(result.returncode))
   envelope=json.loads(result.stdout)

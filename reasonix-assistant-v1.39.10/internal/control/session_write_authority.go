@@ -104,7 +104,7 @@ func (c *Controller) Run(ctx context.Context, input string) error {
 	}
 	ctx = contextWithPreparedImageReferences(ctx, prepared)
 	err := c.runSynchronousTurn(ctx, nil, func(runCtx context.Context) error {
-		return c.runReady(runCtx, input)
+		return c.runReady(c.headlessForegroundContext(runCtx, input), input)
 	})
 	if err != nil {
 		return err

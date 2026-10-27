@@ -1,0 +1,19 @@
+{
+  "label": "friday-adapted",
+  "exit": 0,
+  "elapsed_seconds": 74.76,
+  "is_error": false,
+  "error_code": null,
+  "session_id": "b5301213134de0b9ffa7c59f4b4ce81e",
+  "turns": 1,
+  "usage": {
+    "input_tokens": 157118,
+    "output_tokens": 3408,
+    "cache_read_input_tokens": 141056,
+    "cache_creation_input_tokens": 16062
+  },
+  "response_chars": 2337,
+  "output": "/var/lib/mybot/follow-builders-evaluation-20261027/friday-adapted-response.md",
+  "production_personal_state_used": false,
+  "external_messages_sent": 0
+}

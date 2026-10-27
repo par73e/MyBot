@@ -179,12 +179,19 @@ func TestEveningRefreshesFactsAndKeepsMissingDistinct(t *testing.T) {
 	if _, e := (EveningTool{Service: svc}).Execute(t.Context(), []byte(`{"action":"snapshot"}`)); e != nil {
 		t.Fatal(e)
 	}
+	before, e := svc.Finalize(t.Context(), job, `{"care":"早点休息吧，晚安。"}`, false)
+	if e != nil || !strings.Contains(before, "测试待办") {
+		t.Fatal("open daily todo disappeared", before, e)
+	}
 	if _, e := s.Apply(t.Context(), TaskRequest{Action: "complete", ID: v.ID, Revision: v.Revision}); e != nil {
 		t.Fatal(e)
 	}
 	text, e := svc.Finalize(t.Context(), job, `{"care":"早点休息，晚安。"}`, false)
 	if e != nil || strings.Contains(text, "测试待办") || !strings.Contains(text, "10:10") || !strings.Contains(text, "Room A") {
 		t.Fatal(text, e)
+	}
+	if !strings.HasPrefix(text, "Sir，明天") || strings.Contains(text, "待办") || len(strings.Split(text, "\n")) != 2 {
+		t.Fatal("empty todo should be omitted while tomorrow's arrangement remains the opening", text)
 	}
 	fallback, e := svc.Finalize(context.Background(), job, `not json`, true)
 	if e != nil || !strings.Contains(fallback, "晚安") {

@@ -16,15 +16,17 @@ import (
 
 // Memory is readable Markdown with JSON (also valid YAML) front matter.
 type Memory struct {
-	ID        string     `json:"id"`
-	Revision  int        `json:"revision"`
-	Subject   string     `json:"subject"`
-	Body      string     `json:"body"`
-	Kind      string     `json:"kind"`
-	StartsAt  time.Time  `json:"starts_at"`
-	ExpiresAt *time.Time `json:"expires_at,omitempty"`
-	Archived  bool       `json:"archived,omitempty"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	ID              string     `json:"id"`
+	Revision        int        `json:"revision"`
+	Subject         string     `json:"subject"`
+	Body            string     `json:"body"`
+	Kind            string     `json:"kind"`
+	StartsAt        time.Time  `json:"starts_at"`
+	ExpiresAt       *time.Time `json:"expires_at,omitempty"`
+	Archived        bool       `json:"archived,omitempty"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+	Category        string     `json:"category,omitempty"`
+	SourceMessageID string     `json:"source_message_id,omitempty"`
 }
 
 type MemoryRequest struct {
@@ -37,6 +39,9 @@ type MemoryRequest struct {
 	StartsAt        string `json:"starts_at,omitempty"`
 	ExpiresAt       string `json:"expires_at,omitempty"`
 	IncludeInactive bool   `json:"include_inactive,omitempty"`
+	Category        string `json:"category,omitempty"`
+	SourceQuote     string `json:"source_quote,omitempty"`
+	sourceMessageID string
 }
 
 type Memories struct {
@@ -128,6 +133,13 @@ func (m Memories) Apply(ctx context.Context, r MemoryRequest) ([]Memory, error) 
 }
 
 func (m Memories) configure(v *Memory, r MemoryRequest) error {
+	if r.sourceMessageID != "" {
+		if r.Category == "temporary_plan" && v.Kind != "short" {
+			return errors.New("temporary personal plans must use short memory")
+		}
+		v.Category = r.Category
+		v.SourceMessageID = r.sourceMessageID
+	}
 	if r.StartsAt != "" {
 		at, err := timestamp(r.StartsAt)
 		if err != nil {

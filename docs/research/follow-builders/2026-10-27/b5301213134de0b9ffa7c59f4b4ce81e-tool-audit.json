@@ -1,0 +1,142 @@
+{
+  "session": "b5301213134de0b9ffa7c59f4b4ce81e",
+  "tool_results": [
+    {
+      "id": "call_02d35194b8354ad8928a78d8",
+      "name": "use_capability",
+      "resolvedName": "run_skill",
+      "capabilityId": "skill:follow-builders",
+      "error": "",
+      "durationMs": 37,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": "call",
+      "capability_id": "skill:follow-builders",
+      "arguments_keys": [],
+      "returned_skill": true,
+      "returned_feed": false
+    },
+    {
+      "id": "call_03cb4fb8ddb04612b04a9b98",
+      "name": "use_capability",
+      "resolvedName": "",
+      "capabilityId": "",
+      "error": "",
+      "durationMs": 5,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": "search",
+      "capability_id": null,
+      "arguments_keys": [],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_2ecf677f71604fb8bbdd26b4",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "",
+      "durationMs": 3528,
+      "truncated": true,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": true
+    },
+    {
+      "id": "call_353778d2b83e49ffa6c28e00",
+      "name": "use_capability",
+      "resolvedName": "session_tool_result",
+      "capabilityId": "session:tool_result",
+      "error": "argument_validation:session_tool_result:f3790aa1afd264d0:required",
+      "durationMs": 0,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": "call",
+      "capability_id": "session:tool_result",
+      "arguments_keys": [
+        "offset"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_33a72d61cfa44daeb595a026",
+      "name": "use_capability",
+      "resolvedName": "",
+      "capabilityId": "",
+      "error": "argument_validation:use_capability:167df5518191088a:required",
+      "durationMs": 0,
+      "truncated": false,
+      "workspaceMutation": false,
+      "action": null,
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_8c6e700034074a01bef84a6b",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "exit status 127",
+      "durationMs": 2857,
+      "truncated": false,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_0cf1abda80cb4d7faf979f62",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "exit status 1",
+      "durationMs": 61,
+      "truncated": false,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": false
+    },
+    {
+      "id": "call_50402782b2f948a0a6e92deb",
+      "name": "use_capability",
+      "resolvedName": "bash",
+      "capabilityId": "tool:bash",
+      "error": "",
+      "durationMs": 97,
+      "truncated": false,
+      "workspaceMutation": true,
+      "action": "call",
+      "capability_id": "tool:bash",
+      "arguments_keys": [
+        "command",
+        "timeout_ms"
+      ],
+      "returned_skill": false,
+      "returned_feed": true
+    }
+  ]
+}
