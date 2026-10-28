@@ -152,7 +152,7 @@ func renderEvening(v EveningSnapshot, care string) string {
 		}
 	}
 	if !v.TomorrowReminderAt.IsZero() && (len(v.Courses) == 0 || v.TomorrowReminderAt.Before(v.Courses[0].StartsAt)) {
-		tomorrow = fmt.Sprintf("明天最早%s记得%s。", v.TomorrowReminderAt.In(mustShanghai()).Format("15:04"), eveningLabel(v.TomorrowReminder, 24))
+		tomorrow = fmt.Sprintf("明天%s会提醒您：%s。", v.TomorrowReminderAt.In(mustShanghai()).Format("15:04"), eveningLabel(v.TomorrowReminder, 24))
 	}
 	lines = append(lines, tomorrow, care)
 	lines[0] = "Sir，" + lines[0]
@@ -172,9 +172,5 @@ func (s EveningService) Acknowledge(ctx context.Context, t heartbeat.Task, r hea
 }
 
 func eveningLabel(text string, limit int) string {
-	r := []rune(singleLine(text))
-	if len(r) > limit {
-		return string(r[:limit]) + "…"
-	}
-	return string(r)
+	return singleLine(text)
 }

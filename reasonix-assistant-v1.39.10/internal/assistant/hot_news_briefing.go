@@ -101,6 +101,17 @@ func renderNewsBriefing(snap HotNewsSnapshot, v NewsBriefingOutput) string {
 			parts[1] = "Sir，新闻来源暂时没能读取，稍后再看看。"
 		}
 	}
+	if len(v.Events) > 0 && len(snap.Sources) > 0 {
+		unavailable := 0
+		for _, source := range snap.Sources {
+			if source.Status != "ok" {
+				unavailable++
+			}
+		}
+		if unavailable*2 > len(snap.Sources) {
+			parts[1] += " 今天可用的新闻来源较少。"
+		}
+	}
 	byID := map[string]HotNewsArticle{}
 	for _, a := range snap.Candidates {
 		byID[a.ID] = a

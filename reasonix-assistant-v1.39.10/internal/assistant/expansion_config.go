@@ -34,7 +34,7 @@ func (s HeartbeatService) EnableExpansion(ctx context.Context) (HeartbeatConfig,
 		c.ModuleEnabled["evening_briefing"] = true
 		c.ModuleEnabled["subscription_reminder"] = true
 		c.Triggers["evening"] = ModuleTrigger{ID: "evening", Title: "23:00睡前总结", Enabled: true, Mode: "daily", Clock: "23:00", RoutineBound: true, Modules: []string{"evening_briefing"}, CatchUpSeconds: 300}
-		c.Triggers["subscription_expiries"] = ModuleTrigger{ID: "subscription_expiries", Title: "订阅到期提醒", Enabled: true, Mode: "subscription", RoutineBound: true, Modules: []string{"subscription_reminder"}}
+		c.Triggers["subscription_expiries"] = ModuleTrigger{ID: "subscription_expiries", Title: "到期事项提醒", Enabled: true, Mode: "subscription", RoutineBound: true, Modules: []string{"subscription_reminder"}}
 		c.Revision++
 		if e = c.Validate(); e != nil {
 			return e

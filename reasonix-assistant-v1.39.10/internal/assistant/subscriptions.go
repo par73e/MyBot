@@ -14,25 +14,32 @@ import (
 )
 
 type Subscription struct {
-	ID          string `json:"id"`
-	Revision    int    `json:"revision"`
-	Period      int    `json:"period"`
-	Name        string `json:"name"`
-	ExpiresOn   string `json:"expires_on,omitempty"`
-	ExpiresAt   string `json:"expires_at,omitempty"`
-	RenewalMode string `json:"renewal_mode"`
-	Archived    bool   `json:"archived,omitempty"`
+	ID           string `json:"id"`
+	Revision     int    `json:"revision"`
+	Period       int    `json:"period"`
+	Name         string `json:"name"`
+	ExpiresOn    string `json:"expires_on,omitempty"`
+	ExpiresAt    string `json:"expires_at,omitempty"`
+	RenewalMode  string `json:"renewal_mode"`
+	Archived     bool   `json:"archived,omitempty"`
+	ReminderDays *int   `json:"reminder_days,omitempty"`
+	ReminderOn   string `json:"reminder_on,omitempty"`
 }
 type SubscriptionRequest struct {
-	Action      string `json:"action"`
-	ID          string `json:"id,omitempty"`
-	Revision    int    `json:"revision,omitempty"`
-	Name        string `json:"name,omitempty"`
-	ExpiresOn   string `json:"expires_on,omitempty"`
-	ExpiresAt   string `json:"expires_at,omitempty"`
-	RenewalMode string `json:"renewal_mode,omitempty"`
+	Action       string `json:"action"`
+	ID           string `json:"id,omitempty"`
+	Revision     int    `json:"revision,omitempty"`
+	Name         string `json:"name,omitempty"`
+	ExpiresOn    string `json:"expires_on,omitempty"`
+	ExpiresAt    string `json:"expires_at,omitempty"`
+	RenewalMode  string `json:"renewal_mode,omitempty"`
+	ReminderDays *int   `json:"reminder_days,omitempty"`
+	ReminderOn   string `json:"reminder_on,omitempty"`
 }
 type Subscriptions struct{ Repository Repository }
+type ExpirySettings struct {
+	DefaultReminderDays int `json:"default_reminder_days"`
+}
 
 func (v Subscription) expiry() (time.Time, error) {
 	if (v.ExpiresOn == "") == (v.ExpiresAt == "") {
@@ -51,8 +58,34 @@ func (s Subscriptions) Apply(ctx context.Context, r SubscriptionRequest) (any, e
 	if err := allowMutation(r.Action); err != nil {
 		return nil, err
 	}
+	if r.ReminderDays != nil && r.ReminderOn != "" {
+		return nil, errors.New("choose reminder_days or reminder_on, not both")
+	}
 	var result any
 	err := s.Repository.transact(ctx, func(tx *sql.Tx) error {
+		settings := ExpirySettings{DefaultReminderDays: 7}
+		stored, e := loadEntities[ExpirySettings](ctx, tx, "expiry_settings")
+		if e != nil {
+			return e
+		}
+		if len(stored) > 0 {
+			settings = stored[0]
+		}
+		if r.Action == "get_default" {
+			result = settings
+			return nil
+		}
+		if r.Action == "set_default" {
+			if r.ReminderDays == nil || *r.ReminderDays < 0 || *r.ReminderDays > 3650 {
+				return errors.New("default reminder_days must be between 0 and 3650")
+			}
+			settings.DefaultReminderDays = *r.ReminderDays
+			if e := saveEntity(ctx, tx, "expiry_settings", "default", settings); e != nil {
+				return e
+			}
+			result = settings
+			return nil
+		}
 		all, e := loadEntities[Subscription](ctx, tx, "subscription")
 		if e != nil {
 			return e
@@ -71,6 +104,10 @@ func (s Subscriptions) Apply(ctx context.Context, r SubscriptionRequest) (any, e
 		if r.Action == "create" {
 			if len(all) >= 500 {
 				return errors.New("subscription capacity reached")
+			}
+			if r.ReminderDays == nil && r.ReminderOn == "" {
+				days := settings.DefaultReminderDays
+				v.ReminderDays = &days
 			}
 			v.ID, e = newID()
 			if e != nil {
@@ -92,6 +129,9 @@ func (s Subscriptions) Apply(ctx context.Context, r SubscriptionRequest) (any, e
 		if r.Action == "create" {
 			for _, old := range all {
 				if !old.Archived && old.Name == v.Name && old.ExpiresOn == v.ExpiresOn && old.ExpiresAt == v.ExpiresAt {
+					if old.ReminderOn != v.ReminderOn || (old.ReminderDays == nil) != (v.ReminderDays == nil) || (old.ReminderDays != nil && v.ReminderDays != nil && *old.ReminderDays != *v.ReminderDays) {
+						return errors.New("expiry item already exists with a different reminder; inspect and update it")
+					}
 					result = old
 					return nil
 				}
@@ -163,7 +203,7 @@ func (s HeartbeatService) prepareSubscriptions(ctx context.Context, tx *sql.Tx, 
 		if e != nil {
 			return e
 		}
-		for _, lead := range []int{7, 1, 0} {
+		for _, lead := range v.reminderLeads(expiry) {
 			day := expiry.AddDate(0, 0, -lead)
 			if day.Format("2006-01-02") != now.Format("2006-01-02") {
 				continue
@@ -198,6 +238,22 @@ func (s HeartbeatService) prepareSubscriptions(ctx context.Context, tx *sql.Tx, 
 	}
 	return nil
 }
+
+// Records created before expiry management retain their original three reminders.
+func (v Subscription) reminderLeads(expiry time.Time) []int {
+	if v.ReminderDays != nil {
+		return []int{*v.ReminderDays}
+	}
+	if v.ReminderOn != "" {
+		day, err := courseDate(v.ReminderOn)
+		if err != nil {
+			return nil
+		}
+		expiryDay, _ := courseDate(expiry.Format("2006-01-02"))
+		return []int{int(expiryDay.Sub(day).Hours() / 24)}
+	}
+	return []int{7, 1, 0}
+}
 func timeMust(s string) time.Time { v, _ := time.Parse(time.RFC3339, s); return v }
 func (s HeartbeatService) subscriptionAdmission(ctx context.Context, c HeartbeatConfig, t heartbeat.Task, now time.Time) (bool, error) {
 	tr, ok := c.Triggers[t.TriggerID]
@@ -218,7 +274,7 @@ func (s HeartbeatService) subscriptionAdmission(ctx context.Context, c Heartbeat
 			if e != nil {
 				return e
 			}
-			for _, lead := range []int{7, 1, 0} {
+			for _, lead := range v.reminderLeads(expiry) {
 				j, ok := subscriptionJob(s, c, tr, v, expiry.AddDate(0, 0, -lead), lead, now)
 				if ok && j.ID == t.ID && j.At == t.At && j.Prompt == t.Prompt {
 					valid = true
@@ -263,6 +319,9 @@ func existingSubscription(all []Subscription, r SubscriptionRequest) (Subscripti
 		return v, errors.New("renew requires the actual new expiry date")
 	}
 	if (r.ExpiresOn != "" && r.ExpiresOn != v.ExpiresOn) || (r.ExpiresAt != "" && r.ExpiresAt != v.ExpiresAt) {
+		if v.ReminderOn != "" && r.ReminderOn == "" && r.ReminderDays == nil {
+			return v, errors.New("expiry changed; provide a new reminder_on or reminder_days")
+		}
 		v.Period++
 	}
 	v.Revision++
@@ -284,6 +343,14 @@ func applySubscriptionFields(v *Subscription, r SubscriptionRequest) error {
 		v.ExpiresAt = r.ExpiresAt
 		v.ExpiresOn = ""
 	}
+	if r.ReminderDays != nil {
+		v.ReminderDays = r.ReminderDays
+		v.ReminderOn = ""
+	}
+	if r.ReminderOn != "" {
+		v.ReminderOn = r.ReminderOn
+		v.ReminderDays = nil
+	}
 	if r.RenewalMode != "" {
 		v.RenewalMode = r.RenewalMode
 	}
@@ -292,6 +359,20 @@ func applySubscriptionFields(v *Subscription, r SubscriptionRequest) error {
 	}
 	if _, e := v.expiry(); e != nil {
 		return e
+	}
+	if v.ReminderDays != nil && (*v.ReminderDays < 0 || *v.ReminderDays > 3650) {
+		return errors.New("reminder_days must be between 0 and 3650")
+	}
+	if v.ReminderOn != "" {
+		day, err := courseDate(v.ReminderOn)
+		if err != nil {
+			return err
+		}
+		expiry, _ := v.expiry()
+		expiryDay, _ := courseDate(expiry.Format("2006-01-02"))
+		if day.After(expiryDay) {
+			return errors.New("reminder_on cannot be after expiry")
+		}
 	}
 	if !slices.Contains([]string{"unknown", "manual", "auto"}, v.RenewalMode) {
 		return errors.New("renewal_mode must be unknown, manual or auto")

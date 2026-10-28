@@ -156,7 +156,7 @@ func TestMorningFilteringExtremelyShortAndDeliveredReferences(t *testing.T) {
 	if _, e = s.Finalize(t.Context(), job, string(raw)); e != nil {
 		t.Fatal("25-character news rejected", e)
 	}
-	out.MailDecisions[0].Summary = strings.Repeat("长", 41)
+	out.MailDecisions[0].Summary = strings.Repeat("长", 1001)
 	raw, _ = json.Marshal(out)
 	if _, e = s.Finalize(t.Context(), job, string(raw)); e == nil {
 		t.Fatal("verbose mail accepted")

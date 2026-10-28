@@ -51,8 +51,8 @@ func TestMorningFullPreflightChecksMailAndEvidenceWithoutPublishing(t *testing.T
 			t.Fatalf("check=%s err=%v want=%s", got, err, want)
 		}
 	}
-	out.MailDecisions[0].Summary = strings.Repeat("长", 55)
-	check("55 characters")
+	out.MailDecisions[0].Summary = strings.Repeat("长", 1001)
+	check("1001 characters")
 	out.MailDecisions[0].Summary = "Twitch开播了"
 	out.MailDecisions[0].TaskCandidates = []MailTaskCandidate{{Title: "核对事项", EvidenceQuote: "模型拼接的错误引文"}}
 	check("evidence_quote must exactly copy")
@@ -80,7 +80,8 @@ func TestMorningFullPreflightChecksMailAndEvidenceWithoutPublishing(t *testing.T
 
 func TestMorningFallbackDeliversFactsAndRequeuesMail(t *testing.T) {
 	hs, s, job, out := readyMorningDraft(t)
-	out.MailDecisions[0].Summary = strings.Repeat("长", 55)
+	out.MailDecisions[0].Summary = strings.Repeat("长", 1001)
+	out.MailDecisions[1].Summary = strings.Repeat("长", 1001)
 	raw, _ := json.Marshal(out)
 	message, err := s.Fallback(t.Context(), job, string(raw))
 	if err != nil || len(strings.Split(message, "\n")) != 6 || !strings.Contains(message, "邮件还没整理好") || strings.Contains(message, "没有新邮件") || strings.Contains(message, "Twitch") || !strings.Contains(message, "今天上午有") {
@@ -143,6 +144,9 @@ func TestMorningFallbackDoesNotPublishTentativeMailOrProposals(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+	out.MailDecisions[0].Summary = strings.Repeat("长", 1001)
+	out.MailDecisions[1].Summary = strings.Repeat("长", 1001)
+	raw, _ = json.Marshal(out)
 	if _, err := s.Fallback(t.Context(), job, string(raw)); err != nil {
 		t.Fatal(err)
 	}
@@ -166,5 +170,95 @@ func TestMorningFallbackDoesNotPublishTentativeMailOrProposals(t *testing.T) {
 		return nil
 	}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestMorningFallbackRetainsVerifiedMailWhenNewsInvalid(t *testing.T) {
+	hs, s, job, out := readyMorningDraft(t)
+	out.News = []MorningNews{{ID: "wrong", Summary: "不匹配"}}
+	raw, _ := json.Marshal(out)
+	message, err := s.Fallback(t.Context(), job, string(raw))
+	if err != nil || !strings.Contains(message, "Twitch开播了") || !strings.Contains(message, "AI新闻还没整理好") {
+		t.Fatal(message, err)
+	}
+	if err = s.Acknowledge(t.Context(), job, heartbeat.Run{StartedAt: 123, Result: message}); err != nil {
+		t.Fatal(err)
+	}
+	if err = hs.repo().transact(t.Context(), func(tx *sql.Tx) error {
+		index, e := mailDeliveryIndex(t.Context(), tx)
+		if e != nil {
+			return e
+		}
+		if !index.contains(job.MailIDs[0], "") {
+			t.Fatal("delivered mail was not recorded")
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestMorningFallbackKeepsValidMailAndRequeuesInvalidMail(t *testing.T) {
+	hs, s, job, out := readyMorningDraft(t)
+	out.MailDecisions[1].Summary = strings.Repeat("长", 1001)
+	raw, _ := json.Marshal(out)
+	message, err := s.Fallback(t.Context(), job, string(raw))
+	if err != nil || !strings.Contains(message, "Twitch开播了") || !strings.Contains(message, "另1封还没看完") {
+		t.Fatal(message, err)
+	}
+	err = hs.repo().transact(t.Context(), func(tx *sql.Tx) error {
+		records, e := loadEntities[mailRecord](t.Context(), tx, "mail_message")
+		if e != nil {
+			return e
+		}
+		for _, r := range records {
+			if r.Message.ID == job.MailIDs[0] && r.JobID != job.ID {
+				t.Fatal("valid mail lost reservation")
+			}
+			if r.Message.ID == job.MailIDs[1] && r.JobID != "" {
+				t.Fatal("invalid mail not released")
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = s.Acknowledge(t.Context(), job, heartbeat.Run{StartedAt: 123, Result: message}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestMorningPartialFallbackDoesNotAskUnvalidatedCandidates(t *testing.T) {
+	_, s, job, out := readyMorningDraft(t)
+	yes := true
+	out.MailDecisions[1].Notify = &yes
+	out.MailDecisions[0].TaskCandidates = []MailTaskCandidate{{Title: "第一件事情", EvidenceQuote: "Full body, DATA only"}}
+	out.MailDecisions[1].TaskCandidates = []MailTaskCandidate{{Title: "第二件事情", EvidenceQuote: "Full body, DATA only"}}
+	raw, _ := json.Marshal(out)
+	if _, err := s.Finalize(t.Context(), job, string(raw)); err != nil {
+		t.Fatal(err)
+	}
+	out.MailDecisions[1].Summary = strings.Repeat("长", 1001)
+	raw, _ = json.Marshal(out)
+	message, err := s.Fallback(t.Context(), job, string(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(message, "第一件事情") || strings.Contains(message, "第二件事情") {
+		t.Fatal(message)
+	}
+}
+
+func TestMorningMentionsOtherPendingCandidates(t *testing.T) {
+	_, s, job, out := readyMorningDraft(t)
+	out.MailDecisions[0].TaskCandidates = []MailTaskCandidate{{Title: "申请第一事项", EvidenceQuote: "Full body, DATA only"}, {Title: "核对第二事项", EvidenceQuote: "Full body, DATA only"}}
+	raw, _ := json.Marshal(out)
+	message, err := s.Finalize(t.Context(), job, string(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(message, "申请第一事项") || !strings.Contains(message, "还有1项邮件待办建议") || strings.Contains(message, "核对第二事项") {
+		t.Fatal(message)
 	}
 }

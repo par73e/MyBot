@@ -61,7 +61,7 @@ func (s MailService) RecordMailDecisions(ctx context.Context, task heartbeat.Tas
 	anyNotify := false
 	for i := range envelope.Decisions {
 		d := &envelope.Decisions[i]
-		if !allowed[d.ID] || d.Notify == nil || strings.TrimSpace(d.Summary) == "" || len(d.Summary) > 2000 || strings.TrimSpace(d.Reason) == "" || len(d.Reason) > 2000 {
+		if !allowed[d.ID] || d.Notify == nil || strings.TrimSpace(d.Summary) == "" || len(d.Summary) > 4000 || strings.TrimSpace(d.Reason) == "" || len(d.Reason) > 2000 {
 			return errors.New("invalid, duplicate or out-of-scope per-mail decision")
 		}
 		delete(allowed, d.ID)

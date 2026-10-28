@@ -46,13 +46,16 @@ func (s MorningService) Finalize(ctx context.Context, t heartbeat.Task, raw stri
 		return "", e
 	}
 	message := renderMorning(snap, v)
-	questions, e := (Proposals{Home: s.Home}).questions(ctx, t, 1)
+	questions, e := (Proposals{Home: s.Home}).questions(ctx, t, 100)
 	if e != nil {
 		return "", e
 	}
 	if len(questions) > 0 {
 		lines := strings.Split(message, "\n")
 		lines[3] = strings.TrimSuffix(lines[3], "。") + "；" + questions[0]
+		if len(questions) > 1 {
+			lines[3] += fmt.Sprintf("另外还有%d项邮件待办建议，您可以让我列出来。", len(questions)-1)
+		}
 		message = strings.Join(lines, "\n")
 	}
 	displayed := []string{}
@@ -71,7 +74,18 @@ func (s MorningService) verify(ctx context.Context, t heartbeat.Task, snap Morni
 	if e := validateMorningWeather(v.Weather); e != nil {
 		return e
 	}
-	if v.MailDecisions == nil || v.News == nil || len(v.MailDecisions) != len(snap.MailIDs) || len(v.News) != len(snap.News.Items) {
+	if snap.WeatherConfigured {
+		if e := NewWeatherService(s.Home).VerifyWeatherRead(ctx, t.ID, t.RunStartedAt); e != nil {
+			return e
+		}
+	}
+	if e := s.verifyMail(ctx, t, snap, v.MailDecisions); e != nil {
+		return e
+	}
+	return validateMorningNews(snap, v.News)
+}
+func (s MorningService) verifyMail(ctx context.Context, t heartbeat.Task, snap MorningSnapshot, decisions []MailDecision) error {
+	if decisions == nil || len(decisions) != len(snap.MailIDs) {
 		return errors.New("morning result omitted source items")
 	}
 	if e := NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
@@ -87,32 +101,24 @@ func (s MorningService) verify(ctx context.Context, t heartbeat.Task, snap Morni
 	if e := NewMailService(s.Home).VerifyMailReads(ctx, t.ID, t.RunStartedAt, snap.MailIDs); e != nil {
 		return e
 	}
-	if snap.WeatherConfigured {
-		if e := NewWeatherService(s.Home).VerifyWeatherRead(ctx, t.ID, t.RunStartedAt); e != nil {
-			return e
-		}
-	}
 	allowed := map[string]bool{}
 	for _, id := range snap.MailIDs {
 		allowed[id] = true
 	}
-	for i, d := range v.MailDecisions {
+	for i, d := range decisions {
 		if !allowed[d.ID] || d.Notify == nil {
 			return fmt.Errorf("mail_decisions[%d] has an invalid/duplicate id or missing notify", i)
 		}
-		if strings.TrimSpace(d.Summary) == "" || utf8.RuneCountInString(d.Summary) > 40 || strings.ContainsAny(d.Summary, "\r\n") {
-			return fmt.Errorf("mail_decisions[%d].summary has %d characters; use 1..40 characters without newlines", i, utf8.RuneCountInString(d.Summary))
+		if strings.TrimSpace(d.Summary) == "" || utf8.RuneCountInString(d.Summary) > 1000 || strings.ContainsAny(d.Summary, "\r\n") {
+			return fmt.Errorf("mail_decisions[%d].summary has %d characters; use 1..1000 characters without newlines", i, utf8.RuneCountInString(d.Summary))
 		}
 		if strings.TrimSpace(d.Reason) == "" || len(d.Reason) > 2000 {
 			return fmt.Errorf("mail_decisions[%d].reason must be nonempty and at most 2000 bytes", i)
 		}
 		delete(allowed, d.ID)
 	}
-	if e := validateMorningNews(snap, v.News); e != nil {
-		return e
-	}
 	return NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
-		for i, d := range v.MailDecisions {
+		for i, d := range decisions {
 			if e := validateTaskCandidates(ctx, tx, t, d); e != nil {
 				return fmt.Errorf("mail_decisions[%d]: %w", i, e)
 			}
@@ -176,10 +182,6 @@ func renderMorning(s MorningSnapshot, v MorningOutput) string {
 	todos := []string{}
 	for _, t := range s.Todos[:min(3, len(s.Todos))] {
 		title := singleLine(t.Title)
-		runes := []rune(title)
-		if len(runes) > 20 {
-			title = string(runes[:20]) + "…"
-		}
 		if due, e := time.Parse(time.RFC3339, t.DueAt); e == nil && due.In(mustShanghai()).Format("2006-01-02") < s.Date {
 			title += "（逾期）"
 		}

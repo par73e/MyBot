@@ -116,6 +116,32 @@ func (s Proposals) questions(ctx context.Context, t heartbeat.Task, limit int) (
 	})
 	return out, e
 }
+
+// questionsForMail excludes tentative candidates from decisions that failed
+// fallback validation; those proposals are removed in the result transaction.
+func (s Proposals) questionsForMail(ctx context.Context, t heartbeat.Task, decisions []MailDecision, limit int) ([]string, error) {
+	allowed := map[string]bool{}
+	for _, d := range decisions {
+		if d.Notify != nil && *d.Notify {
+			allowed[d.ID] = true
+		}
+	}
+	out := []string{}
+	err := NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
+		all, e := loadEntities[TaskProposal](ctx, tx, "task_proposal")
+		if e != nil {
+			return e
+		}
+		for _, p := range all {
+			if allowed[p.MailID] && p.JobID == t.ID && p.Attempt == t.RunStartedAt && p.State == "pending" && len(out) < limit {
+				out = append(out, p.Question)
+			}
+		}
+		return nil
+	})
+	return out, err
+}
+
 func proposalConfirmation(a tool.ForegroundAuthorization, p TaskProposal, all []TaskProposal) bool {
 	text := strings.TrimSpace(a.Text)
 	for _, q := range []string{"为什么", "是否已经", "有没有", "是不是", "怎么", "吗", "？", "?"} {

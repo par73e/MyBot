@@ -30,7 +30,7 @@ func TestMorningCheckedDraftSurvivesInterruptedFinalAndInvalidCorrection(t *test
 		t.Fatal(got)
 	}
 	// A later failed correction must not replace the last fully checked draft.
-	out.MailDecisions[0].Summary = strings.Repeat("长", 41)
+	out.MailDecisions[0].Summary = strings.Repeat("长", 1001)
 	if got := checkMorningDraft(t, s, out); !strings.Contains(got, `"valid":false`) {
 		t.Fatal(got)
 	}
@@ -118,7 +118,7 @@ func TestMorningLegacyAndInvalidChecksDoNotCreateRecoveryDraft(t *testing.T) {
 	if _, err := (MorningTool{Service: s}).Execute(t.Context(), json.RawMessage(`{"action":"check","news":[]}`)); err != nil {
 		t.Fatal(err)
 	}
-	out.MailDecisions[0].Summary = strings.Repeat("长", 41)
+	out.MailDecisions[0].Summary = strings.Repeat("长", 1001)
 	checkMorningDraft(t, s, out)
 	if _, err := s.RecoverCheckedDraft(t.Context(), job); !errors.Is(err, sql.ErrNoRows) {
 		t.Fatal("unchecked draft became recoverable", err)
