@@ -48,19 +48,20 @@ type MailAlias struct {
 	Address string `json:"address"`
 }
 type MailMessage struct {
-	ID          string   `json:"id"`
-	Account     string   `json:"account"`
-	Sources     []string `json:"sources"`
-	TransportID string   `json:"transport_id"`
-	MessageID   string   `json:"message_id"`
-	From        string   `json:"from"`
-	To          string   `json:"to"`
-	OriginalTo  string   `json:"original_to,omitempty"`
-	Subject     string   `json:"subject"`
-	Date        string   `json:"date"`
-	ReceivedAt  int64    `json:"received_at"`
-	Snippet     string   `json:"snippet,omitempty"`
-	Dedup       string   `json:"-"`
+	NotificationStatus string   `json:"notification_status,omitempty"`
+	ID                 string   `json:"id"`
+	Account            string   `json:"account"`
+	Sources            []string `json:"sources"`
+	TransportID        string   `json:"transport_id"`
+	MessageID          string   `json:"message_id"`
+	From               string   `json:"from"`
+	To                 string   `json:"to"`
+	OriginalTo         string   `json:"original_to,omitempty"`
+	Subject            string   `json:"subject"`
+	Date               string   `json:"date"`
+	ReceivedAt         int64    `json:"received_at"`
+	Snippet            string   `json:"snippet,omitempty"`
+	Dedup              string   `json:"-"`
 }
 
 // Queue state is independent of read/unread flags and foreground queries.

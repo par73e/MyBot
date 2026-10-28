@@ -124,7 +124,7 @@ func TestMorningFilteringExtremelyShortAndDeliveredReferences(t *testing.T) {
 			t.Fatal("expected ordered sentences without headings", text)
 		}
 	}
-	if e = s.Acknowledge(t.Context(), job, heartbeat.Run{StartedAt: 123}); e != nil {
+	if e = s.Acknowledge(t.Context(), job, heartbeat.Run{StartedAt: 123, Result: text}); e != nil {
 		t.Fatal(e)
 	}
 	got, e := (MorningTool{Service: s}).Execute(t.Context(), json.RawMessage(`{"action":"latest"}`))

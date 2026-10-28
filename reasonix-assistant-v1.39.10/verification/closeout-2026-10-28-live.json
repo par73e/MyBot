@@ -1,0 +1,18 @@
+{
+  "verified_at": "2026-10-28T13:29:52.727428+08:00",
+  "version": "v1.39.10-assistant.40-mail-morning-memory",
+  "running_binary_sha256": "62660aab5f71789e3f22a0bf49011ba722b5e1b263aa39b04d8be0f8eded73a5",
+  "service_active": true,
+  "service_auto_restarts": 0,
+  "service_started_at": "2026-10-27T22:06:38+08:00",
+  "source_directory": "/opt/mybot/releases/v1.39.10-assistant.40-mail-morning-memory/source",
+  "deployment_evidence": "pending-assistant-deployment.json",
+  "source_scope": "Deployment verified all 41 changed Go files against the reviewed package on Oct 27. Oct 28 closeout refreshed version, running hash, service and source pointer only; no claim that later documentation is byte-identical to the release archive.",
+  "closeout_actions": {
+    "tests_build_lint_or_format_checks_run": false,
+    "service_restarted": false,
+    "production_state_changed": false,
+    "messages_sent": 0
+  },
+  "unverified": "No new user receipt or Oct 28 morning run inspection performed during closeout."
+}

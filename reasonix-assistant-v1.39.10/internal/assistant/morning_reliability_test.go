@@ -100,7 +100,7 @@ func TestMorningFallbackDeliversFactsAndRequeuesMail(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.Acknowledge(t.Context(), job, heartbeat.Run{StartedAt: 123}); err != nil {
+	if err := s.Acknowledge(t.Context(), job, heartbeat.Run{StartedAt: 123, Result: message}); err != nil {
 		t.Fatal(err)
 	}
 	latest, err := (MorningTool{Service: s}).Execute(t.Context(), json.RawMessage(`{"action":"latest"}`))

@@ -19,6 +19,16 @@ type heartbeatProcessRunner struct {
 }
 
 func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (heartbeat.Execution, error) {
+	if assistant.IsMailHealthTask(t) {
+		return heartbeat.Execution{Text: assistant.MailHealthMessage, DecisionReason: "邮箱连接异常"}, nil
+	}
+	if t.Capability == "mail" && t.ModuleID != "mail_digest" {
+		var err error
+		t, err = assistant.NewMailService(config.MemoryUserDir()).PrepareAnalysis(ctx, t)
+		if err != nil || len(t.MailIDs) == 0 {
+			return heartbeat.Execution{}, err
+		}
+	}
 	if t.ModuleID == "morning_briefing" {
 		return r.runMorning(ctx, t)
 	}
@@ -79,7 +89,7 @@ func (r heartbeatProcessRunner) Run(ctx context.Context, t heartbeat.Task) (hear
 		if t.ModuleID == "mail_digest" {
 			err = service.VerifyDigest(ctx, t, result.Result)
 		} else if len(t.MailIDs) > 0 {
-			err = service.RecordMailDecisions(ctx, t, result.Result)
+			text, err = service.FinalizeNotification(ctx, t, result.Result)
 		}
 		if err != nil {
 			return heartbeat.Execution{}, err

@@ -31,6 +31,12 @@ func proposalFixture(t *testing.T) (Proposals, MailService, heartbeat.Task, stri
 	jobs := jobsForMail(t, mail)
 	job := jobs[0]
 	job.RunStartedAt = 123
+	if err := (JobStore{Repository: mail.Repository}).Update(t.Context(), job.ID, func(j *heartbeat.Task) error {
+		j.History = []heartbeat.Run{{StartedAt: 123, Status: "running"}}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
 	t.Setenv("REASONIX_ASSISTANT_BACKGROUND", "1")
 	t.Setenv("REASONIX_ASSISTANT_MAIL_BACKGROUND", "1")
 	t.Setenv("REASONIX_ASSISTANT_JOB_ID", job.ID)

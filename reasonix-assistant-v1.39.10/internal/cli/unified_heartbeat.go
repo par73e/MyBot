@@ -18,6 +18,9 @@ func configureUnifiedHeartbeat(ctx context.Context, e *heartbeat.Engine, model, 
 	}
 	e.Prepare = service.Prepare
 	e.AfterDelivery = func(ctx context.Context, t heartbeat.Task, r heartbeat.Run) error {
+		if err := assistant.NewMailService(config.MemoryUserDir()).AcknowledgeNotification(ctx, t, r); err != nil {
+			return err
+		}
 		if err := (assistant.AlertService{Home: config.MemoryUserDir()}).Acknowledge(ctx, t, r); err != nil {
 			return err
 		}

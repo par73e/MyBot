@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "version": "v1.39.10-assistant.40-mail-morning-memory",
+  "binary_sha256": "62660aab5f71789e3f22a0bf49011ba722b5e1b263aa39b04d8be0f8eded73a5",
+  "actual_cli_controller": true,
+  "isolated_temporary_home": true,
+  "accepted_cases": [
+    "preference",
+    "plan"
+  ],
+  "rejected_cases": [
+    "event",
+    "expansion",
+    "invented_source"
+  ],
+  "real_model_requests": 0,
+  "real_weixin_messages": 0
+}

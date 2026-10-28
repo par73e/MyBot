@@ -2,7 +2,7 @@
 
 基于 Reasonix `v1.39.10` 的云端私人助理，通过微信对话管理待办、定时提醒及长期/短期记忆，由常驻 Heartbeat 调度主动任务。
 
-当前服务版本为 `v1.39.10-assistant.39-github-chinese-summary`，模型配置为 `qwen3.8-flash`，提供 Low、Medium、XHigh 档位。日常上下文不自动加载部署环境与工作目录，技术工具通过按需入口使用。微信日常会话每天北京时间 06:00 切换、按日期命名；主动通知进入同一天会话，历史可以按需查询。和风天气查询与每日晨报已接入，支持按问题查询天气、空气质量和官方预警；AI News公开新闻源已接入初版，日历尚未接入。统一模块化 Heartbeat 已部署，支持通过 Agent 配置触发时间、选择天气／邮箱模块、修改指定日期的安排，以及独立的每周或单次模块调用；当前邮件每周重复：周一/三/四 09:50、周二/五 08:00、周六/日 11:00 开启，每天 23:30 关闭（北京时间）。起床时间仅触发一份“早安Friday”，按天气、课程、邮件、待办、AI News五段极简播报；旧天气更名为详细天气播报，天气与邮箱均不在起床时单独推送。天气工作日学校、周末家仅作为地点候选，Agent结合长期／短期记忆及本次问题决定实际查询地点；未来安排写入后即进入上下文，按行程日期使用。白天邮件增量检查保持原有时间和筛选规则。已支持从明确的自然表达保存长期偏好或有期限的短期安排；静默邮件汇总模块支持手动查看及自行配置定期运行，默认不额外添加汇总时间。微信已启用程序级最终答复过滤，详见[验证说明](reasonix-assistant-v1.39.10/verification/FINAL_ONLY.md)。
+当前服务版本为 `v1.39.10-assistant.40-mail-morning-memory`，模型配置为 `qwen3.8-flash`，提供 Low、Medium、XHigh 档位。日常上下文不自动加载部署环境与工作目录，技术工具通过按需入口使用。微信日常会话每天北京时间 06:00 切换、按日期命名；主动通知进入同一天会话，历史可以按需查询。和风天气查询与每日晨报已接入，支持按问题查询天气、空气质量和官方预警；AI News公开新闻源已接入初版，日历尚未接入。统一模块化 Heartbeat 已部署，支持通过 Agent 配置触发时间、选择天气／邮箱模块、修改指定日期的安排，以及独立的每周或单次模块调用；当前邮件每周重复：周一/三/四 09:48、周二/五 07:58、周六/日 10:58 开启，每天 23:30 关闭（北京时间）。起床时间仅触发一份“早安Friday”，按天气、课程、邮件、待办、AI News五段极简播报；旧天气更名为详细天气播报，天气与邮箱均不在起床时单独推送。天气工作日学校、周末家仅作为地点候选，Agent结合长期／短期记忆及本次问题决定实际查询地点；未来安排写入后即进入上下文，按行程日期使用。白天邮件增量检查保持原有时间和筛选规则。已支持从明确的自然表达保存长期偏好或有期限的短期安排；静默邮件汇总模块支持手动查看及自行配置定期运行，默认不额外添加汇总时间。微信已启用程序级最终答复过滤，详见[验证说明](reasonix-assistant-v1.39.10/verification/FINAL_ONLY.md)。
 
 已发布统一作息门控、课表/教室与课前10分钟提醒，以及五段极简“早安Friday”。见[实现与验收](reasonix-assistant-v1.39.10/verification/GOOD_MORNING_FRIDAY.md)。
 
@@ -16,7 +16,7 @@ Friday 的通用表达规则已更新：按内容判断标题、段落与重点�
 
 当前源码在 [`reasonix-assistant-v1.39.10/`](reasonix-assistant-v1.39.10/)。
 
-2026-10-27 源码增量包含晨报已校验草稿恢复、个人记忆的当前用户原话校验，以及更自然的睡前表达；这些修改尚未部署，云端程序仍为下述 assistant.39。Follow Builders 已另外安装到云端 Friday 和本机 Codex，完成按需隔离试用；独立内容板块仍处于方案阶段，见[安装、实际输出与边界](docs/research/follow-builders/2026-10-27/README.md)。
+2026-10-27 已将晨报已校验草稿恢复、个人记忆的当前用户原话校验、更自然的睡前表达、邮件通知统一送达去重及邮箱连续失败15次才提醒一并部署为 assistant.40，见[部署记录](reasonix-assistant-v1.39.10/verification/pending-assistant-deployment.json)。Follow Builders 已另外安装到云端 Friday 和本机 Codex，完成按需隔离试用；独立内容板块仍处于方案阶段，见[安装、实际输出与边界](docs/research/follow-builders/2026-10-27/README.md)。
 
 - [私人助理使用说明与架构](reasonix-assistant-v1.39.10/ASSISTANT.md)
 - [Friday 系统提示词](reasonix-assistant-v1.39.10/deploy/tencent/friday.md)
@@ -38,7 +38,7 @@ Friday 的通用表达规则已更新：按内容判断标题、段落与重点�
 
 ```sh
 cd reasonix-assistant-v1.39.10
-go build -ldflags '-X main.version=v1.39.10-assistant.39-github-chinese-summary' -o bin/reasonix ./cmd/reasonix
+go build -ldflags '-X main.version=v1.39.10-assistant.40-mail-morning-memory' -o bin/reasonix ./cmd/reasonix
 ```
 
 配置应使用独立的 `REASONIX_HOME`，启用 `REASONIX_ASSISTANT=1`。Friday 提示词放到该目录的 `prompts/friday.md`，配置参考上述模板。不要直接将模板覆盖到已配对的服务器配置。

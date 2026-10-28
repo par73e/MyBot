@@ -90,6 +90,12 @@ func TestDigestSnapshotReadsAndDeliveredProgress(t *testing.T) {
 	t.Setenv("REASONIX_ASSISTANT_JOB_ID", "digest")
 	t.Setenv("REASONIX_ASSISTANT_MAIL_ATTEMPT", "456")
 	task := heartbeat.Task{ID: "digest", ModuleID: "mail_digest", RunStartedAt: 456}
+	// The host claims an enabled running job before invoking any background tools.
+	if err := s.Repository.transact(t.Context(), func(tx *sql.Tx) error {
+		return saveEntity(t.Context(), tx, "job", task.ID, heartbeat.Task{ID: task.ID, ModuleID: task.ModuleID, Enabled: true, History: []heartbeat.Run{{StartedAt: 456, Status: "running"}}})
+	}); err != nil {
+		t.Fatal(err)
+	}
 	final := `{"notify":true,"message":"两封邮件","reason":"回顾","digest_ids":["a","b"]}`
 	if e := s.VerifyDigest(t.Context(), task, final); e == nil {
 		t.Fatal("accepted no actual silent query")

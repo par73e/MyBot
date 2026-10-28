@@ -18,6 +18,11 @@ func (s MorningService) Finalize(ctx context.Context, t heartbeat.Task, raw stri
 	if e := json.Unmarshal([]byte(raw), &v); e != nil {
 		return "", e
 	}
+	filtered, err := NewMailService(s.Home).filterDeliveredDecisions(ctx, v.MailDecisions)
+	if err != nil {
+		return "", err
+	}
+	v.MailDecisions = filtered
 	snap, e := s.Snapshot(ctx, t.ID)
 	if e != nil {
 		return "", e
@@ -253,6 +258,21 @@ func (s MorningService) Acknowledge(ctx context.Context, t heartbeat.Task, r hea
 		var v any
 		if e := json.Unmarshal([]byte(raw), &v); e != nil {
 			return e
+		}
+		var sent confirmedMorningMail
+		if e := json.Unmarshal([]byte(raw), &sent); e != nil {
+			return e
+		}
+		if sent.Message != r.Result {
+			return errors.New("morning acknowledgement does not match sent result")
+		}
+		for _, id := range sent.IDs {
+			if !containsMailID(t.MailIDs, id) {
+				return errors.New("morning acknowledgement contains an unbound mail ID")
+			}
+			if e := recordMailDelivery(ctx, tx, t, r, id, "morning_briefing"); e != nil {
+				return e
+			}
 		}
 		return saveEntity(ctx, tx, "morning_delivered", t.ID, v)
 	})

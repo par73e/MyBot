@@ -220,6 +220,20 @@ func TestMailRepeatedFailuresAlertOnlyOnce(t *testing.T) {
 	s.Transport = func(context.Context, map[string]any) (mailWire, error) {
 		return mailWire{Results: []mailResult{{Account: "qq", Error: "authentication_failed"}, goodResult("gmail1"), goodResult("gmail2")}}, nil
 	}
+	for range 14 {
+		if _, err := s.Poll(t.Context(), o); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(jobsForMail(t, s)) != 0 {
+		t.Fatal("health alert must wait for 15 consecutive failures")
+	}
+	if _, err := s.Poll(t.Context(), o); err != nil {
+		t.Fatal(err)
+	}
+	if len(jobsForMail(t, s)) != 1 {
+		t.Fatal("15th failure must create a health alert")
+	}
 	for range 5 {
 		if _, err := s.Poll(t.Context(), o); err != nil {
 			t.Fatal(err)
@@ -228,6 +242,9 @@ func TestMailRepeatedFailuresAlertOnlyOnce(t *testing.T) {
 	jobs := jobsForMail(t, s)
 	if len(jobs) != 1 || !strings.HasPrefix(jobs[0].ID, "mail-health-") {
 		t.Fatal("failed source alert storm or missing alert")
+	}
+	if jobs[0].Kind != "message" || jobs[0].DecideNotification || jobs[0].Prompt != MailHealthMessage || len(jobs[0].MailIDs) != 0 {
+		t.Fatal("connection health must never invoke a mailbox-browsing model", jobs[0])
 	}
 }
 func TestMailForwardingSourceCannotBeSpoofedByDisplayName(t *testing.T) {

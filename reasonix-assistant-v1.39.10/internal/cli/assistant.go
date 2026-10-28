@@ -20,6 +20,13 @@ func assistantCommand(args []string) int {
 	var err error
 	home := config.MemoryUserDir()
 	switch args[0] {
+	case "mail-delivery-repair":
+		var request assistant.MailDeliveryRepair
+		if len(args) != 2 {
+			err = errors.New("mail-delivery-repair requires an audited JSON request; apply defaults false")
+		} else if err = json.Unmarshal([]byte(args[1]), &request); err == nil {
+			result, err = assistant.NewMailService(home).RepairDelivery(context.Background(), request)
+		}
 	case "weather-alerts", "weather-alerts-check":
 		result, err = assistantAlertCommand(home, args)
 	case "github", "github-check":

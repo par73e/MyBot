@@ -11,7 +11,12 @@ import (
 	"time"
 )
 
+const mailHealthFailureThreshold = 15
+
 func (s MailService) commitMailPoll(ctx context.Context, tx *sql.Tx, c MailConfig, wire mailWire, options Options, now time.Time) (int, error) {
+	if err := reconcileMailDeliveries(ctx, tx); err != nil {
+		return 0, err
+	}
 	records, err := loadEntities[mailRecord](ctx, tx, "mail_message")
 	if err != nil {
 		return 0, err
@@ -75,9 +80,10 @@ func (s MailService) applyMailAccount(ctx context.Context, tx *sql.Tx, a MailAcc
 		if result.Error != "" {
 			h.Error = result.Error
 		}
-		if h.Failures >= 3 && !h.Alerted && options.Target != nil && options.MorningJobID == "" {
+		if h.Failures >= mailHealthFailureThreshold && !h.Alerted && options.Target != nil && options.MorningJobID == "" {
 			id := "mail-health-" + mailHash(a.ID+fmt.Sprint(h.FailureStarted))
-			task := newMailJob(id, MailAnalysisInstructions+"\nHost status: repeated connection failures for mailbox "+a.ID+". New-mail coverage is incomplete. Briefly notify Sir if this needs attention; do not claim there is no new mail.", options, now, nil)
+			task := newMailJob(id, MailHealthMessage, options, now, nil)
+			task.Kind, task.ModuleID, task.DecideNotification = "message", "mail_health", false
 			if err := saveEntity(ctx, tx, "job", id, task); err != nil {
 				return err
 			}
@@ -111,10 +117,14 @@ func (s MailService) applyMailAccount(ctx context.Context, tx *sql.Tx, a MailAcc
 }
 
 func queueMailBatch(ctx context.Context, tx *sql.Tx, byID map[string]mailRecord, options Options, now time.Time) (int, error) {
+	delivered, err := mailDeliveryIndex(ctx, tx)
+	if err != nil {
+		return 0, err
+	}
 	// Oldest-first batches avoid starvation; each unique message gets one job.
 	pending := []mailRecord{}
 	for _, r := range byID {
-		if r.Observed && r.JobID == "" {
+		if r.Observed && r.JobID == "" && !delivered.contains(r.Message.ID, r.Dedup) {
 			pending = append(pending, r)
 		}
 	}
