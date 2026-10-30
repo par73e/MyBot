@@ -39,6 +39,7 @@ func loadMorningFacts(ctx context.Context, tx *sql.Tx, v *MorningSnapshot, cfg H
 		return e
 	}
 	planned := map[string]bool{}
+	v.ReminderTimes = map[string]string{}
 	wanted := map[string]bool{}
 	for _, todo := range todos {
 		wanted[todo.JobID] = true
@@ -46,6 +47,17 @@ func loadMorningFacts(ctx context.Context, tx *sql.Tx, v *MorningSnapshot, cfg H
 	for _, j := range jobs {
 		if wanted[j.ID] && j.ScheduledOn(now) {
 			planned[j.ID] = true
+			if j.Enabled && j.At != "" && j.SnoozedUntil == "" {
+				v.ReminderTimes[j.ID] = j.At
+			}
+		}
+	}
+	for i := range todos {
+		for j := range jobs {
+			if jobs[j].ID == todos[i].JobID {
+				todos[i] = notifiedReminderView(todos[i], &jobs[j])
+				break
+			}
 		}
 	}
 	v.Todos = morningTodos(todos, now, planned)

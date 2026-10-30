@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reasonix/internal/heartbeat"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -181,7 +182,7 @@ func renderMorning(s MorningSnapshot, v MorningOutput) string {
 	}
 	todos := []string{}
 	for _, t := range s.Todos[:min(3, len(s.Todos))] {
-		title := singleLine(t.Title)
+		title := morningReminderTitle(t, s.Date, s.ReminderTimes[t.JobID])
 		if due, e := time.Parse(time.RFC3339, t.DueAt); e == nil && due.In(mustShanghai()).Format("2006-01-02") < s.Date {
 			title += "（逾期）"
 		}
@@ -302,4 +303,43 @@ func (s MorningService) weatherReference(ctx context.Context, t heartbeat.Task) 
 		}
 	}
 	return ref, err
+}
+
+// Only strip a relative-time suffix when its clock matches the actual one-shot
+// reminder on the report date. Other title text remains untouched.
+var morningRelativeSuffix = regexp.MustCompile(`\s*[（(](今天|明天|后天)\s*([0-9]{1,2}):([0-9]{2})[）)]$`)
+
+func morningReminderTitle(todo Todo, date, at string) string {
+	title := singleLine(todo.Title)
+	match := morningRelativeSuffix.FindStringSubmatchIndex(title)
+	planned, err := time.Parse(time.RFC3339, at)
+	if err != nil || planned.In(mustShanghai()).Format("2006-01-02") != date {
+		return title
+	}
+	if match == nil {
+		if todo.Kind == "reminder" && !strings.ContainsAny(title, "0123456789") && !strings.Contains(title, "今天") && !strings.Contains(title, "明天") && !strings.Contains(title, "后天") && !strings.Contains(title, "下周") {
+			return fmt.Sprintf("%s（%s提醒）", title, planned.In(mustShanghai()).Format("15:04"))
+		}
+		return title
+	}
+	// A saved relative date only has a reliable origin for a newly created,
+	// unchanged record. Never infer a date for edited or legacy unknown records.
+	if todo.Revision != 1 || todo.CreatedAt.IsZero() {
+		return title
+	}
+	offset := map[string]int{"今天": 0, "明天": 1, "后天": 2}[title[match[2]:match[3]]]
+	origin := todo.CreatedAt.In(mustShanghai())
+	if origin.AddDate(0, 0, offset).Format("2006-01-02") != date {
+		return title
+	}
+	hour, e1 := strconv.Atoi(title[match[4]:match[5]])
+	minute, e2 := strconv.Atoi(title[match[6]:match[7]])
+	if e1 != nil || e2 != nil || hour != planned.In(mustShanghai()).Hour() || minute != planned.In(mustShanghai()).Minute() {
+		return title
+	}
+	base := strings.TrimSpace(title[:match[0]])
+	if base == "" {
+		return title
+	}
+	return fmt.Sprintf("%s（%s提醒）", base, planned.In(mustShanghai()).Format("15:04"))
 }

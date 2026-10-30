@@ -3,20 +3,21 @@ package assistant
 import "time"
 
 type MorningSnapshot struct {
-	WakeCourses       []CourseInstance `json:"wake_courses"`
-	ID                string           `json:"id"`
-	Date              string           `json:"date"`
-	CreatedAt         time.Time        `json:"created_at"`
-	MailIDs           []string         `json:"mail_ids"`
-	MailStatus        string           `json:"mail_status"`
-	OvernightMailSeen bool             `json:"overnight_mail_seen"`
-	RemainingMail     int              `json:"remaining_mail"`
-	Mail              []MailMessage    `json:"mail"`
-	Courses           CourseDay        `json:"courses"`
-	CourseStatus      string           `json:"course_status"`
-	Todos             []Todo           `json:"todos"`
-	News              NewsPage         `json:"news"`
-	WeatherConfigured bool             `json:"weather_configured"`
+	WakeCourses       []CourseInstance  `json:"wake_courses"`
+	ID                string            `json:"id"`
+	Date              string            `json:"date"`
+	CreatedAt         time.Time         `json:"created_at"`
+	MailIDs           []string          `json:"mail_ids"`
+	MailStatus        string            `json:"mail_status"`
+	OvernightMailSeen bool              `json:"overnight_mail_seen"`
+	RemainingMail     int               `json:"remaining_mail"`
+	Mail              []MailMessage     `json:"mail"`
+	Courses           CourseDay         `json:"courses"`
+	CourseStatus      string            `json:"course_status"`
+	ReminderTimes     map[string]string `json:"reminder_times,omitempty"`
+	Todos             []Todo            `json:"todos"`
+	News              NewsPage          `json:"news"`
+	WeatherConfigured bool              `json:"weather_configured"`
 }
 type MorningOutput struct {
 	Weather       string         `json:"weather"`

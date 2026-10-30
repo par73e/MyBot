@@ -56,7 +56,7 @@ func (s EveningService) facts(ctx context.Context, id string) (EveningSnapshot, 
 			continue
 		}
 		due, _ := timestamp(t.DueAt)
-		if t.PlannedFor == date || !due.IsZero() && due.In(mustShanghai()).Format("2006-01-02") <= date || t.Schedule != nil && t.Schedule.ScheduledOn(now) {
+		if t.Kind != "reminder" && (t.PlannedFor == date || !due.IsZero() && due.In(mustShanghai()).Format("2006-01-02") <= date || t.Schedule != nil && t.Schedule.ScheduledOn(now)) {
 			v.Tasks = append(v.Tasks, t.Todo)
 		}
 		if t.Schedule != nil && t.Schedule.Enabled && t.Schedule.At != "" {

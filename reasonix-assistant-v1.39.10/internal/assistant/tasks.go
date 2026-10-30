@@ -115,6 +115,7 @@ func (s Tasks) Apply(ctx context.Context, in TaskRequest) (any, error) {
 				return err
 			}
 			attachReminderJobs(&result, liveJobs)
+			result.Todo = notifiedReminderView(result.Todo, result.Schedule)
 			return nil
 		}
 		return fmt.Errorf("todo %q not found", in.ID)
@@ -144,6 +145,10 @@ func (s Tasks) List(ctx context.Context, closed bool) ([]TaskView, error) {
 					view.Schedule = &jobs[i]
 					break
 				}
+			}
+			view.Todo = notifiedReminderView(view.Todo, view.Schedule)
+			if !closed && view.Status == "notified" {
+				continue
 			}
 			out = append(out, view)
 		}
@@ -334,4 +339,24 @@ func (s Tasks) saveNewTaskTx(ctx context.Context, tx *sql.Tx, view *TaskView) er
 		}
 	}
 	return nil
+}
+
+// Notification state is derived from the current one-shot job, never from
+// time alone or a delivery failure; the persisted todo remains unchanged.
+func notifiedReminderView(todo Todo, job *heartbeat.Task) Todo {
+	if todo.Status != "open" || todo.Kind != "reminder" || job == nil || job.At == "" || job.Interval != "" || job.Enabled {
+		return todo
+	}
+	at, err := time.Parse(time.RFC3339, job.At)
+	if err != nil {
+		return todo
+	}
+	for _, run := range job.History {
+		scheduled, e := time.Parse(time.RFC3339, run.ScheduledAt)
+		if e == nil && run.Status == "delivered" && scheduled.Equal(at) {
+			todo.Status = "notified"
+			return todo
+		}
+	}
+	return todo
 }
