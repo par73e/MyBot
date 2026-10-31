@@ -1,0 +1,19 @@
+# Experimental container approach; not the deployed host-isolation mode. See README.
+# Template only. Install only after the image and isolated runtime are verified.
+# No Docker auto-restart: every start must first re-apply the network guard.
+[Unit]
+Description=AS Robot assistant instance %i
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/python3 /opt/asrobot/deploy/instance_launcher.py network %i
+ExecStart=/usr/bin/docker start --attach asrobot-agent-%i
+ExecStop=/usr/bin/docker stop -t 15 asrobot-agent-%i
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

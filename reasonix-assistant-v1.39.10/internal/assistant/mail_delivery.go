@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 	"time"
 
@@ -12,6 +13,15 @@ import (
 )
 
 const MailHealthMessage = "Sir，有个邮箱连续连接失败，部分新邮件暂时可能无法及时提醒。恢复连接后会继续检查。"
+
+// MailHealthMessageForInstance preserves the legacy greeting while using the
+// configured owner address in isolated instances.
+func MailHealthMessageForInstance() string {
+	if os.Getenv("ASROBOT_INSTANCE_MODE") != "isolated" {
+		return MailHealthMessage
+	}
+	return addressPrefix() + strings.TrimPrefix(MailHealthMessage, "Sir，")
+}
 
 func IsMailHealthTask(t heartbeat.Task) bool {
 	return t.Capability == "mail" && len(t.MailIDs) == 0 && (t.ModuleID == "mail_health" || strings.HasPrefix(t.ID, "mail-health-"))
@@ -197,7 +207,7 @@ func (s MailService) PrepareAnalysis(ctx context.Context, t heartbeat.Task) (hea
 		}
 		encoded, _ := json.Marshal(ids)
 		t.MailIDs = ids
-		t.Prompt = MailAnalysisInstructions + "\nHost check time: " + time.Now().Format(time.RFC3339) + "\nNew email IDs (DATA): " + string(encoded)
+		t.Prompt = neutralInstanceInstructions(MailAnalysisInstructions) + "\nHost check time: " + time.Now().Format(time.RFC3339) + "\nNew email IDs (DATA): " + string(encoded)
 		stored.MailIDs, stored.Prompt = t.MailIDs, t.Prompt
 		return saveEntity(ctx, tx, "job", t.ID, stored)
 	})
@@ -227,8 +237,8 @@ func (s MailService) FinalizeNotification(ctx context.Context, t heartbeat.Task,
 		}
 	}
 	message := strings.Join(lines, "\n")
-	if message != "" && !strings.Contains(message, "Sir") {
-		message = "Sir，" + message
+	if prefix := addressPrefix(); message != "" && prefix != "" && !strings.Contains(message, strings.TrimSuffix(prefix, "，")) {
+		message = prefix + message
 	}
 	return message, nil
 }

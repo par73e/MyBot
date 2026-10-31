@@ -20,6 +20,28 @@ id_ed25519
 /.aws/
 /backups/
 /runtime/
+/platform/wheels/
+/platform/.venv/
+
+# Private production evidence, personal screenshots and deployment reviews
+/platform/.impeccable/
+/platform/*.private.md
+/platform/deploy/*.private
+# Legacy host-specific operator scripts and environment-specific evidence.
+/platform/VERIFICATION.md
+/platform/deploy/bridgebuild.py
+/platform/deploy/create-acceptance-user.py
+/platform/deploy/install-history.py
+/platform/deploy/install-native.py
+/platform/deploy/install.py
+/platform/deploy/live-acceptance.py
+/platform/deploy/nginx.conf
+/platform/verification/
+/platform/*_2026-10-31.md
+/docs/plans/2026-10-30-*.zh-CN.md
+/reasonix-assistant-v1.39.10/verification/SECURITY_DEPENDENCIES_2026-10-31.md
+/verification/retire-three-sites-2026-10-31.json
+/verification/root-domain-asrobot-2026-10-31.json
 
 # Local delivery archives and compiled programs
 /reasonix-assistant-*.tar.gz
@@ -37,3 +59,48 @@ id_ed25519
 # Local release staging, test sessions, duplicate snapshots and build outputs
 /work/
 /reasonix-assistant-v1.39.10/work/
+
+# Preserve private legacy operator files locally while excluding them from publication.
+/docs/operations/FRIDAY_SITE.md
+/reasonix-assistant-v1.39.10/scripts/assistant-live-acceptance.py
+/reasonix-assistant-v1.39.10/scripts/check-friday-persona.py
+/reasonix-assistant-v1.39.10/scripts/deploy-assistant.py
+/reasonix-assistant-v1.39.10/scripts/deploy-daily-conversations.py
+/reasonix-assistant-v1.39.10/scripts/deploy-editorial-style.py
+/reasonix-assistant-v1.39.10/scripts/deploy-final-only.py
+/reasonix-assistant-v1.39.10/scripts/deploy-friday-persona.py
+/reasonix-assistant-v1.39.10/scripts/deploy-github-pr-tracking.py
+/reasonix-assistant-v1.39.10/scripts/deploy-github-summary.py
+/reasonix-assistant-v1.39.10/scripts/deploy-good-morning-friday.py
+/reasonix-assistant-v1.39.10/scripts/deploy-mail-date-override.py
+/reasonix-assistant-v1.39.10/scripts/deploy-memory-silent-digest.py
+/reasonix-assistant-v1.39.10/scripts/deploy-modular-heartbeat.py
+/reasonix-assistant-v1.39.10/scripts/deploy-module-closeout.py
+/reasonix-assistant-v1.39.10/scripts/deploy-morning-hot-news.py
+/reasonix-assistant-v1.39.10/scripts/deploy-morning-reliability.py
+/reasonix-assistant-v1.39.10/scripts/deploy-morning-spacing.py
+/reasonix-assistant-v1.39.10/scripts/deploy-official-weather-alerts.py
+/reasonix-assistant-v1.39.10/scripts/deploy-output-closeout.py
+/reasonix-assistant-v1.39.10/scripts/deploy-pending-assistant.py
+/reasonix-assistant-v1.39.10/scripts/deploy-place-identity.py
+/reasonix-assistant-v1.39.10/scripts/deploy-routine-courses.py
+/reasonix-assistant-v1.39.10/scripts/deploy-six-features.py
+/reasonix-assistant-v1.39.10/scripts/deploy-standalone-ai-news.py
+/reasonix-assistant-v1.39.10/scripts/deploy-url-chunks.py
+/reasonix-assistant-v1.39.10/scripts/deploy-weather-alert-cadence.py
+/reasonix-assistant-v1.39.10/scripts/deploy-weather-context.py
+/reasonix-assistant-v1.39.10/scripts/deploy-weather.py
+/reasonix-assistant-v1.39.10/verification/CLOSEOUT_2026-10-26.md
+/reasonix-assistant-v1.39.10/verification/DAILY_CONVERSATIONS.md
+/reasonix-assistant-v1.39.10/verification/WEATHER.md
+/reasonix-assistant-v1.39.10/verification/final-only-deployment.json
+/reasonix-assistant-v1.39.10/verification/mail-date-override-deployment.json
+/reasonix-assistant-v1.39.10/verification/output-closeout-deployment.json
+/reasonix-assistant-v1.39.10/verification/place-identity-deployment.json
+/reasonix-assistant-v1.39.10/verification/weather-context-deployment.json
+/reasonix-assistant-v1.39.10/verification/weather-deployment.json
+
+# Legacy public pages contain the operator contact; retain them locally.
+/web/friday/index.html
+/web/friday/privacy.html
+/web/friday/terms.html

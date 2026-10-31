@@ -712,7 +712,7 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 	// The bash OS-sandbox write roots stay unwidened: config repair goes through
 	// the approval-gated file tools, not raw shell writes.
 	managedConfig := builtin.NewManagedConfigPaths(config.ReasonixManagedConfigPaths())
-	bashSpec := sandbox.Spec{Mode: bashMode, WriteRoots: writeRoots, ForbidReadRoots: forbidReadRoots, Network: networkEnabled}
+	bashSpec := sandbox.Spec{Mode: bashMode, WriteRoots: writeRoots, ForbidReadRoots: forbidReadRoots, Network: networkEnabled, IsolatePID: cfg.Secrets.ProtectSensitiveFiles}
 	bashSpec.Shell = shell
 	// The session-data guard blocks agent writes into Reasonix's own session
 	// stores (they race the app's saves and surface as conflict-copy loops);
@@ -734,7 +734,8 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 	sessionTemp, persistentShell := sessionManagers(opts)
 	// Register the full built-in inventory for use_capability dispatch. The
 	// provider-visible surface is narrowed later via SetProviderVisibleTools.
-	addBuiltins(reg, enabledBuiltins, writeRoots, writeRootSet, bashSpec, bashTimeout, searchSpec, stderr, root, proxySpec, forbidReadRoots, readPathResolver, sessionGuard, managedConfig, opts.FileOverlay, opts.TerminalRunner, sessionTemp, fileWriteReceipt)
+	readerForbidRoots := sensitiveReaderRoots(forbidReadRoots, runtime.GOOS, cfg.Secrets.ProtectSensitiveFiles)
+	addBuiltins(reg, enabledBuiltins, writeRoots, writeRootSet, bashSpec, bashTimeout, searchSpec, stderr, root, proxySpec, readerForbidRoots, readPathResolver, sessionGuard, managedConfig, opts.FileOverlay, opts.TerminalRunner, sessionTemp, fileWriteReceipt)
 	bindPersistentShell(reg, persistentShell)
 	addWebSearch(reg, cfg, entry, proxySpec, sink)
 	browserExec, closeBrowser := browserBackend(opts.BrowserExecutor, cfg.Browser, writeRoots)
@@ -2067,6 +2068,14 @@ func build(ctx context.Context, opts Options) (*BuildResult, error) {
 	skillsOwned = true
 	backgroundOwned = true
 	return finalizeBuildResult(withRuntimeConfiguration(&BuildResult{Controller: ctrl, Snapshot: snap, Runtime: runtimeSet, Owner: owner, Extensions: extensionMgr, Dispatcher: extensionDispatcher, ExtensionUI: extUIHub, ProviderResolver: providerResolver, BaseProviderResolver: baseResolver, Assembly: assembly, SkillWatchService: skillWatchService}, cfg, liveSettings, opts), !opts.deferPublish), nil
+}
+
+func sensitiveReaderRoots(roots []string, goos string, protect bool) []string {
+	out := append([]string(nil), roots...)
+	if goos == "linux" && protect {
+		out = appendUniquePaths(out, "/proc")
+	}
+	return out
 }
 
 // effectivePlannerModel centralizes planner precedence. Every role setting

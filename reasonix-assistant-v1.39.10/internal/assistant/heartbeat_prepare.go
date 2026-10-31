@@ -165,7 +165,7 @@ func (s HeartbeatService) moduleTask(c HeartbeatConfig, tr ModuleTrigger, id, oc
 		job.Kind = "agent"
 		job.Capability = "evening"
 		job.DecideNotification = true
-		job.Prompt = EveningInstructions
+		job.Prompt = neutralInstanceInstructions(EveningInstructions)
 		expiry := at.Add(10 * time.Minute)
 		if expiry.Before(end) {
 			job.EndsAt = expiry.Format(time.RFC3339)
@@ -174,7 +174,7 @@ func (s HeartbeatService) moduleTask(c HeartbeatConfig, tr ModuleTrigger, id, oc
 		job.Kind = "agent"
 		job.Capability = "news"
 		job.DecideNotification = true
-		job.Prompt = NewsBriefingInstructions
+		job.Prompt = neutralInstanceInstructions(NewsBriefingInstructions)
 		expires := at.Add(time.Duration(tr.CatchUpSeconds) * time.Second)
 		if expires.Before(end) {
 			job.EndsAt = expires.Format(time.RFC3339)
@@ -184,7 +184,7 @@ func (s HeartbeatService) moduleTask(c HeartbeatConfig, tr ModuleTrigger, id, oc
 		job.Kind = "agent"
 		job.Capability = "morning"
 		job.DecideNotification = true
-		job.Prompt = morningMailPolicy() + "\n" + MorningInstructions
+		job.Prompt = neutralInstanceInstructions(morningMailPolicy() + "\n" + MorningInstructions)
 		expires := at.Add(time.Duration(tr.CatchUpSeconds) * time.Second)
 		if expires.Before(end) {
 			job.EndsAt = expires.Format(time.RFC3339)
@@ -193,7 +193,7 @@ func (s HeartbeatService) moduleTask(c HeartbeatConfig, tr ModuleTrigger, id, oc
 		job.Kind = "agent"
 		job.Capability = "course"
 		job.DecideNotification = true
-		job.Prompt = CourseBriefingInstructions + "\n宿主日期：" + date
+		job.Prompt = neutralInstanceInstructions(CourseBriefingInstructions) + "\n宿主日期：" + date
 		expires := at.Add(time.Duration(tr.CatchUpSeconds) * time.Second)
 		if expires.Before(end) {
 			job.EndsAt = expires.Format(time.RFC3339)
@@ -202,12 +202,12 @@ func (s HeartbeatService) moduleTask(c HeartbeatConfig, tr ModuleTrigger, id, oc
 		job.Kind = "agent"
 		job.Capability = "mail"
 		job.DecideNotification = true
-		job.Prompt = MailDigestInstructions
+		job.Prompt = neutralInstanceInstructions(MailDigestInstructions)
 	case "weather_briefing":
 		job.Kind = "agent"
 		job.Capability = "weather"
 		job.DecideNotification = true
-		job.Prompt = WeatherMorningInstructions + "\n宿主日期：" + date + "；本次Heartbeat触发时间：" + at.Format(time.RFC3339)
+		job.Prompt = neutralInstanceInstructions(WeatherMorningInstructions) + "\n宿主日期：" + date + "；本次Heartbeat触发时间：" + at.Format(time.RFC3339)
 		expires := start.Add(time.Duration(tr.CatchUpSeconds) * time.Second)
 		if (tr.Mode == "daily" || tr.Mode == "once") && expires.Before(end) {
 			job.EndsAt = expires.Format(time.RFC3339)

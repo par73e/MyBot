@@ -1,0 +1,11 @@
+[Unit]
+Description=Prepare reserved AS Robot assistant instances
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/usr/bin/python3 /opt/asrobot-agent/instance_worker.py
+TimeoutStartSec=420

@@ -178,7 +178,7 @@ func subscriptionJob(s HeartbeatService, c HeartbeatConfig, tr ModuleTrigger, v 
 	if v.RenewalMode == "auto" {
 		action = "到期（已记录为自动续费，请留意续费安排）"
 	}
-	text := fmt.Sprintf("Sir，%s将于%s%s，记得留意。", v.Name, label, action)
+	text := fmt.Sprintf("%s%s将于%s%s，记得留意。", addressPrefix(), v.Name, label, action)
 	deadline := start.Add(10 * time.Minute)
 	if end.Before(deadline) {
 		deadline = end

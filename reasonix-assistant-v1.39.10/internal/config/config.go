@@ -249,7 +249,8 @@ type SecretsConfig struct {
 	FilterSubprocessEnv bool `toml:"filter_subprocess_env"`
 	// ProtectSensitiveFiles makes read/list/search tools treat credential
 	// paths (.env, .git-credentials, .netrc, *.pem/*.key/*.p12/*.pfx, ~/.ssh)
-	// as invisible. Default off because hiding the files breaks legitimate
+	// as invisible. On Linux it also hides /proc from built-in file readers and
+	// isolates sandboxed shell processes from host process information. Default off because hiding the files breaks legitimate
 	// "edit my .env" workflows.
 	ProtectSensitiveFiles bool `toml:"protect_sensitive_files"`
 }

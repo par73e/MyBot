@@ -155,7 +155,7 @@ func renderEvening(v EveningSnapshot, care string) string {
 		tomorrow = fmt.Sprintf("明天%s会提醒您：%s。", v.TomorrowReminderAt.In(mustShanghai()).Format("15:04"), eveningLabel(v.TomorrowReminder, 24))
 	}
 	lines = append(lines, tomorrow, care)
-	lines[0] = "Sir，" + lines[0]
+	lines[0] = addressPrefix() + lines[0]
 	return strings.Join(lines, "\n")
 }
 func (s EveningService) Acknowledge(ctx context.Context, t heartbeat.Task, r heartbeat.Run) error {

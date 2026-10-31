@@ -94,11 +94,11 @@ func (s HotNewsService) verifyNewsOutput(ctx context.Context, t heartbeat.Task, 
 	})
 }
 func renderNewsBriefing(snap HotNewsSnapshot, v NewsBriefingOutput) string {
-	parts := []string{"# **AI News**", fmt.Sprintf("Sir，近24小时精选的%d个AI热点事件，下面逐条说。", len(v.Events))}
+	parts := []string{"# **AI News**", fmt.Sprintf("%s近24小时精选的%d个AI热点事件，下面逐条说。", addressPrefix(), len(v.Events))}
 	if len(v.Events) == 0 {
-		parts[1] = "Sir，过去24小时暂时没有找到可确认的AI新闻。"
+		parts[1] = addressPrefix() + "过去24小时暂时没有找到可确认的AI新闻。"
 		if snap.Status == "unavailable" {
-			parts[1] = "Sir，新闻来源暂时没能读取，稍后再看看。"
+			parts[1] = addressPrefix() + "新闻来源暂时没能读取，稍后再看看。"
 		}
 	}
 	if len(v.Events) > 0 && len(snap.Sources) > 0 {

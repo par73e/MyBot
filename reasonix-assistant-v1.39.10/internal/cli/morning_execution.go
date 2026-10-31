@@ -115,5 +115,5 @@ func morningExecution(text, session string, fallback bool) heartbeat.Execution {
 	if fallback {
 		reason = "早安Friday使用已核实事实降级"
 	}
-	return heartbeat.Execution{Text: text, SessionID: session, DecisionReason: reason}
+	return heartbeat.Execution{Text: text, SessionID: session, DecisionReason: assistant.NeutralInstanceInstructions(reason)}
 }

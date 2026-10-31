@@ -96,7 +96,7 @@ func (s WeatherService) MorningTick(ctx context.Context, o Options) error {
 		if !errors.Is(e, sql.ErrNoRows) {
 			return e
 		}
-		job := heartbeat.Task{ID: id, Title: "今日全天气象简报", Prompt: WeatherMorningInstructions + "\n宿主日期：" + now.Format("2006-01-02") + "；起床时间：" + clock.Format(time.RFC3339), At: clock.Format(time.RFC3339), EndsAt: clock.Add(time.Hour).Format(time.RFC3339), Timezone: "Asia/Shanghai", Kind: "agent", Capability: "weather", Enabled: true, WorkspaceRoot: o.Workspace, Model: o.Model, ApprovalMode: "read-only", DecideNotification: true, NewConversationEachRun: true, Target: o.Target, CreatedAt: now.UnixMilli()}
+		job := heartbeat.Task{ID: id, Title: "今日全天气象简报", Prompt: neutralInstanceInstructions(WeatherMorningInstructions) + "\n宿主日期：" + now.Format("2006-01-02") + "；起床时间：" + clock.Format(time.RFC3339), At: clock.Format(time.RFC3339), EndsAt: clock.Add(time.Hour).Format(time.RFC3339), Timezone: "Asia/Shanghai", Kind: "agent", Capability: "weather", Enabled: true, WorkspaceRoot: o.Workspace, Model: o.Model, ApprovalMode: "read-only", DecideNotification: true, NewConversationEachRun: true, Target: o.Target, CreatedAt: now.UnixMilli()}
 		if err := job.Validate(); err != nil {
 			return err
 		}

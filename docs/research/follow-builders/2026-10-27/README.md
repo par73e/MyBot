@@ -12,7 +12,7 @@
 
 - 上游：https://github.com/zarazhangrui/follow-builders
 - 固定下载提交：`3b2cf91f0a01a8dece4b4d9ebb29c4c8beb298a6`。
-- 本机：`/Users/louis/.codex/skills/follow-builders`，使用 Codex `skill-installer` 安装；22 个上游文件哈希核对一致，没有修改原版。
+- 本机：`~/.codex/skills/follow-builders`，使用 Codex `skill-installer` 安装；22 个上游文件哈希核对一致，没有修改原版。
 - 云端：`/var/lib/mybot/reasonix/skills/follow-builders`；22 个上游文件保留，原始 `SKILL.md` 另存为 `UPSTREAM_SKILL.md`，当前入口使用本目录存档的 `FRIDAY_SKILL.md`。
 - 云端运行时：`/opt/mybot/tools/node-v22.23.4-linux-x64/bin/node`；官方安装包 SHA256：`1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce`。未修改全局 PATH 或全局 node 命令。
 - 云端配置：`/var/lib/mybot/.follow-builders/config.json`，中文、Asia/Shanghai、stdout、首次引导已完成，无日历式调度配置。

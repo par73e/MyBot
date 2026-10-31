@@ -61,3 +61,25 @@ func TestProjectStateNonCollidingRootKeepsHistoricalPath(t *testing.T) {
 		t.Fatalf("non-colliding project = %q, want %q", got, want)
 	}
 }
+
+func TestMigratedAssistantSessionCatalogUsesStableWorkspaceOnlyForItsOwnProject(t *testing.T) {
+	home := t.TempDir()
+	oldWorkspace := filepath.Join(t.TempDir(), "old-workspace")
+	newWorkspace := filepath.Join(t.TempDir(), "new-workspace")
+	otherWorkspace := filepath.Join(t.TempDir(), "other")
+	t.Setenv("REASONIX_HOME", home)
+	t.Setenv("ASROBOT_INSTANCE_MODE", "isolated")
+	t.Setenv("ASROBOT_RUNTIME_WORKSPACE", newWorkspace)
+	t.Setenv("REASONIX_CONVERSATION_WORKSPACE_ID", oldWorkspace)
+	want := filepath.Join(ProjectStateDir(home, oldWorkspace), "sessions-v4")
+	if got := ProjectSessionStoreDir(newWorkspace); got != want {
+		t.Fatalf("migrated session catalog = %q, want %q", got, want)
+	}
+	if got := ProjectSessionStoreDir(otherWorkspace); got != filepath.Join(ProjectStateDir(home, otherWorkspace), "sessions-v4") {
+		t.Fatalf("other project catalog changed: %q", got)
+	}
+	t.Setenv("ASROBOT_INSTANCE_MODE", "")
+	if got := ProjectSessionStoreDir(newWorkspace); got != filepath.Join(ProjectStateDir(home, newWorkspace), "sessions-v4") {
+		t.Fatalf("legacy path changed: %q", got)
+	}
+}

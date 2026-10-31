@@ -8,11 +8,13 @@ import email.policy
 import fcntl
 import hashlib
 import html
+import http.client
 import imaplib
 import json
 import os
 from pathlib import Path
 import re
+import socket
 import ssl
 import sys
 import tempfile
@@ -24,6 +26,64 @@ import urllib.request
 MAX_RAW = 2 * 1024 * 1024
 MAX_TEXT = 128000
 ACCOUNT_SECONDS = 40
+
+
+class UnixProxyHTTPSConnection(http.client.HTTPSConnection):
+    """HTTPS CONNECT over an instance-scoped Unix socket."""
+    def __init__(self, host, *, proxy_socket, **kwargs):
+        super().__init__(host, **kwargs)
+        self.proxy_socket = proxy_socket
+
+    def connect(self):
+        if not self._tunnel_host:
+            raise OSError('mail proxy tunnel is required')
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            if self.timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                self.sock.settimeout(self.timeout)
+            self.sock.connect(self.proxy_socket)
+            self._tunnel()
+            self.sock = self._context.wrap_socket(self.sock, server_hostname=self._tunnel_host)
+        except BaseException:
+            self.sock.close()
+            self.sock = None
+            raise
+
+
+class UnixProxyHTTPSHandler(urllib.request.HTTPSHandler):
+    def __init__(self, proxy_socket):
+        super().__init__()
+        self.proxy_socket = proxy_socket
+
+    def https_open(self, request):
+        return self.do_open(lambda host, **kw: UnixProxyHTTPSConnection(host, proxy_socket=self.proxy_socket, **kw),
+                            request, context=self._context)
+
+
+class FixedUnixProxyHandler(urllib.request.BaseHandler):
+    def https_request(self, request):
+        request.set_proxy('asrobot-mail-proxy.invalid:80', 'http')
+        return request
+
+
+def gmail_opener(account):
+    proxy = account.get('proxy') or ''
+    if os.environ.get('ASROBOT_INSTANCE_MODE') == 'isolated' and proxy:
+        parsed = urllib.parse.urlsplit(proxy)
+        if parsed.hostname in ('127.0.0.1', 'localhost', '::1'):
+            socket_path = os.environ.get('ASROBOT_MAIL_PROXY_SOCKET', '')
+            state = os.environ.get('ASROBOT_RUNTIME_STATE', '')
+            root = os.environ.get('ASROBOT_RUNTIME_ROOT', '')
+            expected_port = os.environ.get('ASROBOT_MAIL_PROXY_PORT', '')
+            if (parsed.scheme != 'http' or parsed.username or parsed.password or parsed.path not in ('', '/') or
+                    parsed.query or parsed.fragment or not expected_port.isdigit() or parsed.port != int(expected_port) or
+                    not os.path.isabs(root) or os.path.normpath(root) != root or state != os.path.join(root, 'state') or
+                    socket_path != os.path.join(state, 'mail-proxy.sock')):
+                raise ValueError('isolated mail proxy requires a configured private relay')
+            return urllib.request.build_opener(
+                urllib.request.ProxyHandler({}), FixedUnixProxyHandler(),
+                UnixProxyHTTPSHandler(socket_path))
+    return urllib.request.build_opener(urllib.request.ProxyHandler({'https': proxy} if proxy else {}))
 
 
 class BudgetExceeded(TimeoutError):
@@ -194,7 +254,7 @@ class Gmail:
         self.account = account
         self.deadline = time.monotonic() + ACCOUNT_SECONDS
         self.partial = False
-        self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({'https': account['proxy']} if account.get('proxy') else {}))
+        self.opener = gmail_opener(account)
         p = Path(account['credential_file'])
         with open(str(p) + '.lock', 'a', opener=lambda path, flags: os.open(path, flags, 0o600)) as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)

@@ -205,7 +205,7 @@ func renderMorning(s MorningSnapshot, v MorningOutput) string {
 	} else if s.News.Status == "unavailable" {
 		newsText = "AI新闻暂时没查到，稍后再看看"
 	}
-	lines := []string{"# **Sir，早上好。**"}
+	lines := []string{"# **" + addressPrefix() + "早上好。**"}
 	for _, line := range []string{weather, morningCourses(s), mailText, todoText, newsText} {
 		lines = append(lines, morningSentence(line))
 	}

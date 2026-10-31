@@ -28,6 +28,9 @@ type Spec struct {
 	// deny file-read* rules, Linux bubblewrap masks); on other platforms the
 	// in-process tools enforce this instead.
 	ForbidReadRoots []string
+	// IsolatePID hides host processes from Linux sandboxed subprocesses, so
+	// /proc cannot expose the assistant host's environment to a tool command.
+	IsolatePID bool
 	// Network allows network egress from inside the sandbox. Off blocks it so a
 	// command cannot exfiltrate or fetch; many dev commands (module/package
 	// downloads) need it, so it defaults on at the config layer.

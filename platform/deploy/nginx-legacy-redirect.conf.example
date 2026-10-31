@@ -1,0 +1,4 @@
+# Replace the existing /asrobot locations only after the new host, certificate,
+# isolated app origin and fresh login are verified. Preserve the shared host.
+location = /asrobot { return 308 https://assistant.example.com/asrobot/; }
+location ^~ /asrobot/ { return 308 https://assistant.example.com$request_uri; }

@@ -1,0 +1,10 @@
+[Unit]
+Description=Check for reserved AS Robot assistant instances
+
+[Timer]
+OnBootSec=20s
+OnUnitActiveSec=20s
+Unit=asrobot-instance-worker.service
+
+[Install]
+WantedBy=timers.target

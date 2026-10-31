@@ -42,7 +42,7 @@ func (s GitHubService) events(w GitHubWatch, next GitHubSnapshot, login string) 
 }
 
 func renderGitHub(snap GitHubSnapshot, events []GitHubEvent) string {
-	lines := []string{fmt.Sprintf("Sir，%s #%d 有新进展。", snap.Repository, snap.Number)}
+	lines := []string{fmt.Sprintf("%s%s #%d 有新进展。", addressPrefix(), snap.Repository, snap.Number)}
 	for _, e := range events[:min(5, len(events))] {
 		if githubDiscussion(e.Kind) {
 			lines = append(lines, githubDiscussionLabel(e)+"，中文摘要暂不可用，请查看原文。[原文]("+e.URL+")")

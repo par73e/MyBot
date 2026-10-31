@@ -144,7 +144,7 @@ func (s AlertService) alertCoverageNotice(ctx context.Context, tx *sql.Tx, o Opt
 	}
 	// One factual outage notice per civil day; the ordinary outbox controls retries.
 	date := s.now().In(mustShanghai()).Format("2006-01-02")
-	return s.queueAlertHealth(ctx, tx, o, date, ("Sir，上海天气预警的三个官方网页数据源均连续检查失败，暂时无法确认最新预警；此前记录仍保留。可通过上海天气发布或官方预警页核实。\nhttps://sh.weather.com.cn/zhyj/"))
+	return s.queueAlertHealth(ctx, tx, o, date, addressPrefix()+"上海天气预警的三个官方网页数据源均连续检查失败，暂时无法确认最新预警；此前记录仍保留。可通过上海天气发布或官方预警页核实。\nhttps://sh.weather.com.cn/zhyj/")
 }
 
 // Align a successful source to the same routine-relative slots used by its

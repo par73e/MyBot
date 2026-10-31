@@ -116,7 +116,8 @@ func ContextFor(ctx context.Context, home string, now time.Time) (string, error)
 		Inactive []inactiveMemory  `json:"inactive_memory_status"`
 		Tasks    []obligation      `json:"open_tasks"`
 		Calendar map[string]string `json:"calendar_reference"`
-	}{now.Format(time.RFC3339), memories, future, weather, inactive, compact, calendarReference(now)})
+		Profile  *personalProfile  `json:"profile,omitempty"`
+	}{now.Format(time.RFC3339), memories, future, weather, inactive, compact, calendarReference(now), loadPersonalProfile(home)})
 	if err != nil {
 		return "", err
 	}

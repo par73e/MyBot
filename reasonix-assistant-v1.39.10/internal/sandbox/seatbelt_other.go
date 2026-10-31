@@ -107,12 +107,15 @@ func bwrapArgsForArgs(spec Spec, args []string) []string {
 // Without it (MCP and other independent sandboxes), /tmp is a fresh empty
 // tmpfs as before.
 func bwrapBaseArgs(spec Spec) []string {
-	args := []string{
-		"--unshare-net", // deny network by default
+	args := []string{"--unshare-net"} // deny network by default
+	if spec.IsolatePID {
+		args = append(args, "--unshare-pid")
+	}
+	args = append(args,
 		"--ro-bind", "/", "/",
 		"--dev", "/dev",
 		"--proc", "/proc",
-	}
+	)
 	args = append(args, bwrapTmpMountArgs(spec)...)
 	if spec.ReadOnly {
 		return append(args, bwrapForbidReadArgs(spec.ForbidReadRoots)...)

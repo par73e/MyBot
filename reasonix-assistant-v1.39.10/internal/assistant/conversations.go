@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -26,7 +27,15 @@ type Conversation struct {
 
 // ConversationOwner is host-selected; it is never a model tool argument.
 func ConversationOwner(connection, chat, workspace string) string {
-	if workspace != "" {
+	stable := ""
+	if os.Getenv("ASROBOT_INSTANCE_MODE") == "isolated" && workspace != "" && filepath.Clean(workspace) == os.Getenv("ASROBOT_RUNTIME_WORKSPACE") {
+		stable = os.Getenv("REASONIX_CONVERSATION_WORKSPACE_ID")
+	}
+	if filepath.IsAbs(stable) && filepath.Clean(stable) == stable {
+		// This host-selected identifier represents the logical workspace, not a
+		// path to access. Migration may preserve a former canonical workspace ID.
+		workspace = stable
+	} else if workspace != "" {
 		workspace = filepath.Clean(workspace)
 		if resolved, err := filepath.EvalSymlinks(workspace); err == nil {
 			workspace = resolved

@@ -4,11 +4,43 @@ package sandbox
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"slices"
+	"strconv"
 	"testing"
 )
+
+func TestBwrapOptionalPIDIsolationKeepsNetworkChoice(t *testing.T) {
+	for _, network := range []bool{false, true} {
+		args := bwrapBaseArgs(Spec{IsolatePID: true, Network: network})
+		if !slices.Contains(args, "--unshare-pid") {
+			t.Fatalf("PID isolation missing: %v", args)
+		}
+		if slices.Contains(args, "--unshare-net") == network {
+			t.Fatalf("network choice was changed: network=%v args=%v", network, args)
+		}
+	}
+	if slices.Contains(bwrapBaseArgs(Spec{}), "--unshare-pid") {
+		t.Fatal("PID isolation must remain opt-in")
+	}
+}
+
+func TestBwrapPIDIsolationHidesParentEnvironment(t *testing.T) {
+	if !Available() {
+		t.Skip("bubblewrap is unavailable")
+	}
+	parent := strconv.Itoa(os.Getpid())
+	if _, err := os.Stat("/proc/" + parent + "/environ"); err != nil {
+		t.Fatalf("cannot inspect test process environment: %v", err)
+	}
+	args := bwrapBaseArgs(Spec{IsolatePID: true})
+	args = append(args, "/bin/sh", "-c", "test ! -e /proc/\"$1\"/environ", "sh", parent)
+	if out, err := exec.Command("bwrap", args...).CombinedOutput(); err != nil {
+		t.Fatalf("host process remained visible or sandbox failed: %v: %s", err, out)
+	}
+}
 
 func TestLinuxWriteDirsSkipsMissingDirs(t *testing.T) {
 	home := t.TempDir()

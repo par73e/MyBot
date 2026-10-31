@@ -26,7 +26,7 @@ var hotRSSSources = []hotNewsSource{
 func (s HotNewsService) collect(ctx context.Context, now time.Time) HotNewsSnapshot {
 	ctx, cancel := context.WithTimeout(ctx, 28*time.Second)
 	defer cancel()
-	snap := HotNewsSnapshot{Since: now.Add(-24 * time.Hour), AsOf: now, Status: "ok", Ranking: "source_consensus_and_hn_discussion_v1", Candidates: []HotNewsArticle{}, Sources: []NewsSourceState{}, TargetCount: 7, Instructions: NewsBriefingInstructions}
+	snap := HotNewsSnapshot{Since: now.Add(-24 * time.Hour), AsOf: now, Status: "ok", Ranking: "source_consensus_and_hn_discussion_v1", Candidates: []HotNewsArticle{}, Sources: []NewsSourceState{}, TargetCount: 7, Instructions: neutralInstanceInstructions(NewsBriefingInstructions)}
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, 4)

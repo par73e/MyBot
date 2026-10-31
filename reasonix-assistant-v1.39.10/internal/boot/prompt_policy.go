@@ -20,6 +20,7 @@ func appendCorePolicies(prompt string) string {
 		if os.Getenv("REASONIX_ASSISTANT_BACKGROUND") == "1" {
 			workPolicy = moduleBackgroundPolicy
 		}
+		workPolicy = assistant.NeutralInstanceInstructions(workPolicy)
 	}
 	for _, policy := range []string{config.UserDecisionPolicy, workPolicy, config.LanguagePolicy} {
 		prompt += "\n\n" + policy

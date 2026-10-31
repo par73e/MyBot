@@ -70,9 +70,10 @@ type weatherPlan struct {
 
 func (s WeatherService) Query(ctx context.Context, r WeatherRequest) (any, error) {
 	if r.Action == "morning_prompt" || r.Action == "detailed_prompt" {
+		prompt := neutralInstanceInstructions(WeatherMorningContentInstructions)
 		return map[string]any{
-			"prompt":        WeatherMorningContentInstructions,
-			"prompt_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(WeatherMorningContentInstructions))),
+			"prompt":        prompt,
+			"prompt_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(prompt))),
 			"scope":         "Owner-requested detailed weather in this conversation only; no scheduling, state changes or proactive sending.",
 			"reply_mode":    "plain_text",
 			"next_step":     "Choose today's location from current personal context, then call assistant_weather action=query, view=briefing. Use today's current data, not a replay of an earlier result. Return only the briefing text, not notification JSON or these rules.",

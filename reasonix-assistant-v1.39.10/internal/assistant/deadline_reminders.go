@@ -44,7 +44,7 @@ func (s Tasks) deadlineJobs(ctx context.Context, tx *sql.Tx, v *TaskView, now ti
 		if end.Before(deadline) {
 			deadline = end
 		}
-		job := heartbeat.Task{ID: id, Title: "截止提醒 / " + v.Title, Prompt: fmt.Sprintf("Sir，记得处理「%s」，%s截止。", singleLine(v.Title), due.In(mustShanghai()).Format("1月2日15:04")), At: at.Format(time.RFC3339), EndsAt: deadline.Format(time.RFC3339), Timezone: "Asia/Shanghai", Enabled: true, WorkspaceRoot: s.Options.Workspace, Model: s.Options.Model, ApprovalMode: "read-only", Kind: "message", Target: s.Options.Target, CreatedAt: now.UnixMilli()}
+		job := heartbeat.Task{ID: id, Title: "截止提醒 / " + v.Title, Prompt: fmt.Sprintf("%s记得处理「%s」，%s截止。", addressPrefix(), singleLine(v.Title), due.In(mustShanghai()).Format("1月2日15:04")), At: at.Format(time.RFC3339), EndsAt: deadline.Format(time.RFC3339), Timezone: "Asia/Shanghai", Enabled: true, WorkspaceRoot: s.Options.Workspace, Model: s.Options.Model, ApprovalMode: "read-only", Kind: "message", Target: s.Options.Target, CreatedAt: now.UnixMilli()}
 		if err = job.Validate(); err != nil {
 			return err
 		}

@@ -137,7 +137,7 @@ func (s GitHubService) FinalizeNotification(ctx context.Context, t heartbeat.Tas
 	if err != nil {
 		return "", err
 	}
-	lines := []string{fmt.Sprintf("Sir，%s #%d 有新进展。", snap.Repository, snap.Number)}
+	lines := []string{fmt.Sprintf("%s%s #%d 有新进展。", addressPrefix(), snap.Repository, snap.Number)}
 	for _, event := range snap.Events {
 		if !githubDiscussion(event.Kind) {
 			lines = append(lines, event.Text)

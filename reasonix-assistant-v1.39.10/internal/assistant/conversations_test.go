@@ -3,11 +3,14 @@ package assistant
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"reasonix/internal/config"
 	"reasonix/internal/provider"
 	"reasonix/internal/session"
 	"reasonix/internal/sessioncontext"
@@ -46,6 +49,100 @@ func TestDailyConversationBoundaryAndRestartIdentity(t *testing.T) {
 	foreign, _ := repo.Conversations(t.Context(), ConversationOwner("weixin", "other", "/work"), "", "", "", 20)
 	if len(foreign) != 0 {
 		t.Fatal("daily history crossed owner boundary")
+	}
+}
+
+func TestSyntheticMigrationKeepsDailyHistoryReadable(t *testing.T) {
+	ctx := t.Context()
+	oldHome, newHome := t.TempDir(), t.TempDir()
+	oldWorkspace, newWorkspace := t.TempDir(), t.TempDir()
+	canonical, err := filepath.EvalSymlinks(oldWorkspace)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("REASONIX_HOME", oldHome)
+	t.Setenv("ASROBOT_INSTANCE_MODE", "")
+	owner := ConversationOwner("weixin", "synthetic-owner", oldWorkspace)
+	at, _ := time.Parse(time.RFC3339, "2026-10-31T08:00:00+08:00")
+	conversation := DailyConversation(owner, at)
+	repo := NewRepository(oldHome)
+	if err := repo.EnsureConversation(ctx, conversation); err != nil {
+		t.Fatal(err)
+	}
+	service, err := session.NewService("local", session.NewFilesystemPersistence(config.ProjectSessionStoreDir(oldWorkspace)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtime, err := service.Create(ctx, session.CreateOptions{SessionID: conversation.SessionID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	message := provider.Message{ID: "synthetic-message", Role: provider.RoleUser, Origin: provider.MessageOriginUser, Content: "synthetic prior conversation", CreatedAt: at.UnixMilli()}
+	payload, _ := json.Marshal(map[string]any{"message": message})
+	if _, err = runtime.Session().AppendBatch(ctx, message.ID, []session.Event{{Kind: "message/complete", Payload: payload}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = runtime.Session().Flush(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err = service.Shutdown(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err = filepath.WalkDir(oldHome, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(oldHome, path)
+		if err != nil {
+			return err
+		}
+		dst := filepath.Join(newHome, rel)
+		if entry.IsDir() {
+			return os.MkdirAll(dst, 0700)
+		}
+		if !entry.Type().IsRegular() {
+			return nil
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(dst, data, 0600)
+	}); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("REASONIX_HOME", newHome)
+	t.Setenv("ASROBOT_INSTANCE_MODE", "isolated")
+	t.Setenv("ASROBOT_RUNTIME_WORKSPACE", newWorkspace)
+	t.Setenv("REASONIX_CONVERSATION_WORKSPACE_ID", canonical)
+	migratedOwner := ConversationOwner("weixin", "synthetic-owner", newWorkspace)
+	if migratedOwner != owner {
+		t.Fatal("conversation identity changed")
+	}
+	migratedRepo := NewRepository(newHome)
+	rows, err := migratedRepo.Conversations(ctx, migratedOwner, "", "", "", 10)
+	if err != nil || len(rows) != 1 || rows[0].SessionID != conversation.SessionID {
+		t.Fatalf("migration index: %+v %v", rows, err)
+	}
+	readService, err := session.NewService("local", session.NewFilesystemPersistence(config.ProjectSessionStoreDir(newWorkspace)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer readService.Shutdown(context.Background())
+	tool := HistoryTool{Repository: migratedRepo, Owner: migratedOwner, Query: readService.Query()}
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		out, err := tool.Execute(ctx, json.RawMessage(`{"action":"read","date":"2026-10-31"}`))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(out, "synthetic prior conversation") {
+			break
+		}
+		if !strings.Contains(out, `"status":"preparing"`) || time.Now().After(deadline) {
+			t.Fatalf("migrated history missing: %s", out)
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -134,5 +231,28 @@ func TestDailyHistoryNativeReadSearchAndOwnerIsolation(t *testing.T) {
 	tool.Owner = "other-owner"
 	if _, err := tool.Execute(t.Context(), json.RawMessage(`{"action":"read","session_id":"`+c.SessionID+`"}`)); err == nil {
 		t.Fatal("foreign session accepted")
+	}
+}
+
+func TestStableWorkspacePreservesHistoryAcrossInstanceMove(t *testing.T) {
+	t.Setenv("ASROBOT_INSTANCE_MODE", "")
+	oldPath := t.TempDir()
+	original := ConversationOwner("weixin", "owner", oldPath)
+	canonical, err := filepath.EvalSymlinks(oldPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("ASROBOT_INSTANCE_MODE", "isolated")
+	t.Setenv("REASONIX_CONVERSATION_WORKSPACE_ID", canonical)
+	newPath := t.TempDir()
+	t.Setenv("ASROBOT_RUNTIME_WORKSPACE", newPath)
+	if migrated := ConversationOwner("weixin", "owner", newPath); migrated != original {
+		t.Fatal("workspace move changed the existing conversation identity")
+	}
+	if foreign := ConversationOwner("weixin", "another", newPath); foreign == original {
+		t.Fatal("different chats must remain distinct")
+	}
+	if anotherProject := ConversationOwner("weixin", "owner", t.TempDir()); anotherProject == original {
+		t.Fatal("unrelated workspace inherited migration identity")
 	}
 }

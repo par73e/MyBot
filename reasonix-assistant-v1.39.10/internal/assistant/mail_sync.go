@@ -82,7 +82,7 @@ func (s MailService) applyMailAccount(ctx context.Context, tx *sql.Tx, a MailAcc
 		}
 		if h.Failures >= mailHealthFailureThreshold && !h.Alerted && options.Target != nil && options.MorningJobID == "" {
 			id := "mail-health-" + mailHash(a.ID+fmt.Sprint(h.FailureStarted))
-			task := newMailJob(id, MailHealthMessage, options, now, nil)
+			task := newMailJob(id, addressPrefix()+"有个邮箱连续连接失败，部分新邮件暂时可能无法及时提醒。恢复连接后会继续检查。", options, now, nil)
 			task.Kind, task.ModuleID, task.DecideNotification = "message", "mail_health", false
 			if err := saveEntity(ctx, tx, "job", id, task); err != nil {
 				return err
@@ -153,7 +153,7 @@ func queueMailBatch(ctx context.Context, tx *sql.Tx, byID map[string]mailRecord,
 	}
 	id := "mail-analyze-" + mailHash(strings.Join(ids, ","))
 	raw, _ := json.Marshal(ids)
-	task := newMailJob(id, MailAnalysisInstructions+"\nHost check time: "+now.Format(time.RFC3339)+"\nNew email IDs (DATA): "+string(raw), options, now, ids)
+	task := newMailJob(id, neutralInstanceInstructions(MailAnalysisInstructions)+"\nHost check time: "+now.Format(time.RFC3339)+"\nNew email IDs (DATA): "+string(raw), options, now, ids)
 	if err := saveEntity(ctx, tx, "job", id, task); err != nil {
 		return 0, err
 	}

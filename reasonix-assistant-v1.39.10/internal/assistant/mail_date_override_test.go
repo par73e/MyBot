@@ -3,6 +3,7 @@ package assistant
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -110,7 +111,13 @@ func TestMailDateOverrideRejectsAmbiguityStaleRevisionAndBackgroundMutation(t *t
 
 func TestMailDateOverrideDefersNativeCheckAndPendingDeliveryUntilResumeTime(t *testing.T) {
 	s, o, tool := dateOverrideFixture(t)
-	now, _ := time.Parse(time.RFC3339, "2026-10-27T08:00:00+08:00")
+	// Poll creates its analysis job using the real clock. Choose a future day
+	// so the simulated dispatcher can reliably reach the job on any test date.
+	zone := time.FixedZone("UTC+8", 8*60*60)
+	tomorrow := time.Now().In(zone).AddDate(0, 0, 1)
+	now := time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 8, 0, 0, 0, zone)
+	tool.Now = func() time.Time { return now }
+	date := now.Format(time.DateOnly)
 	checks, analyses, sends := 0, 0, 0
 	s.Transport = func(_ctx context.Context, _ map[string]any) (mailWire, error) {
 		checks++
@@ -123,7 +130,7 @@ func TestMailDateOverrideDefersNativeCheckAndPendingDeliveryUntilResumeTime(t *t
 	}), Runner: mailTestRunner(func(context.Context, heartbeat.Task) (heartbeat.Execution, error) {
 		analyses++
 		// The owner delays today's mail while an analysis is completing.
-		_, err := tool.Execute(t.Context(), json.RawMessage(`{"action":"set_date_override","revision":2,"date":"2026-10-27","date_window":{"enabled":true,"start":"11:00","end":"24:00"}}`))
+		_, err := tool.Execute(t.Context(), json.RawMessage(fmt.Sprintf(`{"action":"set_date_override","revision":2,"date":%q,"date_window":{"enabled":true,"start":"11:00","end":"24:00"}}`, date)))
 		return heartbeat.Execution{Text: "notice"}, err
 	}), Sender: mailTestSender(func() { sends++ })}
 	if err := e.Tick(t.Context(), now); err != nil {
@@ -136,7 +143,7 @@ func TestMailDateOverrideDefersNativeCheckAndPendingDeliveryUntilResumeTime(t *t
 	if checks != 1 || analyses != 1 || sends != 0 {
 		t.Fatal("in-flight notice escaped newly added date override", checks, analyses, sends)
 	}
-	now, _ = time.Parse(time.RFC3339, "2026-10-27T10:59:59+08:00")
+	now = time.Date(now.Year(), now.Month(), now.Day(), 10, 59, 59, 0, zone)
 	if err := e.Tick(t.Context(), now); err != nil {
 		t.Fatal(err)
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 func courseReminderText(v CourseInstance, lead int) string {
-	return fmt.Sprintf("Sir，%d分钟后上%s，%s–%s，教室%s。", lead, v.Title, v.StartsAt.Format("15:04"), v.EndsAt.Format("15:04"), v.Room)
+	return fmt.Sprintf("%s%d分钟后上%s，%s–%s，教室%s。", addressPrefix(), lead, v.Title, v.StartsAt.Format("15:04"), v.EndsAt.Format("15:04"), v.Room)
 }
 func (s HeartbeatService) prepareCourseTrigger(ctx context.Context, tx *sql.Tx, c HeartbeatConfig, tr ModuleTrigger, now time.Time) error {
 	if !tr.Enabled || !c.ModuleEnabled["course_reminder"] {

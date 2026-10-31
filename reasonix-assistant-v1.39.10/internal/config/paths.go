@@ -517,7 +517,7 @@ func StatsDir() string {
 // the state root or workspaceRoot doesn't resolve.
 func ProjectSessionDir(workspaceRoot string) string {
 	base := MemoryUserDir()
-	root := strings.TrimSpace(workspaceRoot)
+	root := sessionWorkspaceRoot(workspaceRoot)
 	if base == "" || root == "" {
 		return ""
 	}
@@ -530,7 +530,7 @@ func ProjectSessionDir(workspaceRoot string) string {
 // ProjectSessionStoreDir is the per-workspace execution-v2 session root.
 func ProjectSessionStoreDir(workspaceRoot string) string {
 	base := MemoryUserDir()
-	root := strings.TrimSpace(workspaceRoot)
+	root := sessionWorkspaceRoot(workspaceRoot)
 	if base == "" || root == "" {
 		return ""
 	}
@@ -538,6 +538,20 @@ func ProjectSessionStoreDir(workspaceRoot string) string {
 		root = abs
 	}
 	return filepath.Join(ProjectStateDir(base, root), "sessions-v4")
+}
+
+// sessionWorkspaceRoot preserves a migrated assistant's session catalog
+// while keeping unrelated projects on their own normal workspace paths.
+func sessionWorkspaceRoot(workspaceRoot string) string {
+	root := strings.TrimSpace(workspaceRoot)
+	if os.Getenv("ASROBOT_INSTANCE_MODE") != "isolated" || root == "" || filepath.Clean(root) != os.Getenv("ASROBOT_RUNTIME_WORKSPACE") {
+		return root
+	}
+	stable := os.Getenv("REASONIX_CONVERSATION_WORKSPACE_ID")
+	if filepath.IsAbs(stable) && filepath.Clean(stable) == stable {
+		return stable
+	}
+	return root
 }
 
 // DesktopTopicStatePath returns the authoritative SQLite path for Desktop

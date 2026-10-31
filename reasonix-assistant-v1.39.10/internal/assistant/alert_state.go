@@ -135,7 +135,7 @@ func alertSourceName(v string) string {
 func renderAlert(e AlertEvent) string {
 	a := e.Alert
 	kind := map[string]string{"new": "新发布", "upgrade": "等级升级", "update": "更新", "cancel": "明确解除"}[e.Kind]
-	lines := []string{"Sir，上海天气预警：", a.Area + a.Hazard + a.Level + "预警 · " + kind, "发布时间：" + a.PublishedAt.In(mustShanghai()).Format("01月02日 15:04")}
+	lines := []string{addressPrefix() + "上海天气预警：", a.Area + a.Hazard + a.Level + "预警 · " + kind, "发布时间：" + a.PublishedAt.In(mustShanghai()).Format("01月02日 15:04")}
 	if !a.ExpiresAt.IsZero() && !a.Cancel {
 		lines = append(lines, "有效至："+a.ExpiresAt.In(mustShanghai()).Format("01月02日 15:04"))
 	}

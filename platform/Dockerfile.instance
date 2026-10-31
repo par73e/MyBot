@@ -1,0 +1,15 @@
+# Experimental container approach; not the deployed host-isolation mode. See README.
+# Build with verified Linux binaries supplied in build/; no package installation.
+FROM python:3.12-slim
+ARG BWRAP_SHA256
+COPY build/bwrap /usr/bin/bwrap
+RUN test -n "$BWRAP_SHA256" && echo "$BWRAP_SHA256  /usr/bin/bwrap" | sha256sum -c - && \
+    useradd --uid 10001 --user-group --no-create-home --shell /usr/sbin/nologin asrobot
+LABEL asrobot.contract="asrobot-instance-v1"
+COPY build/reasonix /opt/asrobot-agent/reasonix
+COPY build/bridge /opt/asrobot-agent/bridge
+COPY nativebridge/instance_supervisor.py /opt/asrobot-agent/instance_supervisor.py
+COPY nativebridge/mailcheck.py /opt/asrobot-native/mailcheck.py
+COPY build/mail_transport.py /opt/asrobot-native/mail_transport.py
+USER 10001:10001
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1

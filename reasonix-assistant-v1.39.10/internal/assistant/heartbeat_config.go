@@ -22,7 +22,11 @@ type ModuleDefinition struct {
 }
 
 func HeartbeatModules() []ModuleDefinition {
-	return []ModuleDefinition{{"weather_alert_check", "上海官方天气预警", 1, "native"}, {"github_pr_check", "GitHub PR进度跟踪", 1, "native"}, {"evening_briefing", "睡前总结", 1, "native_then_agent"}, {"subscription_reminder", "到期事项提醒", 1, "native"}, {"weather_briefing", "详细天气播报", 1, "agent"}, {"mail_check", "邮箱增量检查及新邮件汇报", 2, "native_then_agent"}, {"mail_digest", "静默邮件汇总", 1, "agent"}, {"course_briefing", "今日课程简报", 1, "agent"}, {"course_reminder", "课前提醒", 1, "native"}, {"morning_briefing", "早安Friday", 1, "native_then_agent"}, {"ai_news_briefing", "AI News热点新闻", 1, "native_then_agent"}}
+	modules := []ModuleDefinition{{"weather_alert_check", "上海官方天气预警", 1, "native"}, {"github_pr_check", "GitHub PR进度跟踪", 1, "native"}, {"evening_briefing", "睡前总结", 1, "native_then_agent"}, {"subscription_reminder", "到期事项提醒", 1, "native"}, {"weather_briefing", "详细天气播报", 1, "agent"}, {"mail_check", "邮箱增量检查及新邮件汇报", 2, "native_then_agent"}, {"mail_digest", "静默邮件汇总", 1, "agent"}, {"course_briefing", "今日课程简报", 1, "agent"}, {"course_reminder", "课前提醒", 1, "native"}, {"morning_briefing", "早安Friday", 1, "native_then_agent"}, {"ai_news_briefing", "AI News热点新闻", 1, "native_then_agent"}}
+	for i := range modules {
+		modules[i].Name = neutralInstanceInstructions(modules[i].Name)
+	}
+	return modules
 }
 func knownModule(id string) bool {
 	for _, m := range HeartbeatModules() {

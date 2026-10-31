@@ -27,9 +27,9 @@ func Tools(home string, options Options) []tool.Tool {
 func (t personalTool) Name() string { return t.name }
 func (t personalTool) Description() string {
 	if t.name == "assistant_memory" && os.Getenv("REASONIX_ASSISTANT_BACKGROUND") != "1" {
-		return t.description + "\n" + PersonalMemoryInstructions
+		return neutralInstanceInstructions(t.description + "\n" + PersonalMemoryInstructions)
 	}
-	return t.description
+	return neutralInstanceInstructions(t.description)
 }
 func (t personalTool) Schema() json.RawMessage { return t.schema }
 func (t personalTool) ReadOnly() bool          { return false }

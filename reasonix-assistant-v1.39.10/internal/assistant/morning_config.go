@@ -24,7 +24,7 @@ func (s HeartbeatService) EnableMorning(ctx context.Context) (HeartbeatConfig, e
 		}
 		tr := c.Triggers["morning"]
 		tr.ID = "morning"
-		tr.Title = "早安Friday"
+		tr.Title = neutralInstanceInstructions("早安Friday")
 		tr.Mode = "daily"
 		tr.LeadMinutes = 0
 		tr.IntervalSeconds = 0

@@ -28,6 +28,18 @@ func TestPersonalAssistantWorkPolicyIsScoped(t *testing.T) {
 	}
 }
 
+func TestIsolatedPolicyDoesNotRewriteUserPrompt(t *testing.T) {
+	t.Setenv("REASONIX_ASSISTANT", "1")
+	t.Setenv("ASROBOT_INSTANCE_MODE", "isolated")
+	prompt := appendCorePolicies("My chosen name is Friday and I call you Sir.")
+	if !strings.HasPrefix(prompt, "My chosen name is Friday and I call you Sir.") {
+		t.Fatal("user-defined prompt was changed")
+	}
+	if strings.Contains(prompt, personalAssistantWorkPolicy) || strings.Contains(prompt, "Sir's specific upcoming personal wake time") {
+		t.Fatal("legacy owner remains in the built-in instance policy")
+	}
+}
+
 func TestPersonalAssistantProviderContextOmitsDeployment(t *testing.T) {
 	for _, enabled := range []string{"", "1"} {
 		t.Run("assistant="+enabled, func(t *testing.T) {

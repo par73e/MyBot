@@ -1,0 +1,7 @@
+# Build with context containing app/.
+# The base must be checked against the running image ID immediately before use.
+FROM asrobot:0.5.1-history
+USER root
+COPY app/main.py app/store.py /srv/asrobot/app/
+COPY app/static/app.js /srv/asrobot/app/static/app.js
+USER 10001:10001
