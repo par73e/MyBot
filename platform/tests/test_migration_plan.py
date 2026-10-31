@@ -299,6 +299,8 @@ def test_assemble_legacy_candidate_preserves_data_and_never_starts(tmp_path):
     (home / 'projects').mkdir(mode=0o700)
     (home / 'skills/follow-builders').mkdir(mode=0o700, parents=True)
     (home / 'skills/follow-builders/SKILL.md').write_text('Run: sh /old/home/skills/follow-builders/scripts/run-friday.sh')
+    (home / 'skills/follow-builders/scripts').mkdir(mode=0o700)
+    (home / 'skills/follow-builders/scripts/run-friday.sh').write_text('exec env HTTPS_PROXY=http://127.0.0.1:17890 HTTP_PROXY=http://127.0.0.1:17890 node')
     (home / 'projects/session.jsonl').write_text('synthetic history')
     (snapshots['workspace'] / 'note.txt').write_text('synthetic workspace')
     (snapshots['mail'] / 'token').write_text('synthetic mail credential')
@@ -316,6 +318,8 @@ def test_assemble_legacy_candidate_preserves_data_and_never_starts(tmp_path):
     assert not (destination / 'state/desired.json').exists()
     assert '${REASONIX_HOME}/skills/follow-builders/scripts/run-friday.sh' in (destination / 'home/skills/follow-builders/SKILL.md').read_text()
     assert '/old/home/' in (home / 'skills/follow-builders/SKILL.md').read_text()
+    assert 'exec env -u HTTPS_PROXY' in (destination / 'home/skills/follow-builders/scripts/run-friday.sh').read_text()
+    assert '127.0.0.1:17890' in (home / 'skills/follow-builders/scripts/run-friday.sh').read_text()
     assert verify_legacy_candidate(snapshots, old, destination, planned, 'Example', 'Owner')['wechat']['credential_matches'] is True
     (destination / 'home/assistant/weather.json').write_text('{}')
     with pytest.raises(ValueError, match='credential configuration differs'):

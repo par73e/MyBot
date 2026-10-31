@@ -373,7 +373,7 @@ def verify_private_copy(source, candidate, *, _excluded=frozenset(), _candidate_
     from collections import Counter
     from pathlib import Path
 
-    allowed_exclusions = {'assistant/state.sqlite3', 'assistant/mail.json', 'assistant/weather.json', 'assistant/profile.json', 'skills/follow-builders/SKILL.md'}
+    allowed_exclusions = {'assistant/state.sqlite3', 'assistant/mail.json', 'assistant/weather.json', 'assistant/profile.json', 'skills/follow-builders/SKILL.md', 'skills/follow-builders/scripts/run-friday.sh'}
     if not set(_excluded).issubset(allowed_exclusions):
         raise ValueError('unsupported verification exclusion')
 
@@ -639,24 +639,33 @@ def rewrite_staged_credential_configs(source, candidate, instance_root, mappings
 
 
 def _portable_follow_builders(source_home, candidate_home, old_home, *, write=False):
-    """Rewrite only the known legacy invocation; compare all other bytes."""
+    """Rewrite the known legacy skill invocation and local proxy only."""
+    import re
     from pathlib import Path
-    relative = Path('skills/follow-builders/SKILL.md')
-    original, target = Path(source_home)/relative, Path(candidate_home)/relative
-    if not original.exists() and not target.exists():
-        return
-    if original.is_symlink() or target.is_symlink() or not original.is_file() or not target.is_file():
-        raise ValueError('skill file needs review')
-    before = original.read_bytes()
-    old = ('sh '+old_home+'/skills/follow-builders/scripts/run-friday.sh').encode()
-    new = b'sh "${REASONIX_HOME}/skills/follow-builders/scripts/run-friday.sh"'
-    if before.count(old) > 1:
-        raise ValueError('skill invocation needs review')
-    expected = before.replace(old, new)
-    if write:
-        target.write_bytes(expected)
-    elif target.read_bytes() != expected:
-        raise ValueError('skill invocation differs')
+    paths = ('skills/follow-builders/SKILL.md', 'skills/follow-builders/scripts/run-friday.sh')
+    for relative in paths:
+        original, target = Path(source_home)/relative, Path(candidate_home)/relative
+        if not original.exists() and not target.exists():
+            continue
+        if original.is_symlink() or target.is_symlink() or not original.is_file() or not target.is_file():
+            raise ValueError('skill file needs review')
+        before = original.read_bytes()
+        if relative.endswith('SKILL.md'):
+            old = ('sh '+old_home+'/skills/follow-builders/scripts/run-friday.sh').encode()
+            new = b'sh "${REASONIX_HOME}/skills/follow-builders/scripts/run-friday.sh"'
+            if before.count(old) > 1:
+                raise ValueError('skill invocation needs review')
+            expected = before.replace(old, new)
+        else:
+            pattern = rb'exec env HTTPS_PROXY=http://127\.0\.0\.1:(\d+) HTTP_PROXY=http://127\.0\.0\.1:\1'
+            replacement = b'exec env -u HTTPS_PROXY -u HTTP_PROXY -u ALL_PROXY -u https_proxy -u http_proxy -u all_proxy'
+            expected, count = re.subn(pattern, replacement, before)
+            if count > 1:
+                raise ValueError('skill proxy needs review')
+        if write:
+            target.write_bytes(expected)
+        elif target.read_bytes() != expected:
+            raise ValueError('skill invocation differs')
 
 def assemble_legacy_candidate(snapshots, old_paths, destination, instance_root, name, address):
     """Assemble and verify an offline candidate; never install or start it.
@@ -784,7 +793,7 @@ def verify_legacy_candidate(snapshots, old_paths, candidate, instance_root, name
     verification['wechat'] = verify_staged_wechat(snapshots['home'], home)
     verification['mail_proxy_port'] = staged_gmail_proxy_port(home)
     _portable_follow_builders(snapshots['home'], home, old_paths['home'])
-    verification['remaining_home'] = verify_private_copy(snapshots['home'], home, _excluded=frozenset({'assistant/state.sqlite3','assistant/mail.json','assistant/weather.json','assistant/profile.json','skills/follow-builders/SKILL.md'}))
+    verification['remaining_home'] = verify_private_copy(snapshots['home'], home, _excluded=frozenset({'assistant/state.sqlite3','assistant/mail.json','assistant/weather.json','assistant/profile.json','skills/follow-builders/SKILL.md', 'skills/follow-builders/scripts/run-friday.sh'}))
     verification['workspace'] = verify_private_copy(snapshots['workspace'], candidate / 'workspace')
     for kind in ('mail', 'weather'):
         verification[kind] = verify_private_copy(snapshots[kind], candidate / 'external' / kind)
