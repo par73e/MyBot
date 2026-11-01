@@ -846,6 +846,7 @@ func (gw *BotGateway) handleMessage(ctx context.Context, binding AdapterBinding,
 				if rec, err := gw.collectActiveSessionDurable(ctx, binding.Adapter, key, msg); err == nil {
 					gw.storeReactionCleanup(key, cleanup)
 					_ = gw.sendText(ctx, binding.Adapter, msg, formatQueuedReceipt(rec))
+					gw.wakeQueuedInbox(ctx, binding.Adapter, key, msg)
 					return
 				} else if errors.Is(err, sessioninbox.ErrCapacityItems) || errors.Is(err, sessioninbox.ErrCapacityBytes) || errors.Is(err, sessioninbox.ErrItemTooLarge) {
 					if cleanup != nil {
@@ -858,6 +859,7 @@ func (gw *BotGateway) handleMessage(ctx context.Context, binding AdapterBinding,
 				if rec, err := gw.followupActiveSessionDurable(ctx, binding.Adapter, key, msg); err == nil {
 					gw.storeReactionCleanup(key, cleanup)
 					_ = gw.sendText(ctx, binding.Adapter, msg, formatQueuedReceipt(rec))
+					gw.wakeQueuedInbox(ctx, binding.Adapter, key, msg)
 					return
 				} else if errors.Is(err, sessioninbox.ErrCapacityItems) || errors.Is(err, sessioninbox.ErrCapacityBytes) || errors.Is(err, sessioninbox.ErrItemTooLarge) {
 					if cleanup != nil {

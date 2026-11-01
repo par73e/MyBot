@@ -304,7 +304,8 @@ def test_assemble_legacy_candidate_preserves_data_and_never_starts(tmp_path):
     (home / 'projects/session.jsonl').write_text('synthetic history')
     (snapshots['workspace'] / 'note.txt').write_text('synthetic workspace')
     (snapshots['mail'] / 'token').write_text('synthetic mail credential')
-    (snapshots['weather'] / 'key').write_text('synthetic weather credential')
+    (snapshots['weather'] / 'key').write_text(json.dumps({'private_key_file':'/old/weather/signing.pem','project_id':'synthetic'}))
+    (snapshots['weather'] / 'signing.pem').write_text('synthetic key')
     old = {key:'/old/' + key for key in snapshots}
     planned = '/var/lib/asrobot-instances/' + 'a' * 32
     destination = tmp_path / 'candidate'
@@ -313,6 +314,7 @@ def test_assemble_legacy_candidate_preserves_data_and_never_starts(tmp_path):
     assert result['verification']['wechat']['single_owner_matches'] is True
     assert result['verification']['conversation_files'] == 1
     assert (destination / 'state/workspace-id').read_text() == old['workspace']
+    assert json.loads((destination / 'external/weather/key').read_text())['private_key_file'] == planned + '/external/weather/signing.pem'
     assert json.loads((destination / 'home/assistant/profile.json').read_text()) == {'name':'Example','address':'Owner'}
     assert not (home / 'assistant/profile.json').exists()
     assert not (destination / 'state/desired.json').exists()
@@ -321,6 +323,12 @@ def test_assemble_legacy_candidate_preserves_data_and_never_starts(tmp_path):
     assert 'exec env -u HTTPS_PROXY' in (destination / 'home/skills/follow-builders/scripts/run-friday.sh').read_text()
     assert '127.0.0.1:17890' in (home / 'skills/follow-builders/scripts/run-friday.sh').read_text()
     assert verify_legacy_candidate(snapshots, old, destination, planned, 'Example', 'Owner')['wechat']['credential_matches'] is True
+    nested = destination / 'external/weather/key'
+    valid = nested.read_text()
+    nested.write_text(json.dumps({'private_key_file':'/old/weather/signing.pem','project_id':'synthetic'}))
+    with pytest.raises(ValueError, match='nested weather credential differs'):
+        verify_legacy_candidate(snapshots, old, destination, planned, 'Example', 'Owner')
+    nested.write_text(valid)
     (destination / 'home/assistant/weather.json').write_text('{}')
     with pytest.raises(ValueError, match='credential configuration differs'):
         verify_legacy_candidate(snapshots, old, destination, planned, 'Example', 'Owner')

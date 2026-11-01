@@ -128,29 +128,9 @@ func (s AlertService) readProduct(ctx context.Context, emit alertEmit) (alertSou
 	if err != nil {
 		return alertSourceResult{}, err
 	}
-	var data struct {
-		Count json.RawMessage `json:"count"`
-		Data  [][]string      `json:"data"`
-	}
-	if err = alertJSON(raw, "var alarminfo=", "", &data); err != nil || data.Count == nil || data.Data == nil || len(data.Data) > 5000 {
-		return alertSourceResult{}, errors.New("national alert list is invalid or oversized")
-	}
-	countText := strings.Trim(string(data.Count), "\"")
-	count, countErr := strconv.Atoi(countText)
-	if countErr != nil || count != len(data.Data) {
-		return alertSourceResult{}, errors.New("national alert count does not match complete list")
-	}
-	rows := [][]string{}
-	for _, r := range data.Data {
-		if len(r) < 2 {
-			return alertSourceResult{}, errors.New("national alert list contains malformed entries")
-		}
-		if strings.HasPrefix(r[0], "上海") {
-			rows = append(rows, r)
-		}
-	}
-	if len(rows) > 200 {
-		return alertSourceResult{}, errors.New("national Shanghai alert coverage exceeds capacity")
+	rows, err := parseProductRows(raw)
+	if err != nil {
+		return alertSourceResult{}, err
 	}
 	// Updated alerts first, so a bounded run cannot bury the latest publication.
 	sort.SliceStable(rows, func(i, j int) bool { return rows[i][1] > rows[j][1] })
@@ -173,6 +153,38 @@ func (s AlertService) readProduct(ctx context.Context, emit alertEmit) (alertSou
 		return result, errors.New("some Shanghai alert details unavailable; coverage is incomplete")
 	}
 	return result, nil
+}
+
+func parseProductRows(raw []byte) ([][]string, error) {
+	var data struct {
+		Count json.RawMessage     `json:"count"`
+		Data  [][]json.RawMessage `json:"data"`
+	}
+	if err := alertJSON(raw, "var alarminfo=", "", &data); err != nil || data.Count == nil || data.Data == nil || len(data.Data) > 5000 {
+		return nil, errors.New("national alert list is invalid or oversized")
+	}
+	countText := strings.Trim(string(data.Count), "\"")
+	count, countErr := strconv.Atoi(countText)
+	if countErr != nil || count != len(data.Data) {
+		return nil, errors.New("national alert count does not match complete list")
+	}
+	rows := [][]string{}
+	for _, r := range data.Data {
+		if len(r) < 2 {
+			return nil, errors.New("national alert list contains malformed entries")
+		}
+		var area, file string
+		if json.Unmarshal(r[0], &area) != nil || json.Unmarshal(r[1], &file) != nil || area == "" || file == "" {
+			return nil, errors.New("national alert list contains malformed entries")
+		}
+		if strings.HasPrefix(area, "上海") {
+			rows = append(rows, []string{area, file})
+		}
+	}
+	if len(rows) > 200 {
+		return nil, errors.New("national Shanghai alert coverage exceeds capacity")
+	}
+	return rows, nil
 }
 func (s AlertService) productDetail(ctx context.Context, file string) (OfficialAlert, error) {
 	var a OfficialAlert

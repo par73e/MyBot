@@ -14,6 +14,7 @@ func (gw *BotGateway) dispatchQueueResult(ctx context.Context, adapter Adapter, 
 		if rec, err := gw.followupActiveSessionDurable(ctx, adapter, key, msg); err == nil {
 			gw.storeReactionCleanup(key, cleanup)
 			_ = gw.sendText(ctx, adapter, msg, formatQueuedReceipt(rec))
+			gw.wakeQueuedInbox(ctx, adapter, key, msg)
 		} else {
 			gw.storeReactionCleanup(key, cleanup)
 		}
@@ -27,6 +28,27 @@ func (gw *BotGateway) dispatchQueueResult(ctx context.Context, adapter Adapter, 
 	// Keep the dispatch loop free to deliver approval/answer replies while the
 	// active turn blocks. The per-session lock still serializes all turns.
 	gw.turnWG.Go(func() { gw.runTurn(ctx, adapter, key, msg, cleanup) })
+}
+
+// Wake a follow-up that became durable after the previous turn went idle.
+// Without this, enqueue can race with the previous turn's final inbox scan.
+func (gw *BotGateway) wakeQueuedInbox(ctx context.Context, adapter Adapter, key string, fallback InboundMessage) {
+	queued := gw.claimQueuedInbox(key, fallback)
+	if queued == nil {
+		return
+	}
+	cleanup := makeReactionCleanup(gw.takeReactionCleanups(key))
+	gw.turnWG.Go(func() { gw.runTurnItem(ctx, adapter, key, queued.msg, queued.itemID, cleanup) })
+}
+
+// claimQueuedInbox only takes an idle session; an active turn remains
+// responsible for draining the same durable item when it finishes.
+func (gw *BotGateway) claimQueuedInbox(key string, fallback InboundMessage) *botInboxTurn {
+	queued := gw.nextInboxTurn(key, fallback)
+	if queued == nil || !gw.sessions.TryAcquireIdle(key) {
+		return nil
+	}
+	return queued
 }
 
 func (gw *BotGateway) finishTurnItem(ctx context.Context, adapter Adapter, key string, fallback InboundMessage, cleanup func()) {

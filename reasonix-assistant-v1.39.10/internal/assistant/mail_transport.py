@@ -62,6 +62,9 @@ class UnixProxyHTTPSHandler(urllib.request.HTTPSHandler):
 
 class FixedUnixProxyHandler(urllib.request.BaseHandler):
     def https_request(self, request):
+        # Preserve the destination Host before replacing request.host with
+        # the internal proxy address; Google routes HTTPS by this header.
+        request.add_unredirected_header('Host', request.host)
         request.set_proxy('asrobot-mail-proxy.invalid:80', 'http')
         return request
 

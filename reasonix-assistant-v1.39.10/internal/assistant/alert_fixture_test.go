@@ -28,6 +28,23 @@ type alertFixture struct {
 	requests, notModified int
 }
 
+func TestProductRowsAcceptsExtraArrayFieldsButRejectsInvalidIdentity(t *testing.T) {
+	raw := []byte(`var alarminfo={"count":"2","data":[["辽宁", "other.html", [], 42], ["上海市", "shanghai.html", "x", ["extra"]]]}`)
+	rows, err := parseProductRows(raw)
+	if err != nil || len(rows) != 1 || rows[0][1] != "shanghai.html" {
+		t.Fatalf("unexpected rows %v: %v", rows, err)
+	}
+	for _, invalid := range []string{
+		`var alarminfo={"count":"1","data":[[["上海"], "test.html"]]}`,
+		`var alarminfo={"count":"1","data":[["上海", null]]}`,
+		`var alarminfo={"count":"2","data":[["上海", "test.html"]]}`,
+	} {
+		if _, err := parseProductRows([]byte(invalid)); err == nil {
+			t.Fatalf("accepted invalid identity or count: %s", invalid)
+		}
+	}
+}
+
 func newAlertFixture(t *testing.T) (HeartbeatService, AlertService, *alertFixture) {
 	t.Helper()
 	hs, _ := unifiedFixture(t)

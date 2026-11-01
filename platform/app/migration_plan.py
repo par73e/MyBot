@@ -364,7 +364,7 @@ def verify_staged_snapshot(source, candidate, old_workspace, new_workspace):
     return {'database_rows': rows_checked, 'conversation_files': len(original_files) - len(original_dbs), 'requires_credential_and_delivery_review': True}
 
 
-def verify_private_copy(source, candidate, *, _excluded=frozenset(), _candidate_uid=None):
+def verify_private_copy(source, candidate, *, _excluded=frozenset(), _candidate_uid=None, _reviewed_exclusion=None):
     """Compare copied external credential trees, returning counts only."""
     import hashlib
     import os
@@ -376,6 +376,11 @@ def verify_private_copy(source, candidate, *, _excluded=frozenset(), _candidate_
     allowed_exclusions = {'assistant/state.sqlite3', 'assistant/mail.json', 'assistant/weather.json', 'assistant/profile.json', 'skills/follow-builders/SKILL.md', 'skills/follow-builders/scripts/run-friday.sh'}
     if not set(_excluded).issubset(allowed_exclusions):
         raise ValueError('unsupported verification exclusion')
+    if _reviewed_exclusion is not None:
+        excluded = Path(_reviewed_exclusion)
+        if excluded.is_absolute() or not excluded.parts or any(part in ('.', '..') for part in excluded.parts):
+            raise ValueError('invalid credential verification exclusion')
+        _excluded = frozenset(set(_excluded) | {str(excluded)})
 
     if _candidate_uid is not None and (os.getuid() != 0 or not isinstance(_candidate_uid, int) or _candidate_uid < 1):
         raise ValueError('candidate owner override requires the root operator')
@@ -667,6 +672,64 @@ def _portable_follow_builders(source_home, candidate_home, old_home, *, write=Fa
         elif target.read_bytes() != expected:
             raise ValueError('skill invocation differs')
 
+
+def _weather_nested_credential(snapshots, old_paths, candidate, instance_root, *, write=False):
+    """Remap and verify a weather credentials file's nested private-key path."""
+    import hashlib
+    import json
+    import os
+    import tempfile
+    from pathlib import Path
+
+    source_config = Path(snapshots['home'])/'assistant/weather.json'
+    if not source_config.exists():
+        return None
+    config = json.loads(source_config.read_text())
+    credential_path = config.get('credential_file')
+    if not credential_path:
+        return None
+    roots = {'home': Path(candidate)/'home', 'workspace': Path(candidate)/'workspace',
+             'mail': Path(candidate)/'external/mail', 'weather': Path(candidate)/'external/weather'}
+    def locate(value):
+        value = Path(_absolute_workspace(value))
+        for kind in sorted(old_paths, key=lambda key: len(old_paths[key]), reverse=True):
+            original_root = Path(old_paths[kind])
+            if original_root in value.parents:
+                relative = value.relative_to(original_root)
+                return kind, relative, Path(snapshots[kind])/relative, roots[kind]/relative
+        raise ValueError('nested weather credential path needs review')
+    kind, relative, original, staged = locate(credential_path)
+    if original.is_symlink() or staged.is_symlink() or not original.is_file() or not staged.is_file():
+        raise ValueError('nested weather credential unavailable')
+    try:
+        before = json.loads(original.read_text())
+        current = json.loads(staged.read_text())
+    except (ValueError, UnicodeError):
+        return None  # Existing opaque credentials remain byte-for-byte verified.
+    if not isinstance(before, dict) or 'private_key_file' not in before:
+        return None
+    key_kind, key_relative, old_key, staged_key = locate(before['private_key_file'])
+    if old_key.is_symlink() or staged_key.is_symlink() or not old_key.is_file() or not staged_key.is_file():
+        raise ValueError('weather signing key missing in staged copy')
+    if hashlib.sha256(old_key.read_bytes()).digest() != hashlib.sha256(staged_key.read_bytes()).digest():
+        raise ValueError('weather signing key differs')
+    expected = deepcopy(before)
+    expected['private_key_file'] = str(Path(instance_root)/staged_key.relative_to(candidate))
+    if current != before and current != expected:
+        raise ValueError('nested weather credential differs')
+    if write and current != expected:
+        fd, temp = tempfile.mkstemp(prefix='.weather-credential-', dir=staged.parent)
+        try:
+            with os.fdopen(fd, 'w') as out:
+                json.dump(expected, out, ensure_ascii=False, separators=(',', ':'))
+                out.flush(); os.fsync(out.fileno())
+            os.replace(temp, staged)
+        finally:
+            if os.path.exists(temp): os.unlink(temp)
+    elif not write and current != expected:
+        raise ValueError('nested weather credential differs')
+    return kind, str(relative)
+
 def assemble_legacy_candidate(snapshots, old_paths, destination, instance_root, name, address):
     """Assemble and verify an offline candidate; never install or start it.
 
@@ -722,6 +785,7 @@ def assemble_legacy_candidate(snapshots, old_paths, destination, instance_root, 
     mappings = [(old_paths['home'], instance_root + '/home'), (old_paths['workspace'], new_workspace),
                 (old_paths['mail'], instance_root + '/external/mail'), (old_paths['weather'], instance_root + '/external/weather')]
     rewritten = rewrite_staged_credential_configs(snapshots['home'], home, instance_root, mappings)
+    _weather_nested_credential(snapshots, old_paths, destination, instance_root, write=True)
     _portable_follow_builders(snapshots['home'], home, old_paths['home'], write=True)
     profile = home / 'assistant' / 'profile.json'
     if profile.exists() or profile.is_symlink():
@@ -793,8 +857,10 @@ def verify_legacy_candidate(snapshots, old_paths, candidate, instance_root, name
     verification['wechat'] = verify_staged_wechat(snapshots['home'], home)
     verification['mail_proxy_port'] = staged_gmail_proxy_port(home)
     _portable_follow_builders(snapshots['home'], home, old_paths['home'])
-    verification['remaining_home'] = verify_private_copy(snapshots['home'], home, _excluded=frozenset({'assistant/state.sqlite3','assistant/mail.json','assistant/weather.json','assistant/profile.json','skills/follow-builders/SKILL.md', 'skills/follow-builders/scripts/run-friday.sh'}))
-    verification['workspace'] = verify_private_copy(snapshots['workspace'], candidate / 'workspace')
+    nested = _weather_nested_credential(snapshots, old_paths, candidate, instance_root)
+    exclusion = lambda kind: nested[1] if nested and nested[0] == kind else None
+    verification['remaining_home'] = verify_private_copy(snapshots['home'], home, _excluded=frozenset({'assistant/state.sqlite3','assistant/mail.json','assistant/weather.json','assistant/profile.json','skills/follow-builders/SKILL.md', 'skills/follow-builders/scripts/run-friday.sh'}), _reviewed_exclusion=exclusion('home'))
+    verification['workspace'] = verify_private_copy(snapshots['workspace'], candidate / 'workspace', _reviewed_exclusion=exclusion('workspace'))
     for kind in ('mail', 'weather'):
-        verification[kind] = verify_private_copy(snapshots[kind], candidate / 'external' / kind)
+        verification[kind] = verify_private_copy(snapshots[kind], candidate / 'external' / kind, _reviewed_exclusion=exclusion(kind))
     return verification

@@ -94,9 +94,12 @@ def test_isolated_local_proxy_requires_matching_private_relay(monkeypatch):
     monkeypatch.setenv('ASROBOT_MAIL_PROXY_PORT','17890')
     opener = transport.gmail_opener({'proxy':'http://127.0.0.1:17890'})
     assert any(isinstance(h, transport.FixedUnixProxyHandler) for h in opener.handlers)
-    request = transport.urllib.request.Request('https://gmail.googleapis.com/gmail/v1/users/me/profile')
-    transport.FixedUnixProxyHandler().https_request(request)
-    assert request._tunnel_host == 'gmail.googleapis.com'
+    for url, hostname in (('https://gmail.googleapis.com/gmail/v1/users/me/profile', 'gmail.googleapis.com'),
+                          ('https://oauth2.googleapis.com/token', 'oauth2.googleapis.com')):
+        request = transport.urllib.request.Request(url)
+        transport.FixedUnixProxyHandler().https_request(request)
+        assert request._tunnel_host == hostname
+        assert request.get_header('Host') == hostname
     handler = transport.UnixProxyHTTPSHandler(root+'/state/mail-proxy.sock')
     monkeypatch.setattr(handler, 'do_open', lambda factory, request, **kwargs:kwargs)
     assert 'context' in handler.https_open(request)
