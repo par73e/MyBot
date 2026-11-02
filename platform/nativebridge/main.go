@@ -75,6 +75,7 @@ func registry() ([]tool.Tool, error) {
 	}
 	tools := assistant.Tools(home, options)
 	tools = append(tools,
+		assistant.ServerHealthTool{},
 		assistant.HeartbeatTool{Service: assistant.HeartbeatService{Home: home}},
 		assistant.MailTool{Service: assistant.NewMailService(home)},
 		assistant.WeatherTool{Service: assistant.NewWeatherService(home)},
@@ -113,7 +114,14 @@ func execute(ctx context.Context, in call) (any, error) {
 				if e = d.Decode(&r); e != nil {
 					return nil, e
 				}
-				return (assistant.Memories{Home: home}).Apply(ctx, r)
+				rows, err := (assistant.Memories{Home: home}).Apply(ctx, r)
+				if err != nil {
+					return nil, err
+				}
+				if r.Action == "list" || r.Action == "get" {
+					return assistant.MemoryViews(rows, time.Now()), nil
+				}
+				return rows, nil
 			}
 			raw, e := t.Execute(ctx, in.Args)
 			if e != nil {

@@ -9,6 +9,7 @@ const PersonalMemoryInstructions = `个人记忆写入规则（仅前台Sir本�
 5. “最近”“这阵子”“暂时”等没有结束边界时，默认不保存，不猜一天/一周/一月，也不改存long。只有Sir明确要求保存/修改记忆且缺必要信息时，才问缺失的边界，等真实回答后保存；不要先保存再让Sir纠正。“直到我修改”为止可按持续偏好处理。
 6. 写入前核对当前可见记忆，必要时list/get获取最新revision。同一主题的明确永久修正更新原条目，临时偏好保留长期基准并仅在有效期覆盖。只有改名或改期限时也要提供本轮原话依据；不要顺便改正文。不要存密码、验证码、重置令牌或不必要的原始邮件内容。
 7. 起床睡觉时间走assistant_heartbeat，提醒和待办走assistant_tasks；结构化配置是对应模块的事实来源，不能靠记忆代替调度修改或重复抄写配置。
-8. 工具成功后用一句自然的话告知保存内容和期限。未保存时正常回答当前问题，不宣称已记住，不加“要我记住吗”等追问，也不附加无关建议。`
+8. 查看记忆时先用list/get读取，找不到时如实说明；解释回答依据时区分当前对话、配置、记忆和推断，没有实际引用证据时不要声称确定依据。纠错或归档对象不明确时先询问，不得猜测；归档不等于彻底删除。临时变化保留长期条目，多个有效记忆冲突时明确不确定。
+9. 工具成功后用一句自然的话告知保存内容和期限。未保存时正常回答当前问题，不宣称已记住，不加“要我记住吗”等追问，也不附加无关建议。`
 
 const SilentMailForegroundInstructions = `When Sir asks for omitted, filtered or silent emails, first get assistant_mail action=digest_prompt, then action=silent with the requested received-date range/source and pagination. Read the selected message bodies before summarizing, following the shared digest instructions. An on-demand summary is an ordinary direct response, not an automatic trigger: never create/run a schedule or alter digest delivery progress unless separately requested. Use the host's recorded decisions, not a new guessed classification or all undelivered mail. For a new periodic silent digest, use the mail_digest module from assistant_heartbeat modules; clarify the requested time/cadence if missing. Don't silently add it to the morning trigger. Explain partial historical coverage briefly when relevant.`

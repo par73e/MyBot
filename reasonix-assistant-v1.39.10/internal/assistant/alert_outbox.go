@@ -13,6 +13,9 @@ func (s AlertService) queueAlert(ctx context.Context, tx *sql.Tx, e AlertEvent, 
 	if o.Target == nil || e.Superseded || !e.DeliveredAt.IsZero() {
 		return nil
 	}
+	if !s.alertInScope(e.Alert) {
+		return nil
+	}
 	var c AlertConfig
 	if err := alertLoad(ctx, tx, "alert_config", "default", &c); err != nil {
 		return err
@@ -73,7 +76,7 @@ func (s AlertService) Admission(ctx context.Context, t heartbeat.Task) (bool, er
 		if e := alertLoad(ctx, tx, "alert_record", event.Key, &record); e != nil {
 			return e
 		}
-		allowed = s.now().Sub(record.ObservedAt) <= 10*time.Minute && event.JobID == t.ID && record.EventID == event.ID && event.DeliveredAt.IsZero() && !event.Superseded && alertSame(record.Alert, event.Alert) && (event.Alert.Cancel || !alertExpired(record.Alert, s.now()))
+		allowed = s.alertInScope(event.Alert) && s.now().Sub(record.ObservedAt) <= 10*time.Minute && event.JobID == t.ID && record.EventID == event.ID && event.DeliveredAt.IsZero() && !event.Superseded && alertSame(record.Alert, event.Alert) && (event.Alert.Cancel || !alertExpired(record.Alert, s.now()))
 		return nil
 	})
 	if errors.Is(err, sql.ErrNoRows) || err == nil && !allowed {

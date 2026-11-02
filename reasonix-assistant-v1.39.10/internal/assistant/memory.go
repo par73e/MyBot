@@ -107,6 +107,11 @@ func (m Memories) Apply(ctx context.Context, r MemoryRequest) ([]Memory, error) 
 		case "archive":
 			v.Archived = true
 		case "update":
+			// Direct authenticated edits do not originate in a chat message.
+			// Do not attribute new content to the previous message.
+			if r.Body != "" && strings.TrimSpace(r.Body) != v.Body && r.sourceMessageID == "" {
+				v.SourceMessageID = ""
+			}
 			if r.Subject != "" {
 				v.Subject = strings.TrimSpace(r.Subject)
 			}

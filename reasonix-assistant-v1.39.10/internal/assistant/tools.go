@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"reasonix/internal/tool"
+	"time"
 )
 
 type personalTool struct {
@@ -70,7 +71,11 @@ func (t personalTool) Execute(ctx context.Context, args json.RawMessage) (string
 		if err != nil {
 			return "", err
 		}
-		result = out
+		if r.Action == "list" || r.Action == "get" {
+			result = MemoryViews(out, time.Now())
+		} else {
+			result = out
+		}
 	}
 	raw, err := json.Marshal(result)
 	return string(raw), err

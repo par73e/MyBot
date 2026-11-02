@@ -1,0 +1,19 @@
+[Unit]
+Description=Friday owner read-only server health collector
+Requires=asrobot-health.socket
+[Service]
+User=asrobot-health
+Group=asrobot-health
+Environment=FRIDAY_HEALTH_INSTANCE=FRIDAY_INSTANCE_ID
+ExecStart=/usr/bin/python3 /opt/asrobot-health/server_health_collector.py
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=128M
+TasksMax=32
