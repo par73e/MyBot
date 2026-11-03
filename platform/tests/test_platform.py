@@ -4,11 +4,14 @@ import pytest
 from fastapi.testclient import TestClient
 from app import store as s, runtime as rt
 from app.main import app, ph
+from app import login_protection as lp
 
 ORIGIN='http://localhost:18980'
 @pytest.fixture
 def clients(tmp_path,monkeypatch):
     monkeypatch.setattr(s,'DATA',tmp_path)
+    # Existing feature tests exercise authenticated APIs; captcha has separate end-to-end tests.
+    monkeypatch.setattr(lp,'consume_captcha',lambda key,answer: True)
     monkeypatch.delenv('ASROBOT_KEY_FILE',raising=False)
     rt.locks.clear()
     rt.turn_locks.clear()

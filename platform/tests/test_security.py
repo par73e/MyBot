@@ -15,7 +15,7 @@ def test_login_account_throttle_survives_changing_ip(clients,monkeypatch):
             async with httpx.AsyncClient(transport=transport,base_url=ORIGIN) as c:
                 results.append((await c.post('/asrobot/api/login',headers={'Origin':ORIGIN},json={'login':'bob','password':'wrong'})).status_code)
         return results
-    assert asyncio.run(attempt())==[401]*10+[429]*2
+    assert asyncio.run(attempt())==[401]*5+[429]*7
 
 def test_password_verification_has_bounded_concurrency(clients,monkeypatch):
     running=0;maximum=0;guard=threading.Lock()

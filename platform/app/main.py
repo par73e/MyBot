@@ -10,6 +10,8 @@ from fastapi.staticfiles import StaticFiles
 import qrcode
 from . import store as s, runtime as rt, history, native, instance_history, instance_pairing
 from .security import password_work
+from . import login_protection as lp
+SESSION_TTL = 3 * 60 * 60
 
 # Minimal Linux images may not include the WebP system MIME registration.
 mimetypes.add_type('image/webp','.webp')
@@ -116,17 +118,28 @@ async def register(req:Request):
         if os.environ.get('ASROBOT_AUTOPROVISION') == '1' and invite['role'] != 'admin':
             c.execute("INSERT INTO assistant_instances(id,user_id,created,state) VALUES(?,?,?,'reserved')",(s.ident(),uid,s.now()))
     s.workspace(uid); s.event(uid,'账号注册'); return {'ok':True}
+@app.get(PREFIX+'/api/login/captcha')
+def login_captcha(req:Request):
+    if s.limited('captcha:'+req.client.host,30,60): raise HTTPException(429,'获取验证码过于频繁，请稍后重试')
+    return lp.create_captcha()
+
 @app.post(PREFIX+'/api/login')
 async def login(req:Request):
     b=await body(req)
     if s.limited('login:'+req.client.host,15,300): raise HTTPException(429,'登录尝试过多，请五分钟后重试')
     login_name=b.get('login','');value=b.get('password','')
     if not isinstance(login_name,str) or len(login_name)>128 or not isinstance(value,str) or not value or len(value.encode('utf-8'))>4096:raise HTTPException(401,'用户名或密码不正确，或账号已停用')
+    if not lp.consume_captcha(b.get('captcha_key'), b.get('captcha_code')): raise HTTPException(400,'验证码错误或已过期，请重新获取')
     login_name=login_name.strip().lower();account_limit='login-account:'+s.digest(login_name)
+    failure_id=s.digest(login_name)
+    if lp.locked(failure_id): raise HTTPException(429,'密码错误次数过多，请十五分钟后重试')
     if s.limited(account_limit,10,300):raise HTTPException(429,'登录尝试过多，请五分钟后重试')
     with s.db() as c:u=c.execute('SELECT * FROM users WHERE login=?',(login_name,)).fetchone()
     ok=await password_work(verify,u['password'] if u else dummy,value)
-    if not ok or not u or u['status']!='active': raise HTTPException(401,'用户名或密码不正确，或账号已停用')
+    if not ok or not u or u['status']!='active':
+        lp.failed(failure_id)
+        raise HTTPException(401,'用户名或密码不正确，或账号已停用')
+    lp.clear(failure_id)
     token=secrets.token_urlsafe(40); csrf=secrets.token_urlsafe(32)
     with s.db() as c:
         c.execute('BEGIN IMMEDIATE')
@@ -134,11 +147,11 @@ async def login(req:Request):
         if not current or current['status']!='active' or current['password']!=u['password']: raise HTTPException(401,'账号状态已变化，请重新登录')
         u=current
         c.execute('DELETE FROM sessions WHERE expires<?',(s.now(),))
-        c.execute('INSERT INTO sessions VALUES(?,?,?,?)',(s.digest(token),u['id'],csrf,s.now()+604800))
+        c.execute('INSERT INTO sessions VALUES(?,?,?,?)',(s.digest(token),u['id'],csrf,s.now()+SESSION_TTL))
         c.execute('DELETE FROM limits WHERE key=?',(account_limit,))
     s.workspace(u['id'])
     r=JSONResponse({'user':public_user(u),'csrf':csrf})
-    r.set_cookie(COOKIE_NAME,token,max_age=604800,httponly=True,secure=ORIGIN.startswith('https:'),samesite='strict',path=COOKIE_PATH)
+    r.set_cookie(COOKIE_NAME,token,max_age=SESSION_TTL,httponly=True,secure=ORIGIN.startswith('https:'),samesite='strict',path=COOKIE_PATH)
     s.event(u['id'],'登录'); return r
 @app.get(PREFIX+'/api/me')
 def me(req:Request):
