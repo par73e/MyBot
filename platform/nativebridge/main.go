@@ -104,6 +104,16 @@ func execute(ctx context.Context, in call) (any, error) {
 	}
 	for _, t := range tools {
 		if t.Name() == in.Tool {
+			if in.Tool == "assistant_location" {
+				var r assistant.LocationRequest
+				d := json.NewDecoder(bytes.NewReader(in.Args))
+				d.DisallowUnknownFields()
+				if e = d.Decode(&r); e != nil {
+					return nil, e
+				}
+				return (assistant.LocationService{Home: home}).Apply(ctx, r)
+			}
+
 			// An explicit authenticated settings form is equivalent to the native
 			// `assistant memory` CLI. Model-driven writes still use the native Agent's
 			// foreground authorization; this path never accepts model-generated calls.

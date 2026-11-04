@@ -97,7 +97,15 @@ func (c CourseConfig) validateException(ex CourseException, ids map[string]Cours
 		return errors.New("unknown exception course")
 	}
 	day, err := courseDate(ex.Date)
-	if err != nil || !c.matches(v, day) {
+	matched := err == nil && c.matches(v, day)
+	if err == nil && c.academic != nil {
+		a := c.academic.Day(day)
+		if a.Known && a.Teaching && a.ClassDate != "" && a.ClassDate != ex.Date {
+			original, e := courseDate(a.ClassDate)
+			matched = e == nil && c.matches(v, original)
+		}
+	}
+	if !matched {
 		return errors.New("exception must target an actual original occurrence")
 	}
 	if ex.Cancelled && (ex.MoveTo != "" || ex.Start != "" || ex.End != "" || ex.Room != "") {

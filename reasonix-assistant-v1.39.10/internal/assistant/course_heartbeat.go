@@ -18,7 +18,7 @@ func (s HeartbeatService) prepareCourseTrigger(ctx context.Context, tx *sql.Tx, 
 	if !tr.Enabled || !c.ModuleEnabled["course_reminder"] {
 		return nil
 	}
-	cfg, err := loadCourseConfig(ctx, tx)
+	cfg, err := loadCourseConfig(ctx, tx, s.Home)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil
 	}
@@ -96,17 +96,13 @@ func (s HeartbeatService) courseAdmission(ctx context.Context, t heartbeat.Task,
 	if err != nil {
 		return false, err
 	}
-	original, err := courseDate(t.CourseDate)
+	_, err = courseDate(t.CourseDate)
 	if err != nil {
 		return false, err
 	}
-	for _, v := range cfg.Courses {
-		if v.ID != t.CourseID || !cfg.matches(v, original) {
+	for _, x := range cfg.Day(t.ScheduledTime(now).Add(time.Duration(tr.LeadMinutes) * time.Minute)).Courses {
+		if x.CourseID != t.CourseID || x.OriginalDate != t.CourseDate {
 			continue
-		}
-		x, valid := cfg.instance(v, original)
-		if !valid {
-			return false, heartbeat.ErrOccurrenceChanged
 		}
 		at := x.StartsAt.Add(-time.Duration(tr.LeadMinutes) * time.Minute)
 		if !courseTriggerEnabled(c, tr, x, at) {

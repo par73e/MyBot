@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const script = fs.readFileSync('app/static/native.js', 'utf8');
 const start = script.indexOf('function nativeNewestFirst');
-const end = script.indexOf('function nativeTree', start);
+const end = script.indexOf('function nativeChatForm', start);
 assert.ok(start >= 0 && end > start);
 const context = {};
 vm.runInNewContext(script.slice(start, end), context);

@@ -110,7 +110,7 @@ func personalAssistantSurface(reg *tool.Registry, allow []string) []string {
 	allow = nil
 	// Technical tools remain registered and callable through use_capability;
 	// their schemas need not frame every ordinary assistant conversation.
-	for _, name := range []string{"assistant_server_health", "assistant_weather_alerts", "assistant_github", "assistant_tasks", "assistant_memory", "assistant_history", "assistant_courses", "assistant_subscriptions", "assistant_proposals", "assistant_evening", "assistant_morning", "assistant_ai_news", "assistant_mail", "assistant_mail_schedule", "assistant_heartbeat", "assistant_weather", "ask", "web_search", "view_image", "compress", "use_capability", "create_goal", "get_goal", "update_goal"} {
+	for _, name := range []string{"assistant_academic", "assistant_location", "assistant_server_health", "assistant_weather_alerts", "assistant_github", "assistant_tasks", "assistant_memory", "assistant_history", "assistant_courses", "assistant_subscriptions", "assistant_proposals", "assistant_evening", "assistant_morning", "assistant_ai_news", "assistant_mail", "assistant_mail_schedule", "assistant_heartbeat", "assistant_weather", "ask", "web_search", "view_image", "compress", "use_capability", "create_goal", "get_goal", "update_goal"} {
 		if _, ok := reg.Get(name); ok {
 			allow = append(allow, name)
 		}

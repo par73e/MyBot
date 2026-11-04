@@ -104,3 +104,6 @@ id_ed25519
 /web/friday/index.html
 /web/friday/privacy.html
 /web/friday/terms.html
+
+# Local frontend test dependencies
+/platform/node_modules/

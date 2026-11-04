@@ -1,0 +1,11 @@
+{
+  "name": "asrobot-frontend-checks",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/test_record_order.cjs tests/test_robot_pages.cjs",
+    "preview:synthetic": "node tests/robot-preview.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  }
+}

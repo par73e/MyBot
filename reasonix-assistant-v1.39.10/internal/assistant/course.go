@@ -5,13 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"os"
 	"sort"
 	"time"
 )
 
 const courseConfigID = "default"
 
-func loadCourseConfig(ctx context.Context, tx *sql.Tx) (CourseConfig, error) {
+func loadCourseConfig(ctx context.Context, tx *sql.Tx, homes ...string) (CourseConfig, error) {
 	var c CourseConfig
 	var raw string
 	if err := tx.QueryRowContext(ctx, "SELECT payload FROM assistant_entities WHERE kind='course_config' AND id=?", courseConfigID).Scan(&raw); err != nil {
@@ -20,11 +21,18 @@ func loadCourseConfig(ctx context.Context, tx *sql.Tx) (CourseConfig, error) {
 	if err := json.Unmarshal([]byte(raw), &c); err != nil {
 		return c, err
 	}
+	if len(homes) > 0 {
+		var err error
+		c.academic, err = loadAcademic(homes[0])
+		if err != nil && !os.IsNotExist(err) {
+			return c, errors.New("校历暂时无法读取，不能确定当天课程")
+		}
+	}
 	return c, c.Validate()
 }
 func (s CourseService) Config(ctx context.Context) (CourseConfig, error) {
 	var c CourseConfig
-	err := NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error { var e error; c, e = loadCourseConfig(ctx, tx); return e })
+	err := NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error { var e error; c, e = loadCourseConfig(ctx, tx, s.Home); return e })
 	return c, err
 }
 func (s CourseService) Apply(ctx context.Context, r CourseRequest) (any, error) {
@@ -54,7 +62,7 @@ func (s CourseService) Apply(ctx context.Context, r CourseRequest) (any, error) 
 	}
 	var result CourseConfig
 	err := NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
-		old, e := loadCourseConfig(ctx, tx)
+		old, e := loadCourseConfig(ctx, tx, s.Home)
 		if e != nil && !errors.Is(e, sql.ErrNoRows) {
 			return e
 		}
@@ -81,6 +89,7 @@ func (s CourseService) Apply(ctx context.Context, r CourseRequest) (any, error) 
 		default:
 			return errors.New("unknown course action")
 		}
+		next.academic = old.academic
 		next.Revision = old.Revision + 1
 		if e := next.Validate(); e != nil {
 			return e
@@ -106,6 +115,12 @@ func replaceCourseException(old []CourseException, ex CourseException, remove bo
 	return out
 }
 func (c CourseConfig) Day(day time.Time) CourseDay {
+	if c.academic != nil {
+		return c.academicDay(day)
+	}
+	return c.rawDay(day)
+}
+func (c CourseConfig) rawDay(day time.Time) CourseDay {
 	date := day.In(mustShanghai()).Format("2006-01-02")
 	day, _ = courseDate(date)
 	result := CourseDay{Configured: true, Revision: c.Revision, Date: date, Week: c.Week(day), Courses: []CourseInstance{}}

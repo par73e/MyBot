@@ -115,6 +115,7 @@ func (t HeartbeatTool) Execute(ctx context.Context, args json.RawMessage) (strin
 			return "", err
 		}
 	}
+	c.academic, _ = loadAcademic(t.Service.Home)
 	out := map[string]any{"config": c, "modules": HeartbeatModules()}
 	date := r.Date
 	if date == "" {

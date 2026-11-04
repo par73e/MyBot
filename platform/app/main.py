@@ -322,7 +322,7 @@ async def native_write(section:str,req:Request):
         auth(req)
         result=await native.request(uid,section,b)
     if section=='tool':
-        read=b.get('args',{}).get('action') in ('list','get','status','query','search','read','silent','digest_prompt','latest','preview','modules','runs','get_default')
+        read=b.get('args',{}).get('action') in ('list','get','status','query','search','read','silent','digest_prompt','latest','preview','modules','runs','get_default','history')
         event=('查看' if read else '修改')+'助手'+native.LABELS.get(b.get('tool'),'模块')
     else:event={'profile':'保存助手配置','identity':'保存助手名称和称呼','apply':'应用助手配置','mail-test':'验证助手邮箱连接','mail-accounts':'保存邮箱连接','weather-setup':'保存天气连接','github-credential':'保存 GitHub 连接'}[section]
     s.event(uid,event)

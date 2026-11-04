@@ -16,6 +16,13 @@ type alertScopeSchedule struct {
 // The schedule is opt-in per instance; absent settings preserve existing
 // behaviour for other instances. Invalid settings fail closed to city alerts.
 func (s AlertService) alertInScope(a OfficialAlert) bool {
+	location := (LocationService{Home: s.Home}).Resolve(s.now())
+	if location.Configured {
+		if location.Known && location.Place.City != "上海" {
+			return false
+		}
+		return alertAppliesToDistrict(a.Area, location.Place.District)
+	}
 	raw, err := os.ReadFile(filepath.Join(s.Home, "assistant", "alert-scope.json"))
 	if os.IsNotExist(err) {
 		return true

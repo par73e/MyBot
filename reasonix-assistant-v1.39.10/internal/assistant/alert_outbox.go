@@ -34,6 +34,12 @@ func (s AlertService) queueAlert(ctx context.Context, tx *sql.Tx, e AlertEvent, 
 			return err
 		}
 		if old.Enabled && !old.Expired(s.now()) {
+			// A release may tighten presentation while an occurrence is queued.
+			// Only refresh unclaimed text; never change its identity or delivery log.
+			if old.LastRunAt == 0 && len(old.History) == 0 && old.Prompt != renderAlert(e) {
+				old.Prompt = renderAlert(e)
+				return saveEntity(ctx, tx, "job", old.ID, old)
+			}
 			return nil
 		}
 		if len(old.History) > 0 {

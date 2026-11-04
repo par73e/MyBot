@@ -68,8 +68,9 @@ func (s AlertService) Status(ctx context.Context) (any, error) {
 		} else if s.now().Sub(r.ObservedAt) > 10*time.Minute {
 			state = "not_reconfirmed"
 		}
-		states = append(states, map[string]any{"state": state, "record": r})
+		states = append(states, map[string]any{"state": state, "record": r, "applicable": s.alertInScope(r.Alert)})
 	}
+	history := deliveredAlertHistory(events, 0, 20)
 	sort.Slice(events, func(i, j int) bool { return events[i].ObservedAt.After(events[j].ObservedAt) })
 	if len(events) > 30 {
 		events = events[:30]
@@ -88,7 +89,7 @@ func (s AlertService) Status(ctx context.Context) (any, error) {
 	} else if fresh > 0 {
 		coverage = "degraded"
 	}
-	return map[string]any{"config": c, "coverage": coverage, "sources": health, "records": states, "event_counts": counts, "recent_events": events, "delivery_issues": issues, "queried_at": s.now(), "untrusted_external_data": true, "policy": "Any one credible current official source may trigger a new warning or upgrade; empty/failed sources cannot veto or cancel. Missing expiry is not an invented expiry. Retained records are not guaranteed current when not_reconfirmed. All automatic work obeys the routine. Native checks and messages make no model calls."}, nil
+	return map[string]any{"config": c, "location": (LocationService{Home: s.Home, Clock: s.Clock}).Status(), "notification_history": history, "coverage": coverage, "sources": health, "records": states, "event_counts": counts, "recent_events": events, "delivery_issues": issues, "queried_at": s.now(), "untrusted_external_data": true, "policy": "Any one credible current official source may trigger a new warning or upgrade; empty/failed sources cannot veto or cancel. Missing expiry is not an invented expiry. Retained records are not guaranteed current when not_reconfirmed. All automatic work obeys the routine. Native checks and messages make no model calls."}, nil
 }
 func (s AlertService) queueAlertHealth(ctx context.Context, tx *sql.Tx, o Options, date, message string) error {
 	id := "alert-health-" + date
@@ -126,4 +127,40 @@ func (s AlertService) HealthAdmission(ctx context.Context) (bool, error) {
 		return nil
 	})
 	return allowed, err
+}
+
+func deliveredAlertHistory(events []AlertEvent, offset, limit int) map[string]any {
+	delivered := []AlertEvent{}
+	for _, e := range events {
+		if !e.DeliveredAt.IsZero() {
+			delivered = append(delivered, e)
+		}
+	}
+	sort.Slice(delivered, func(i, j int) bool { return delivered[i].DeliveredAt.After(delivered[j].DeliveredAt) })
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 50 {
+		limit = 50
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	if offset > len(delivered) {
+		offset = len(delivered)
+	}
+	end := min(offset+limit, len(delivered))
+	return map[string]any{"events": delivered[offset:end], "total": len(delivered), "next_offset": end, "has_more": end < len(delivered)}
+}
+func (s AlertService) History(ctx context.Context, offset, limit int) (any, error) {
+	var events []AlertEvent
+	e := s.repo().transact(ctx, func(tx *sql.Tx) error {
+		var err error
+		events, err = loadEntities[AlertEvent](ctx, tx, "alert_event")
+		return err
+	})
+	if e != nil {
+		return nil, e
+	}
+	return deliveredAlertHistory(events, offset, limit), nil
 }

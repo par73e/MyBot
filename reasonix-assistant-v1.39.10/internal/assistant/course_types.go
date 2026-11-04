@@ -4,6 +4,7 @@ import "time"
 
 // CourseConfig is authoritative timetable data, independent of notification clocks.
 type CourseConfig struct {
+	academic        *AcademicCalendar
 	Revision        int                `json:"revision"`
 	Name            string             `json:"name"`
 	FirstWeekMonday string             `json:"first_week_monday"`
@@ -52,6 +53,7 @@ type CourseInstance struct {
 	EndsAt       time.Time `json:"ends_at"`
 }
 type CourseDay struct {
+	Academic   *AcademicDay     `json:"academic,omitempty"`
 	Configured bool             `json:"configured"`
 	Revision   int              `json:"revision"`
 	Date       string           `json:"date"`

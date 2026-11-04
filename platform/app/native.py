@@ -7,7 +7,7 @@ from . import store as s
 class NativeError(ValueError):
     def __init__(self,message,status=503):super().__init__(message);self.status=status
 
-LABELS={'assistant_tasks':'待办与提醒','assistant_memory':'个人记忆','assistant_server_health':'服务器健康','assistant_subscriptions':'到期管理','assistant_mail':'邮箱','assistant_weather':'天气','assistant_courses':'课程表','assistant_ai_news':'AI 新闻','assistant_github':'GitHub','assistant_weather_alerts':'天气预警','assistant_heartbeat':'作息与调度','assistant_morning':'晨报','assistant_evening':'晚间总结','assistant_proposals':'待办建议'}
+LABELS={'assistant_academic':'校历与教学安排','assistant_location':'地点与行程','assistant_tasks':'待办与提醒','assistant_memory':'个人记忆','assistant_server_health':'服务器健康','assistant_subscriptions':'到期管理','assistant_mail':'邮箱','assistant_weather':'天气','assistant_courses':'课程表','assistant_ai_news':'AI 新闻','assistant_github':'GitHub','assistant_weather_alerts':'天气预警','assistant_heartbeat':'作息与调度','assistant_morning':'晨报','assistant_evening':'晚间总结','assistant_proposals':'待办建议'}
 
 async def request(uid,endpoint,body=None):
     source=s.native(uid)

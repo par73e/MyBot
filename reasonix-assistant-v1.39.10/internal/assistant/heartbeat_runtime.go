@@ -32,6 +32,7 @@ func (s HeartbeatService) Prepare(ctx context.Context, now time.Time) error {
 		if err != nil {
 			return err
 		}
+		c.academic, _ = loadAcademic(s.Home)
 		if err = c.Validate(); err != nil {
 			return err
 		}
@@ -86,6 +87,9 @@ func (s HeartbeatService) Allows(ctx context.Context, t heartbeat.Task, now time
 	}
 	if t.ModuleID == "" && t.Capability != "mail" && t.Capability != "weather" {
 		return personalTaskAdmission(ctx, s.repo(), t)
+	}
+	if t.ModuleID == "schoolday_reminder" {
+		return s.academicReminderAdmission(ctx, t, now)
 	}
 	if t.ModuleID == "subscription_reminder" {
 		return s.subscriptionAdmission(ctx, c, t, now)

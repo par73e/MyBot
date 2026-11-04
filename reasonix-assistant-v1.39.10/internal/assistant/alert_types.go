@@ -78,6 +78,8 @@ type alertCache struct {
 	BlockedUntil time.Time `json:"blocked_until,omitempty"`
 }
 type AlertRequest struct {
+	Offset      int    `json:"offset,omitempty"`
+	Limit       int    `json:"limit,omitempty"`
 	Action      string `json:"action"`
 	Revision    int    `json:"revision,omitempty"`
 	Enabled     *bool  `json:"enabled,omitempty"`

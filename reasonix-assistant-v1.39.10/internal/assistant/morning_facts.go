@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-func loadMorningFacts(ctx context.Context, tx *sql.Tx, v *MorningSnapshot, cfg HeartbeatConfig, now time.Time) error {
+func loadMorningFacts(ctx context.Context, tx *sql.Tx, v *MorningSnapshot, cfg HeartbeatConfig, now time.Time, homes ...string) error {
 	v.CourseStatus = "unavailable"
 	v.Courses = CourseDay{}
 	v.WakeCourses = nil
-	c, e := loadCourseConfig(ctx, tx)
+	c, e := loadCourseConfig(ctx, tx, homes...)
 	if e == nil {
 		v.Courses = c.Day(now)
 		v.CourseStatus = "ok"
@@ -74,7 +74,7 @@ func (s MorningService) refreshFacts(ctx context.Context, v *MorningSnapshot) er
 		return e
 	}
 	return NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
-		if e := loadMorningFacts(ctx, tx, v, cfg, day); e != nil {
+		if e := loadMorningFacts(ctx, tx, v, cfg, day, s.Home); e != nil {
 			return e
 		}
 		return saveEntity(ctx, tx, "morning_snapshot", v.ID, v)

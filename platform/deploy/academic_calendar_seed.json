@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "revision": "shiep-2026-2027-initial",
+  "school": "上海电力大学",
+  "valid_from": "2026-09-01",
+  "valid_to": "2027-08-31",
+  "terms": [
+    {
+      "name": "2026—2027学年上学期",
+      "start": "2026-09-14",
+      "end": "2027-01-22"
+    },
+    {
+      "name": "2026—2027学年下学期",
+      "start": "2027-03-01",
+      "end": "2027-07-09"
+    }
+  ],
+  "closures": [
+    {
+      "start": "2026-09-25",
+      "end": "2026-09-27",
+      "reason": "中秋节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    {
+      "start": "2026-10-01",
+      "end": "2026-10-07",
+      "reason": "国庆节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    {
+      "start": "2027-01-01",
+      "end": "2027-01-01",
+      "reason": "校历标注元旦；完整调休安排待核实",
+      "source": "https://xxgk.shiep.edu.cn/_upload/article/files/c5/bc/9245c073485aa50e9192103c6464/6f1e88ef-5545-4990-abdd-39cdcabf8cb7.xlsx"
+    },
+    {
+      "start": "2027-04-05",
+      "end": "2027-04-05",
+      "reason": "校历标注清明节；完整调休安排待核实",
+      "source": "https://xxgk.shiep.edu.cn/_upload/article/files/c5/bc/9245c073485aa50e9192103c6464/6f1e88ef-5545-4990-abdd-39cdcabf8cb7.xlsx"
+    },
+    {
+      "start": "2027-05-01",
+      "end": "2027-05-02",
+      "reason": "劳动节法定假日；完整调休安排待核实",
+      "source": "https://www.gov.cn/gongbao/2024/issue_11726/material/gwygb202433.pdf"
+    },
+    {
+      "start": "2027-06-09",
+      "end": "2027-06-09",
+      "reason": "校历标注端午节；完整调休安排待核实",
+      "source": "https://xxgk.shiep.edu.cn/_upload/article/files/c5/bc/9245c073485aa50e9192103c6464/6f1e88ef-5545-4990-abdd-39cdcabf8cb7.xlsx"
+    }
+  ],
+  "adjustments": {
+    "2026-09-20": {
+      "teaching": true,
+      "class_date": "2026-10-06",
+      "reason": "学校调课：补第4周周二课程",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-10-10": {
+      "teaching": true,
+      "class_date": "2026-10-07",
+      "reason": "学校调课：补第4周周三课程",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-09-25": {
+      "teaching": false,
+      "reason": "中秋节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-09-26": {
+      "teaching": false,
+      "reason": "中秋节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-09-27": {
+      "teaching": false,
+      "reason": "中秋节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-10-01": {
+      "teaching": false,
+      "reason": "国庆节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-10-02": {
+      "teaching": false,
+      "reason": "国庆节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-10-03": {
+      "teaching": false,
+      "reason": "国庆节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-10-04": {
+      "teaching": false,
+      "reason": "国庆节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-10-05": {
+      "teaching": false,
+      "reason": "国庆节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-10-06": {
+      "teaching": false,
+      "reason": "国庆节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    "2026-10-07": {
+      "teaching": false,
+      "reason": "国庆节放假",
+      "source": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    }
+  },
+  "holiday_years": {
+    "2026": true,
+    "2027": false
+  },
+  "sources": [
+    {
+      "title": "2026—2027学年上海电力大学校历（与用户截图核对）",
+      "url": "https://xxgk.shiep.edu.cn/_upload/article/files/c5/bc/9245c073485aa50e9192103c6464/6f1e88ef-5545-4990-abdd-39cdcabf8cb7.xlsx",
+      "sha256": "dbcac4a66418c1025d0d636b1c94a1ecafedecd986281bb509f4252de97c56b7"
+    },
+    {
+      "title": "学校2026年中秋、国庆放假与调课通知",
+      "url": "https://www.shiep.edu.cn/49/a5/c6424a280997/page.htm"
+    },
+    {
+      "title": "国务院2026年放假调休通知（政府转载）",
+      "url": "https://www.beijing.gov.cn/cs/gncs/zcwj/202603/t20260327_4568275.html"
+    }
+  ],
+  "updated_at": "2026-11-04T00:00:00+08:00"
+}

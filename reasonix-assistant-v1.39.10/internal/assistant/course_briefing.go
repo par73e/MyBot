@@ -76,7 +76,7 @@ func (s CourseService) briefingCurrent(ctx context.Context, t heartbeat.Task) (b
 		if e != nil {
 			return e
 		}
-		current, e := loadCourseConfig(ctx, tx)
+		current, e := loadCourseConfig(ctx, tx, s.Home)
 		if e != nil {
 			return e
 		}

@@ -75,7 +75,7 @@ func (s MorningService) Prepare(ctx context.Context, t heartbeat.Task) (MorningS
 		if v.MailStatus == "ok" {
 			v.MailStatus = status
 		}
-		if e := loadMorningFacts(ctx, tx, &v, cfg, now); e != nil {
+		if e := loadMorningFacts(ctx, tx, &v, cfg, now, s.Home); e != nil {
 			return e
 		}
 		return saveEntity(ctx, tx, "morning_snapshot", t.ID, v)

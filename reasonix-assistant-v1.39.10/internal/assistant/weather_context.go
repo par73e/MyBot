@@ -56,6 +56,7 @@ func weatherContext(home string, now time.Time) any {
 	if err != nil {
 		return nil
 	}
+	applyLocationWeatherReference(reference, l, home, "", now)
 	return reference
 }
 func (s WeatherService) status(r WeatherRequest, l weatherLocations) (any, error) {
@@ -63,6 +64,7 @@ func (s WeatherService) status(r WeatherRequest, l weatherLocations) (any, error
 	if err != nil {
 		return nil, err
 	}
+	applyLocationWeatherReference(out, l, s.Home, r.Date, s.now())
 	cfg, _ := s.Config()
 	out["enabled"], out["morning_enabled"], out["wake_times"] = true, cfg.MorningEnabled, cfg.WakeTimes
 	if c, e := (HeartbeatService{Home: s.Home}).Config(context.Background()); e == nil {
@@ -81,4 +83,37 @@ func (s WeatherService) status(r WeatherRequest, l weatherLocations) (any, error
 		out["wake_modules"] = c.Selected(tr, date)
 	}
 	return out, nil
+}
+
+// A date-only future query uses noon as a reference; exact plans and weekly
+// boundaries remain visible so the Agent can choose the actual requested time.
+func applyLocationWeatherReference(out map[string]any, l weatherLocations, home, date string, now time.Time) {
+	at := now
+	if date != "" && date != now.In(mustShanghai()).Format("2006-01-02") {
+		if d, e := time.ParseInLocation("2006-01-02", date, mustShanghai()); e == nil {
+			at = d.Add(12 * time.Hour)
+		}
+	}
+	service := LocationService{Home: home}
+	estimate := service.Resolve(at)
+	if !estimate.Configured {
+		return
+	}
+	out["location_estimate"] = estimate
+	if c, e := service.config(); e == nil {
+		out["location_weekly_boundaries"] = c.Weekly
+		out["location_plans"] = c.Plans
+	}
+	if !estimate.Known {
+		out["candidate"] = weatherCandidateReference{weatherPlaceReference: weatherPlaceReference{Name: "地点待确认"}, Date: at.In(mustShanghai()).Format("2006-01-02"), CalendarBasis: "Location plan unavailable or conflicting; ask the owner before choosing a destination"}
+		out["usage"] = out["usage"].(string) + " Location estimate is unknown or conflicting. Do not silently use the legacy weekday destination; clarify the destination first."
+		return
+	}
+	p, ok := l.Places[estimate.PlaceID]
+	ref := weatherPlaceReference{Name: estimate.Place.Name, Region: estimate.Place.District}
+	if ok {
+		ref = weatherPlaceReference{PlaceID: estimate.PlaceID, Name: p.Name, Region: p.Region}
+	}
+	out["candidate"] = weatherCandidateReference{weatherPlaceReference: ref, Date: at.In(mustShanghai()).Format("2006-01-02"), Weekday: weatherWeekdays[at.In(mustShanghai()).Weekday()], CalendarBasis: "Based on confirmed plans and weekly time boundaries at " + at.In(mustShanghai()).Format(time.RFC3339) + "; date-only future reference uses noon; never GPS"}
+	out["usage"] = out["usage"].(string) + " Confirmed location_plans override the weekly baseline only within their starts_at/ends_at. The legacy default_by_weekday table is superseded by location_estimate and the time-boundary routine. Empty candidate.place_id means this itinerary destination has no configured weather coordinates: lookup the actual destination before querying; never silently substitute school/home. For the current time use location_estimate; for another time use the exposed boundaries and plans."
 }

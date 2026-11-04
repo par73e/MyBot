@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strings"
 	"time"
 )
 
@@ -131,19 +130,4 @@ func alertSame(a, b OfficialAlert) bool {
 }
 func alertSourceName(v string) string {
 	return map[string]string{"nmc": "中央气象台网站", "shanghai": "中国天气网上海频道", "weathercn": "中国天气网"}[v]
-}
-func renderAlert(e AlertEvent) string {
-	a := e.Alert
-	kind := map[string]string{"new": "新发布", "upgrade": "等级升级", "update": "更新", "cancel": "明确解除"}[e.Kind]
-	lines := []string{addressPrefix() + "上海天气预警：", a.Area + a.Hazard + a.Level + "预警 · " + kind, "发布时间：" + a.PublishedAt.In(mustShanghai()).Format("01月02日 15:04")}
-	if !a.ExpiresAt.IsZero() && !a.Cancel {
-		lines = append(lines, "有效至："+a.ExpiresAt.In(mustShanghai()).Format("01月02日 15:04"))
-	}
-	if a.Body != "" {
-		lines = append(lines, cleanAlertText(a.Body, 320))
-	} else {
-		lines = append(lines, "已取得官方预警列表，详情正文暂未取得。")
-	}
-	lines = append(lines, "来源："+alertSourceName(a.Source), "原文："+a.URL)
-	return strings.Join(lines, "\n")
 }

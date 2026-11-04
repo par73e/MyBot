@@ -26,6 +26,9 @@ func (s HeartbeatService) prepareModuleTrigger(ctx context.Context, tx *sql.Tx, 
 	}
 	enabled := []string{}
 	for _, module := range c.Selected(tr, date) {
+		if module == "schoolday_reminder" && !academicReminderEligible(s.Home, at) {
+			continue
+		}
 		if c.ModuleEnabled[module] {
 			enabled = append(enabled, module)
 		}
@@ -155,6 +158,13 @@ func retryableModuleJob(tr ModuleTrigger, j heartbeat.Task, last heartbeat.Run, 
 func (s HeartbeatService) moduleTask(c HeartbeatConfig, tr ModuleTrigger, id, occurrenceID, date string, start, end, at, now time.Time) heartbeat.Task {
 	job := heartbeat.Task{ID: occurrenceID + "-" + id, Title: tr.Title + " / " + id, Prompt: "Host module invocation", At: at.Format(time.RFC3339), Timezone: c.Timezone, EndsAt: end.Format(time.RFC3339), Enabled: true, WorkspaceRoot: s.Options.Workspace, Model: s.Options.Model, ApprovalMode: "read-only", NewConversationEachRun: true, Target: s.Options.Target, CreatedAt: now.UnixMilli(), ModuleID: id, TriggerID: tr.ID, OccurrenceID: occurrenceID, TriggerRevision: c.Revision}
 	switch id {
+	case "schoolday_reminder":
+		job.Kind = "message"
+		job.Prompt = schooldayReminderText()
+		expiry := at.Add(time.Duration(tr.CatchUpSeconds) * time.Second)
+		if expiry.Before(end) {
+			job.EndsAt = expiry.Format(time.RFC3339)
+		}
 	case "weather_alert_check":
 		job.Kind = "weather_check"
 		job.Prompt = "Read official Shanghai alert sources with native independent-source reconciliation"
