@@ -319,3 +319,19 @@ test("academic calendar shows day decisions and the active teaching-day reminder
     b.close();
   }
 });
+
+test("health shows activity counts and omits unmonitored Docker, including legacy snapshots", async () => {
+  const b = await browser((p, body) => {
+    const result = endpoint(p, body);
+    if (result && result.items) result.items.asrobot_container = {status: 'unknown', reason: 'not_monitored'};
+    return result;
+  });
+  try {
+    await b.w.eval("robotNavigate('assistant_server_health')");
+    const text = b.el().textContent;
+    assert.match(text, /SSH 安全防护/);
+    assert.match(text, /1407 次请求/);
+    assert.match(text, /独立域名未启用访问日志/);
+    assert.doesNotMatch(text, /Docker|容器|总体：|\[object Object\]/);
+  } finally {b.close();}
+});

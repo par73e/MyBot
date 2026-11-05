@@ -1,0 +1,8 @@
+[Unit]
+Description=Refresh owner security and access counts every five minutes
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+AccuracySec=15s
+[Install]
+WantedBy=timers.target

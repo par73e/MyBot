@@ -3,13 +3,26 @@ import os, re
 from pathlib import Path
 import httpx
 from . import store as s
+from .page_cache import cache, mutates
 
 class NativeError(ValueError):
     def __init__(self,message,status=503):super().__init__(message);self.status=status
 
 LABELS={'assistant_academic':'校历与教学安排','assistant_location':'地点与行程','assistant_tasks':'待办与提醒','assistant_memory':'个人记忆','assistant_server_health':'服务器健康','assistant_subscriptions':'到期管理','assistant_mail':'邮箱','assistant_weather':'天气','assistant_courses':'课程表','assistant_ai_news':'AI 新闻','assistant_github':'GitHub','assistant_weather_alerts':'天气预警','assistant_heartbeat':'作息与调度','assistant_morning':'晨报','assistant_evening':'晚间总结','assistant_proposals':'待办建议'}
 
-async def request(uid,endpoint,body=None):
+async def request(uid,endpoint,body=None,*,fresh=False):
+    source=s.native(uid)
+    if not source:raise NativeError('当前工作区尚未关联助手',404)
+    if not s.active(uid) and not mutates(endpoint,body):raise NativeError('账号不可用',403)
+    if mutates(endpoint,body):
+        await cache.invalidate(uid,source)
+        try:
+            return await _request(uid,endpoint,body)
+        finally:
+            await cache.invalidate(uid,source)
+    return await cache.read(uid,source,endpoint,body,lambda:_request(uid,endpoint,body),fresh=fresh)
+
+async def _request(uid,endpoint,body=None):
     source=s.native(uid)
     if not source:raise NativeError('当前工作区尚未关联助手',404)
     if source.startswith('instance:'):

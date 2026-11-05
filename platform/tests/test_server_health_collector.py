@@ -22,9 +22,8 @@ def test_collect_unknown_without_docker_or_network(monkeypatch):
         def open(self, *args, **kwargs): raise OSError('offline')
     monkeypatch.setattr(m.urllib.request, 'build_opener', lambda *a: Blocked())
     result = m.collect()
-    assert result['items']['asrobot_container']['status'] == 'unknown'
-    assert result['items']['asrobot_container']['reason'] == 'not_monitored'
-    assert '未纳入检查' in result['items']['asrobot_container']['explanation']
+    assert 'asrobot_container' not in result['items']
+    assert result['items']['security']['status'] == 'unknown'
     assert result['items']['website']['status'] == 'unknown'
     assert result['items']['friday']['status'] == 'ok'
     assert result['status'] == 'unknown'
@@ -48,3 +47,21 @@ def test_reject_wrong_peer_and_invalid_command(monkeypatch):
         await m.handle(r,w);return w.data
     assert asyncio.run(run(os.getuid()+1,b'status\n')) == b''
     assert asyncio.run(run(os.getuid(),b'restart\n')) == b''
+
+
+def test_activity_freshness_and_unavailable_not_zero(monkeypatch, tmp_path):
+    import datetime
+    import json
+    m = load(monkeypatch)
+    p = tmp_path / 'snapshot.json'
+    monkeypatch.setattr(m, 'ACTIVITY', p)
+    assert m.activity_items()['access']['status'] == 'unknown'
+    now = datetime.datetime.now(datetime.timezone.utc)
+    data = {'schema_version': 1, 'collected_at': now.isoformat(), 'items': {
+        'security': {'status': 'ok', 'value': {'jails': []}},
+        'access': {'status': 'ok', 'value': {'requests': 0}}}}
+    p.write_text(json.dumps(data))
+    assert m.activity_items()['access']['value']['requests'] == 0
+    data['collected_at'] = (now - datetime.timedelta(minutes=11)).isoformat()
+    p.write_text(json.dumps(data))
+    assert m.activity_items()['access']['status'] == 'unknown'

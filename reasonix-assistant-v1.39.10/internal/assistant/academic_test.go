@@ -128,7 +128,7 @@ func TestAcademicNativeReminderHolidayMakeupLateAndIsolation(t *testing.T) {
 			if len(jobs) != tt.want {
 				t.Fatal(jobs)
 			}
-			if len(jobs) > 0 && (jobs[0].Kind != "message" || jobs[0].Prompt != SchooldayReminderText) {
+			if len(jobs) > 0 && (jobs[0].Kind != "message" || jobs[0].Prompt != "Sir，到时间了，记得用 UU 远程打开宿舍里的电脑。") {
 				t.Fatal(jobs)
 			}
 		})

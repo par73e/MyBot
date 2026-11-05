@@ -104,3 +104,41 @@ def test_native_writes_reject_csrf_and_arbitrary_routes(original):
     assert owner.post('/asrobot/api/native/pause',json={}).status_code==404
     assert owner.post('/asrobot/api/native/anything',json={}).status_code==404
     assert calls==[]
+
+
+def test_cached_reads_still_authenticate_and_web_writes_invalidate(original,monkeypatch):
+    from test_page_cache import FakeRedis
+    from app.page_cache import PageCache
+    _,owner,uid,calls,_=original
+    cache=PageCache();redis=FakeRedis()
+    async def connection():return redis
+    monkeypatch.setenv('ASROBOT_PAGE_CACHE_URL','unix:///unused')
+    monkeypatch.setattr(cache,'connection',connection)
+    monkeypatch.setattr(native,'cache',cache)
+    payload={'tool':'assistant_github','args':{'action':'status'}}
+    assert owner.post('/asrobot/api/native/tool',json=payload).status_code==200
+    assert owner.post('/asrobot/api/native/tool',json=payload).status_code==200
+    assert len(calls)==1
+    assert owner.post('/asrobot/api/native/tool',json=payload,headers={'X-Cache-Refresh':'1'}).status_code==200
+    assert len(calls)==2
+    write={'tool':'assistant_github','args':{'action':'add','url':'https://github.com/example/repo/pull/1'}}
+    assert owner.post('/asrobot/api/native/tool',json=write).status_code==200
+    assert owner.post('/asrobot/api/native/tool',json=payload).status_code==200
+    assert len(calls)==4
+    assert owner.post('/asrobot/api/logout',json={}).status_code==200
+    assert owner.post('/asrobot/api/native/tool',json=payload).status_code==401
+    assert len(calls)==4
+
+
+def test_cache_hit_does_not_skip_owner_binding_check(original,monkeypatch):
+    from test_page_cache import FakeRedis
+    from app.page_cache import PageCache
+    _,owner,uid,calls,_=original
+    cache=PageCache();redis=FakeRedis()
+    async def connection():return redis
+    monkeypatch.setenv('ASROBOT_PAGE_CACHE_URL','unix:///unused')
+    monkeypatch.setattr(cache,'connection',connection);monkeypatch.setattr(native,'cache',cache)
+    assert owner.get('/asrobot/api/native/tools').status_code==200
+    with s.db() as c:c.execute('UPDATE workspaces SET native_source=NULL WHERE user_id=?',(uid,))
+    assert owner.get('/asrobot/api/native/tools').status_code==404
+    assert len(calls)==1

@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-const SchooldayReminderText = "Sir，记得用 UU 远程打开宿舍里的 Windows 电脑。"
-
-func schooldayReminderText() string { return neutralInstanceInstructions(SchooldayReminderText) }
+func schooldayReminderText() string {
+	return addressPrefix() + "到时间了，记得用 UU 远程打开宿舍里的电脑。"
+}
 
 func academicReminderEligible(home string, at time.Time) bool {
 	c, e := loadAcademic(home)

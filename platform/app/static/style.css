@@ -155,3 +155,12 @@ body[class^="page-"] .week-row input{font-variant-numeric:tabular-nums}
 @media(forced-colors:active){body[class^="page-"] select{appearance:auto;background-image:none}body[class^="page-"] summary::before{border-color:ButtonText}}
 @media(prefers-reduced-motion:reduce){body[class^="page-"] input,body[class^="page-"] textarea,body[class^="page-"] select,body[class^="page-"] summary::before{transition:none}}
 body[class^="page-"] .main{animation:none}
+
+/* Logout confirmation follows the console's white surfaces and indigo actions. */
+.logout-dialog{width:calc(100% - 36px);max-width:420px;max-height:calc(100dvh - 36px);margin:auto;padding:28px;border-color:#e3e8ee;background:#fff;color:#0d253d;overflow:auto;font:inherit}
+.logout-dialog::backdrop{background:#1c1e5466}
+.logout-dialog h2{font-size:22px;line-height:1.4;letter-spacing:-.3px;margin:0 0 12px}
+.logout-dialog p{color:#52647a;margin:0 0 28px;line-height:1.7}
+.logout-dialog .actions{justify-content:flex-end;gap:12px}
+.logout-dialog button{min-width:96px;min-height:44px}
+@media(max-width:480px){.logout-dialog{padding:24px}.logout-dialog .actions{display:grid;grid-template-columns:1fr 1fr}}

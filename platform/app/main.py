@@ -11,6 +11,7 @@ import qrcode
 from . import store as s, runtime as rt, history, native, instance_history, instance_pairing
 from .security import password_work
 from . import login_protection as lp
+from .page_cache import cache as page_cache
 SESSION_TTL = 3 * 60 * 60
 
 # Minimal Linux images may not include the WebP system MIME registration.
@@ -30,6 +31,7 @@ async def lifespan(app):
     s.init(); task=asyncio.create_task(rt.supervisor())
     yield
     task.cancel(); await asyncio.gather(task,return_exceptions=True)
+    await page_cache.close()
 app=FastAPI(lifespan=lifespan,docs_url=None,redoc_url=None,openapi_url=None)
 
 @app.middleware('http')
@@ -311,7 +313,7 @@ def workspace(req:Request): return s.public_workspace(auth(req)['id'])
 async def native_read(section:str,req:Request):
     uid=auth(req)['id']
     if section not in ('status','tools','profile','identity','mail-accounts','weather-setup','github-credential'):raise HTTPException(404,'页面不存在')
-    return await native.request(uid,section)
+    return await native.request(uid,section,fresh=req.headers.get('x-cache-refresh')=='1')
 @app.post(PREFIX+'/api/native/{section}')
 async def native_write(section:str,req:Request):
     uid=auth(req)['id'];b=await body(req)
@@ -320,7 +322,7 @@ async def native_write(section:str,req:Request):
     if s.limited('native:'+uid,40,60):raise HTTPException(429,'操作过于频繁，请稍后重试')
     async with rt.lock(uid):
         auth(req)
-        result=await native.request(uid,section,b)
+        result=await native.request(uid,section,b,fresh=req.headers.get('x-cache-refresh')=='1')
     if section=='tool':
         read=b.get('args',{}).get('action') in ('list','get','status','query','search','read','silent','digest_prompt','latest','preview','modules','runs','get_default','history')
         event=('查看' if read else '修改')+'助手'+native.LABELS.get(b.get('tool'),'模块')

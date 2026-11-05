@@ -1,0 +1,21 @@
+[Unit]
+Description=Aggregate Fail2ban and Nginx counters for owner health snapshot
+[Service]
+Type=oneshot
+SupplementaryGroups=adm
+ExecStart=/usr/bin/python3 /opt/asrobot-health/server_activity_snapshot.py
+RuntimeDirectory=asrobot-activity
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+UMask=0022
+Environment=LC_ALL=C
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX
+MemoryMax=256M
+TasksMax=8
+TimeoutStartSec=45

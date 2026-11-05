@@ -60,11 +60,24 @@ el.innerHTML=head('微信连接','通过微信与助手对话，接收提醒和�
 const nativeDisplayTime=v=>{if(!v)return '未知';const d=new Date(v);return Number.isNaN(d.getTime())?'未知':d.toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false})};
 const memoryStatusNames={active:'生效中',future:'未来生效',expired:'已过期',archived:'已归档'};
 async function nativeHealthPage(el){
- el.innerHTML=head('服务健康','查看助手运行环境与网站入口的最近检查结果。')+`<section class="panel"><div class="actions"><button id="health-back">全部模块</button><button id="health-refresh">刷新状态</button></div><div id="health-result" class="section" aria-live="polite"><p class="loading">正在读取…</p></div></section>`;
- const out=el.querySelector('#health-result'),button=el.querySelector('#health-refresh');const names={disk:'根目录磁盘',memory:'内存',load:'系统负载',friday:'助手服务',asrobot_container:'AS Robot 容器',website:'网站入口'};
- const label={ok:'正常',critical:'异常',warning:'需关注',unknown:'未知'};
+ el.innerHTML=head('服务健康','查看资源、服务、SSH 防护和网站访问摘要。')+`<section class="panel"><div class="actions"><button id="health-back">全部模块</button><button id="health-refresh">刷新状态</button></div><div id="health-result" class="section" aria-live="polite"><p class="loading">正在读取…</p></div></section>`;
+ const out=el.querySelector('#health-result'),button=el.querySelector('#health-refresh');
+ const names={disk:'根目录磁盘',memory:'内存',load:'系统负载',friday:'助手服务',website:'网站入口',security:'SSH 安全防护',access:'近 24 小时网站访问'};
  const gib=n=>(n/1073741824).toFixed(1)+' GB';
- function value(k,v){if(!v)return '暂无数据';if(k==='disk')return `可用 ${gib(v.free_bytes)} / 总计 ${gib(v.total_bytes)}`;if(k==='memory')return `可用 ${gib(v.available_bytes)} / 总计 ${gib(v.total_bytes)}`;if(k==='load')return `${v.averages.join(' / ')}（${v.cpu_count} 核）`;if(k==='website')return `HTTP ${v.http_status}`;return String(v)}
- async function load(){button.disabled=true;out.innerHTML='<p class="loading">正在读取…</p>';try{const d=await nativeCall('assistant_server_health',{action:'status'});if(!d.items){out.innerHTML='<p class="inline-error">服务健康状态暂时无法读取，请稍后刷新。</p>';return}out.innerHTML=`<p>总体：<strong>${esc(label[d.status]||'未知')}</strong> · 检查时间 ${esc(nativeDisplayTime(d.collected_at))}</p>${Object.entries(names).map(([k,n])=>{const i=d.items[k]||{status:'unknown'};return `<article class="row"><div><h3>${esc(n)}</h3><p>${esc(i.reason==='not_monitored'?'未纳入检查':i.status==='ok'&&['disk','memory','load'].includes(k)?'已读取':label[i.status]||'未知')} · ${esc(i.reason==='not_monitored'?'采集器没有 Docker 管理权限':value(k,i.value))}</p></div></article>`}).join('')}<p class="policy">资源显示实际数值，不按未经验证的阈值判断正常。实例服务和网站状态不代表微信消息已送达；容器状态未纳入检查，不代表容器异常。</p>`}catch(e){out.innerHTML=`<p class="inline-error">${esc(e.message)}，请稍后刷新。</p>`}finally{button.disabled=false}}
+ function value(k,v){
+  if(v==null)return '暂时无法读取';
+  if(k==='disk')return `可用 ${gib(v.free_bytes)} / 总计 ${gib(v.total_bytes)}`;
+  if(k==='memory')return `可用 ${gib(v.available_bytes)} / 总计 ${gib(v.total_bytes)}`;
+  if(k==='load')return `${v.averages.join(' / ')}（${v.cpu_count} 核）`;
+  if(k==='website')return `HTTP ${v.http_status}`;
+  if(k==='security')return `Fail2ban 运行中；${(v.jails||[]).map(j=>`${j.name} 当前封禁 ${j.currently_banned}，累计封禁 ${j.total_banned}`).join('；')}。累计数按各规则自重置起统计，不能相加当作独立攻击者。`;
+  if(k==='access')return `${v.requests} 次请求，${v.unique_source_ips} 个来源 IP；${Object.entries(v.status_classes||{}).map(([s,n])=>`${s} ${n} 次`).join('，')}${v.truncated?'。日志较大，统计仅覆盖已读取部分':''}${v.invalid_lines?'。部分日志格式无法识别':''}。仅统计共享访问日志，AS Robot 独立域名未启用访问日志；来源 IP 包含爬虫，不等于访客人数。`;
+  return String(v);
+ }
+ async function load(){button.disabled=true;out.innerHTML='<p class="loading">正在读取…</p>';try{
+  const d=await nativeCall('assistant_server_health',{action:'status'});
+  if(!d.items){out.innerHTML='<p class="inline-error">服务健康状态暂时无法读取，请稍后刷新。</p>';return}
+  out.innerHTML=`<p>检查时间 ${esc(nativeDisplayTime(d.collected_at))}</p>${Object.entries(names).filter(([k])=>d.items[k]).map(([k,n])=>{const i=d.items[k];return `<article class="row"><div><h3>${esc(n)}</h3><p>${esc(i.status==='unknown'?'暂时无法读取':value(k,i.value))}</p>${i.collected_at?`<p class="muted">汇总时间 ${esc(nativeDisplayTime(i.collected_at))}</p>`:''}</div></article>`}).join('')}<p class="policy">服务运行和 HTTP 响应不代表微信消息已送达；SSH 防护记录只反映已观察到的事件。</p>`;
+ }catch(e){out.innerHTML=`<p class="inline-error">${esc(e.message)}，请稍后刷新。</p>`}finally{button.disabled=false}}
  el.querySelector('#health-back').onclick=()=>{selectedNativeModule=null;go('native')};button.onclick=load;await load();
 }

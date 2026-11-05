@@ -4,6 +4,7 @@ import asyncio
 import datetime
 import json
 import os
+from pathlib import Path
 import pwd
 import re
 import shutil
@@ -21,6 +22,28 @@ if not re.fullmatch(r'[0-9a-f]{32}', INSTANCE):
 UNIT = 'asrobot-instance-' + INSTANCE + '.service'
 OWNER_UID = pwd.getpwnam('asr-' + INSTANCE[:20]).pw_uid
 WEBSITE = 'https://asrobot.par73e.cn/asrobot/api/health'
+ACTIVITY = Path('/run/asrobot-activity/snapshot.json')
+
+def activity_items():
+    try:
+        with ACTIVITY.open('rb') as f:
+            raw = f.read(65537)
+        if len(raw) > 65536:
+            raise ValueError('oversized snapshot')
+        data = json.loads(raw)
+        at = datetime.datetime.fromisoformat(data['collected_at'])
+        age = (datetime.datetime.now(datetime.timezone.utc) - at).total_seconds()
+        if data['schema_version'] != 1 or not -60 <= age <= 600:
+            raise ValueError('stale snapshot')
+        result = {}
+        for key in ('security', 'access'):
+            value = data['items'][key]
+            if value.get('status') not in ('ok', 'unknown'):
+                raise ValueError('invalid status')
+            result[key] = {**value, 'collected_at': at.isoformat()}
+        return result
+    except (OSError, ValueError, KeyError, TypeError):
+        return {key: item(status='unknown') for key in ('security', 'access')}
 
 def item(value=None, status='ok'):
     return {'status': status, 'value': value}
@@ -49,8 +72,8 @@ def collect():
         items['friday'] = item(state, 'ok' if state == 'active' else 'critical' if state in ('inactive', 'failed') else 'unknown')
     except (OSError, subprocess.SubprocessError):
         items['friday'] = item(status='unknown')
-    # Docker socket access is effectively host administration; do not grant it.
-    items['asrobot_container'] = {'status': 'unknown', 'value': None, 'reason': 'not_monitored', 'explanation': '容器状态未纳入检查，不代表容器停止或采集失败；重复查询不会改变监控范围。'}
+    # Omit unsupported Docker checks rather than adding a permanent warning.
+    items.update(activity_items())
     try:
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
         with opener.open(WEBSITE, timeout=3) as response:

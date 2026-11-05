@@ -154,7 +154,7 @@ func renderMorning(s MorningSnapshot, v MorningOutput) string {
 	mails := []string{}
 	for _, d := range v.MailDecisions {
 		if *d.Notify {
-			mails = append(mails, d.Summary)
+			mails = append(mails, morningFragment(d.Summary))
 		}
 	}
 	mailText := "昨晚没有需要特别提醒的邮件"
@@ -197,7 +197,7 @@ func renderMorning(s MorningSnapshot, v MorningOutput) string {
 	}
 	news := []string{}
 	for _, n := range v.News {
-		news = append(news, n.Summary)
+		news = append(news, morningFragment(n.Summary))
 	}
 	newsText := "过去24小时暂时没找到新的AI消息"
 	if len(news) > 0 {
@@ -215,7 +215,13 @@ func renderMorning(s MorningSnapshot, v MorningOutput) string {
 func morningSentence(s string) string {
 	s = singleLine(s)
 	s = strings.NewReplacer("。", "；", "！", "；", "？", "；").Replace(s)
-	return strings.TrimRight(s, "；;，, .!?！？") + "。"
+	return morningFragment(s) + "。"
+}
+
+// Summaries may already be complete sentences. Remove their closing punctuation
+// before joining them so the host's separator cannot create an empty clause.
+func morningFragment(s string) string {
+	return strings.TrimRight(singleLine(s), "；;，,。.!?！？ \t")
 }
 func morningCourses(s MorningSnapshot) string {
 	if s.CourseStatus != "ok" {

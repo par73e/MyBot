@@ -55,7 +55,7 @@ func TestServerHealthFreshness(t *testing.T) {
 
 func TestServerHealthDescriptionExplainsUnmonitoredAndNoThresholds(t *testing.T) {
 	text := (ServerHealthTool{}).Description()
-	for _, phrase := range []string{"not_monitored", "deliberately not checked", "no good/bad", "do not claim overall healthy"} {
+	for _, phrase := range []string{"not_monitored", "Omit Docker", "SSH protection", "unique IPs include bots", "no good/bad", "do not claim overall healthy"} {
 		if !strings.Contains(text, phrase) {
 			t.Fatalf("missing interpretation boundary %q", phrase)
 		}
