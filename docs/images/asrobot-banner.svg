@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="title desc">
+  <title id="title">AS Robot</title>
+  <desc id="desc">AS Robot 紫色品牌横幅。网页配置、微信对话，让私人助手各归其位。</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2=".6"><stop stop-color="#f7f6ff"/><stop offset="1" stop-color="#e6e1ff"/></linearGradient>
+    <linearGradient id="bot" x2=".8" y2="1"><stop stop-color="#8b71ef"/><stop offset="1" stop-color="#4f35c9"/></linearGradient>
+    <linearGradient id="face" x2="1" y2="1"><stop stop-color="#29234e"/><stop offset="1" stop-color="#15112f"/></linearGradient>
+  </defs>
+  <rect width="1280" height="420" rx="28" fill="url(#bg)"/>
+  <g fill="none" stroke="#c6baef" opacity=".65">
+    <circle cx="1030" cy="208" r="234"/><circle cx="1030" cy="208" r="184"/><circle cx="1030" cy="208" r="134"/>
+    <path d="M730 420Q825 120 1220 0"/>
+  </g>
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans CJK SC','Microsoft YaHei',sans-serif">
+    <rect x="72" y="66" width="38" height="4" rx="2" fill="#7054dc"/>
+    <text x="126" y="74" fill="#766c98" font-size="16" font-weight="600" letter-spacing="2">YOUR PERSONAL AI ASSISTANT</text>
+    <text x="67" y="210" font-size="108" font-weight="750" letter-spacing="-5" fill="#242039">AS <tspan fill="#6545d5">Robot</tspan></text>
+    <text x="74" y="270" font-size="27" fill="#5f5779">让私人助手，各归其位。</text>
+    <g fill="#766c98" font-size="15" font-weight="500">
+      <text x="74" y="354">WEB + WECHAT</text>
+      <circle cx="233" cy="349" r="2" fill="#b5a7da"/>
+      <text x="253" y="354">MEMORY</text>
+      <circle cx="349" cy="349" r="2" fill="#b5a7da"/>
+      <text x="369" y="354">REMINDERS</text>
+    </g>
+  </g>
+  <ellipse cx="1015" cy="337" rx="122" ry="17" fill="#c4b7e8" opacity=".45"/>
+  <g transform="translate(898 98)">
+    <path d="M117 19V-1" stroke="#7559d8" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="117" cy="-8" r="12" fill="#8c70e9"/>
+    <rect x="-14" y="79" width="30" height="66" rx="15" fill="#a58ce9"/>
+    <rect x="216" y="79" width="30" height="66" rx="15" fill="#a58ce9"/>
+    <rect x="0" y="25" width="232" height="182" rx="58" fill="url(#bot)"/>
+    <rect x="17" y="39" width="198" height="151" rx="46" fill="#f5f1ff"/>
+    <rect x="30" y="52" width="172" height="125" rx="36" fill="url(#face)"/>
+    <ellipse cx="81" cy="107" rx="15" ry="21" fill="#b9a2ff"/>
+    <ellipse cx="152" cy="107" rx="15" ry="21" fill="#b9a2ff"/>
+    <circle cx="85" cy="101" r="5" fill="#fff"/><circle cx="156" cy="101" r="5" fill="#fff"/>
+    <path d="M102 141q15 10 30 0" fill="none" stroke="#b9a2ff" stroke-width="5" stroke-linecap="round"/>
+    <rect x="86" y="207" width="60" height="12" rx="6" fill="#8c70e9"/>
+  </g>
+  <circle cx="1218" cy="197" r="8" fill="#b19bea"/>
+  <circle cx="849" cy="106" r="5" fill="#ab94e7"/>
+  <path d="M1190 65v18m-9-9h18" stroke="#a78ede" stroke-width="3" stroke-linecap="round"/>
+</svg>
