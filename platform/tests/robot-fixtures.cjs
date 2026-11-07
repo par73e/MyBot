@@ -416,6 +416,8 @@ const fixtures = {
   assistant_ai_news: {
     latest: {
       message: "近期 AI 简报\n一项新的模型推理研究公布了实验结果。",
+      source: "weixin",
+      generated_at: "2026-11-07T01:20:00Z",
       snapshot: { id: "news1" },
       output: { events: [] },
     },

@@ -304,7 +304,11 @@ func (o *turnOrchestrator) runOrchestratedTurn(ctx context.Context, turn orchest
 		}
 		return err
 	}
-	return o.executeApprovedPlan(ctx)
+	err = o.executeApprovedPlan(ctx)
+	if err == nil && !turn.synthetic {
+		c.recordCompletedNewsTurn(ctx, startMessages)
+	}
+	return err
 }
 
 func (o *turnOrchestrator) executeApprovedPlan(ctx context.Context) error {

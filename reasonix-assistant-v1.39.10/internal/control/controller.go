@@ -2053,6 +2053,9 @@ func (c *Controller) runReady(ctx context.Context, input string) (err error) {
 		return err
 	}
 	err = c.runModelTurn(ctx, modelInput)
+	if err == nil {
+		c.recordCompletedNewsTurn(ctx, startMessages)
+	}
 	return err
 }
 

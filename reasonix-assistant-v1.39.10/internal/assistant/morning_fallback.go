@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"reasonix/internal/heartbeat"
 )
@@ -149,7 +150,7 @@ func (s MorningService) Fallback(ctx context.Context, t heartbeat.Task, raw stri
 		}
 		return saveEntity(ctx, tx, "morning_result", courseReadID(t.ID, t.RunStartedAt), map[string]any{
 			"snapshot": snap, "output": out, "message": message, "fallback": true,
-			"displayed_mail_ids": displayed, "weather_reference": weatherRef,
+			"displayed_mail_ids": displayed, "weather_reference": weatherRef, "generated_at": s.now().UTC().Format(time.RFC3339Nano),
 		})
 	})
 	return message, err

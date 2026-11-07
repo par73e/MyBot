@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reasonix/internal/heartbeat"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -38,7 +39,7 @@ func (s HotNewsService) Finalize(ctx context.Context, t heartbeat.Task, raw stri
 		return "", e
 	}
 	text := renderNewsBriefing(snap, output)
-	result := map[string]any{"snapshot": snap, "output": output, "message": text}
+	result := map[string]any{"snapshot": snap, "output": output, "message": text, "generated_at": s.now().UTC().Format(time.RFC3339Nano)}
 	e = NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
 		return saveEntity(ctx, tx, "ai_news_result", courseReadID(t.ID, t.RunStartedAt), result)
 	})
@@ -136,13 +137,22 @@ func (s HotNewsService) Acknowledge(ctx context.Context, t heartbeat.Task, r hea
 	}
 	return NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
 		var raw string
-		var v any
+		var v map[string]any
 		if e := tx.QueryRowContext(ctx, "SELECT payload FROM assistant_entities WHERE kind='ai_news_result' AND id=?", courseReadID(t.ID, r.StartedAt)).Scan(&raw); e != nil {
 			return e
 		}
 		if e := json.Unmarshal([]byte(raw), &v); e != nil {
 			return e
 		}
-		return saveEntity(ctx, tx, "ai_news_delivered", t.ID, v)
+		if err := saveEntity(ctx, tx, "ai_news_delivered", t.ID, v); err != nil {
+			return err
+		}
+		v["available"] = true
+		v["source"] = "scheduled"
+		v["delivered_at"] = s.now().UTC().Format(time.RFC3339Nano)
+		if v["generated_at"] == nil {
+			v["generated_at"] = time.UnixMilli(r.StartedAt).UTC().Format(time.RFC3339Nano)
+		}
+		return saveEntity(ctx, tx, "ai_news_report", "scheduled-"+courseReadID(t.ID, r.StartedAt), v)
 	})
 }

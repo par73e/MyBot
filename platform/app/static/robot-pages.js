@@ -1694,6 +1694,10 @@ async function robotGitHub(el) {
 async function robotNews(el) {
   const latest = await robotRead("assistant_ai_news", { action: "latest" }),
     d = latest.value;
+  const source = {weixin: "微信主动查询", web: "网页主动查询", scheduled: "自动播报", morning: "早安播报"}[d?.source] || (d?.source ? "助手查询" : "自动播报（历史记录）");
+  const metadata = d?.message || d?.output?.events?.length
+    ? `<p class="muted">${esc(source)}${d?.generated_at ? ` · ${esc(robotTime(d.generated_at))}` : " · 生成时间未记录"}</p>`
+    : "";
   const message = robotText(d?.message),
     events = robotRows(d?.output?.events || d?.events || d?.report?.events);
   robotPage(
@@ -1701,15 +1705,17 @@ async function robotNews(el) {
     "assistant_ai_news",
     robotPanel(
       "最近一期简报",
-      message
+      metadata + (latest.error
+        ? robotEmpty("暂时无法读取最近简报，请点击上方刷新重试。")
+        : message
         ? `<div class="robot-prose">${esc(message)}</div>`
         : events.length
           ? events
               .map((e) => robotArticle(e.title, `<p>${esc(e.summary)}</p>`))
               .join("")
           : robotEmpty(
-              "暂时没有可读取的已播报简报。可以阅读当前新闻候选，或安排自动播报。",
-            ),
+              "暂时没有完整简报。早安新闻、微信或网页主动查询、自动播报完成后，最新一期会显示在这里。",
+            )),
     ) +
       robotPanel(
         "阅读新闻",

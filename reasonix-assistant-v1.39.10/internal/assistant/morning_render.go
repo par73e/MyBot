@@ -65,7 +65,7 @@ func (s MorningService) Finalize(ctx context.Context, t heartbeat.Task, raw stri
 			displayed = append(displayed, d.ID)
 		}
 	}
-	result := map[string]any{"snapshot": snap, "output": v, "message": message, "displayed_mail_ids": displayed, "weather_reference": weatherRef}
+	result := map[string]any{"snapshot": snap, "output": v, "message": message, "displayed_mail_ids": displayed, "weather_reference": weatherRef, "generated_at": s.now().UTC().Format(time.RFC3339Nano)}
 	e = NewRepository(s.Home).transact(ctx, func(tx *sql.Tx) error {
 		return saveEntity(ctx, tx, "morning_result", courseReadID(t.ID, t.RunStartedAt), result)
 	})

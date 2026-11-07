@@ -659,6 +659,7 @@ func (b *bridge) chat(ctx context.Context, text string) (any, error) {
 			env[k] = v
 		}
 	}
+	env["ASROBOT_FOREGROUND_SOURCE"] = "web"
 	for k, v := range env {
 		cmd.Env = append(cmd.Env, k+"="+v)
 	}

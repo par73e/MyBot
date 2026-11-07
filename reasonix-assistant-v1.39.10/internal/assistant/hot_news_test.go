@@ -107,7 +107,7 @@ func TestHotNewsRequiresBoundListAndAllSelectedReads(t *testing.T) {
 	}
 	t.Setenv("REASONIX_ASSISTANT_NEWS_BACKGROUND", "")
 	latest, e := tool.Execute(t.Context(), json.RawMessage(`{"action":"latest"}`))
-	if e != nil || !strings.Contains(latest, ids[1]) {
+	if e != nil || !strings.Contains(latest, ids[1]) || !strings.Contains(latest, `"source":"scheduled"`) || !strings.Contains(latest, `"generated_at":`) {
 		t.Fatal(latest, e)
 	}
 	for _, count := range []int{50, 51} {

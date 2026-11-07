@@ -6,13 +6,14 @@ const vm = require("node:vm");
 const { JSDOM } = require("jsdom");
 const { endpoint, fixtures } = require("./robot-fixtures.cjs");
 const staticDir = path.resolve(__dirname, "../app/static");
-async function browser(override) {
+async function browser(override, url = "http://localhost/asrobot/", storage = {}) {
   const dom = new JSDOM('<div id="notice"></div><div id="root"></div>', {
-      url: "http://localhost/asrobot/",
+      url,
       runScripts: "outside-only",
     }),
     w = dom.window,
     calls = [];
+  for (const [key,value] of Object.entries(storage)) w.sessionStorage.setItem(key,value);
   w.HTMLElement.prototype.scrollIntoView = function () {};
   w.scrollTo = () => {};
   w.confirm = () => true;
@@ -334,4 +335,84 @@ test("health shows activity counts and omits unmonitored Docker, including legac
     assert.match(text, /独立域名未启用访问日志/);
     assert.doesNotMatch(text, /Docker|容器|总体：|\[object Object\]/);
   } finally {b.close();}
+});
+
+test("refresh restores top-level and native routes, and browser history follows navigation", async () => {
+  const b = await browser();
+  try {
+    await b.w.eval("go('history')");
+    assert.equal(b.w.location.hash, "#/history");
+    const reloaded = await browser(undefined, b.w.location.href);
+    try { assert.equal(reloaded.w.eval("page"), "history"); assert.equal(reloaded.w.document.body.className, "page-history"); } finally { reloaded.close(); }
+    await b.w.eval("robotNavigate('assistant_ai_news')");
+    assert.equal(b.w.location.hash, "#/native/assistant_ai_news");
+    const news = await browser(undefined, b.w.location.href);
+    try { assert.equal(news.w.eval("selectedNativeModule"), "assistant_ai_news"); assert.ok(news.el().textContent.includes("最近一期简报")); } finally { news.close(); }
+    b.w.history.back();
+    await new Promise(r=>setTimeout(r,40));
+    assert.equal(b.w.eval("page"), "history");
+  } finally { b.close(); }
+});
+test("invalid routes are bounded and must-change accounts stay on the account page", async () => {
+  for(const hash of ["#/bad", "#/native/not-a-tool"]){
+    const b=await browser(undefined,"http://localhost/asrobot/"+hash);
+    try { assert.equal(b.w.eval("selectedNativeModule"),null);assert.ok(!b.el().querySelector(".inline-error")); }finally{b.close();}
+  }
+  const b=await browser((p,body)=>p==="/me"?{user:{...endpoint(p,body).user,must_change:true},csrf:"test"}:endpoint(p,body),"http://localhost/asrobot/#/history");
+  try{assert.equal(b.w.eval("page"),"account");assert.equal(b.w.location.hash,"#/account");}finally{b.close();}
+});
+test("latest news labels each origin and generation time without exposing raw fields", async () => {
+  for(const [source,label] of Object.entries({weixin:"微信主动查询",web:"网页主动查询",scheduled:"自动播报",morning:"早安播报"})){
+    const b=await browser((p,body)=>{
+      const result=endpoint(p,body);
+      if(p==="/native/tool"&&body.tool==="assistant_ai_news"&&body.args?.action==="latest")return {...result,source,generated_at:"2026-11-07T01:20:00Z"};
+      return result;
+    });
+    try{await b.w.eval("robotNavigate('assistant_ai_news')");assert.ok(b.el().textContent.includes(label),b.el().textContent);assert.ok(b.el().textContent.includes("2026"));}finally{b.close();}
+  }
+});
+
+test("a temporary module-catalog failure preserves the requested route", async()=>{
+  const b=await browser((p,body)=>{if(p==="/native/tools")throw Error("temporary failure");return endpoint(p,body)},"http://localhost/asrobot/#/native/assistant_ai_news");
+  try{assert.equal(b.w.location.hash,"#/native/assistant_ai_news");assert.equal(b.w.eval("selectedNativeModule"),"assistant_ai_news");}finally{b.close();}
+});
+test("news read failures are shown as failures rather than an empty report history",async()=>{
+  const b=await browser((p,body)=>{if(p==="/native/tool"&&body.tool==="assistant_ai_news"&&body.args?.action==="latest")throw Error("temporary failure");return endpoint(p,body)});
+  try{await b.w.eval("robotNavigate('assistant_ai_news')");assert.ok(b.el().textContent.includes("暂时无法读取最近简报"));assert.ok(!b.el().textContent.includes("暂时没有完整简报"));}finally{b.close();}
+});
+
+test("reload restores sidebar expansion and show-all state for the same account", async()=>{
+  const b=await browser();
+  try{
+    b.w.document.querySelector(".module-toggle").click();
+    b.w.document.querySelector("[data-module-more]").click();
+    await b.w.eval("robotNavigate('assistant_ai_news')");
+    const key="asrobot:navigation:test-owner";
+    const storage={[key]:b.w.sessionStorage.getItem(key)};
+    const reloaded=await browser(undefined,b.w.location.href,storage);
+    try{
+      assert.equal(reloaded.w.document.querySelector(".module-toggle").getAttribute("aria-expanded"),"true");
+      assert.equal(reloaded.w.document.querySelector("[data-module-more]").getAttribute("aria-expanded"),"true");
+      assert.ok(reloaded.w.document.querySelector('[data-module-native="assistant_ai_news"]'));
+      assert.equal(reloaded.w.eval("selectedNativeModule"),"assistant_ai_news");
+      reloaded.w.document.querySelector(".module-toggle").click();
+      const closed=await browser(undefined,reloaded.w.location.href,{[key]:reloaded.w.sessionStorage.getItem(key)});
+      try{assert.equal(closed.w.document.querySelector(".module-toggle").getAttribute("aria-expanded"),"false");}finally{closed.close();}
+    }finally{reloaded.close();}
+  }finally{b.close();}
+});
+test("sidebar preferences are account scoped and tolerate malformed stored state", async()=>{
+  for(const storage of [
+    {"asrobot:navigation:someone-else":JSON.stringify({open:true,all:true})},
+    {"asrobot:navigation:test-owner":"not-json"},
+    {"asrobot:navigation:test-owner":JSON.stringify({open:"true",all:"true"})}
+  ]){
+    const b=await browser(undefined,"http://localhost/asrobot/",storage);
+    try{assert.equal(b.w.eval("moduleMenuOpen"),false);assert.equal(b.w.eval("moduleMenuAll"),false);assert.ok(!b.el().querySelector(".inline-error"));}finally{b.close();}
+  }
+});
+
+test("a deep-linked module is revealed until the account explicitly chooses a collapsed menu",async()=>{
+  const b=await browser(undefined,"http://localhost/asrobot/#/native/assistant_ai_news");
+  try{assert.equal(b.w.eval("moduleMenuOpen"),true);assert.equal(b.w.eval("moduleMenuAll"),true);assert.ok(b.w.document.querySelector('aside nav [data-module-native="assistant_ai_news"]'));}finally{b.close();}
 });
